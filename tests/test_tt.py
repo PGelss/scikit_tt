@@ -97,15 +97,15 @@ class TestTT(TestCase):
 
     def test_operator(self):
         """test operator check"""
-        T_check = self.T.isOperator()  # check T
+        T_check = self.T.isoperator()  # check T
         cores = [np.random.rand(self.T.ranks[i], self.T.row_dims[i], 1, self.T.ranks[i + 1]) for i in
                  range(self.T.order)]  # define cores
         U = scikit_tt.TT(cores)  # construct tensor train
-        U_check = U.isOperator()  # check U
+        U_check = U.isoperator()  # check U
         cores = [np.random.rand(self.T.ranks[i], 1, self.T.col_dims[i], self.T.ranks[i + 1]) for i in
                  range(self.T.order)]  # define cores
         V = scikit_tt.TT(cores)  # construct tensor train
-        V_check = V.isOperator()  # check V
+        V_check = V.isoperator()  # check V
         self.assertTrue(T_check)
         self.assertFalse(U_check)
         self.assertFalse(V_check)

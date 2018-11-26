@@ -4,7 +4,10 @@
     <bookmark url="file://$PROJECT_DIR$/examples/example_mandy_kuramoto.py" line="154" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="64e786d7-c64e-47a5-aa0f-5fc4ded105ef" name="Default" comment="" />
+    <list default="true" id="64e786d7-c64e-47a5-aa0f-5fc4ded105ef" name="Default" comment="">
+      <change beforePath="$PROJECT_DIR$/scikit_tt/tt.py" beforeDir="false" afterPath="$PROJECT_DIR$/scikit_tt/tt.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/test_tt.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/test_tt.py" afterDir="false" />
+    </list>
     <ignored path="scikit_tt.iws" />
     <ignored path=".idea/workspace.xml" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -25,7 +28,7 @@
     <SUITE FILE_PATH="coverage/scikit_tt$example_mandy_fpu_2.coverage" NAME="example_mandy_fpu_2 Coverage Results" MODIFIED="1525879650841" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/examples" />
     <SUITE FILE_PATH="coverage/scikit_tt$__init__.coverage" NAME="__init__ Coverage Results" MODIFIED="1523615603421" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tools" />
     <SUITE FILE_PATH="coverage/scikit_tt$example_triple_well.coverage" NAME="example_triple_well Coverage Results" MODIFIED="1542900744601" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/examples" />
-    <SUITE FILE_PATH="coverage/scikit_tt$Unittests_in_test_tt_py__1_.coverage" NAME="Unittests in test_tt.py (1) Coverage Results" MODIFIED="1543233100282" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tests" />
+    <SUITE FILE_PATH="coverage/scikit_tt$Unittests_in_test_tt_py__1_.coverage" NAME="Unittests in test_tt.py (1) Coverage Results" MODIFIED="1543246258399" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tests" />
     <SUITE FILE_PATH="coverage/scikit_tt$example_signaling_cascade.coverage" NAME="example_signaling_cascade Coverage Results" MODIFIED="1540482712510" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/examples" />
     <SUITE FILE_PATH="coverage/scikit_tt$example_mandy_fpu.coverage" NAME="example_mandy_fpu_1 Coverage Results" MODIFIED="1524145902665" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/examples" />
     <SUITE FILE_PATH="coverage/scikit_tt$example_quadruple_well_3d.coverage" NAME="example_quadruple_well_3d Coverage Results" MODIFIED="1543227756995" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/examples" />
@@ -58,10 +61,22 @@
       <file leaf-file-name="tt.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/scikit_tt/tt.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="225">
-              <caret line="15" column="33" lean-forward="true" selection-start-line="10" selection-start-column="4" selection-end-line="15" selection-end-column="33" />
+            <state relative-caret-position="281">
+              <caret line="767" column="15" lean-forward="true" selection-start-line="767" selection-start-column="12" selection-end-line="767" selection-end-column="15" />
               <folding>
                 <element signature="e#48#60#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="example_signaling_cascade.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/examples/example_signaling_cascade.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="120">
+              <caret line="37" column="65" selection-start-line="37" selection-start-column="65" selection-end-line="37" selection-end-column="65" />
+              <folding>
+                <element signature="e#48#66#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -70,8 +85,8 @@
       <file leaf-file-name="test_tt.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/tests/test_tt.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="225">
-              <caret line="15" column="53" selection-start-line="15" selection-start-column="53" selection-end-line="15" selection-end-column="53" />
+            <state relative-caret-position="278">
+              <caret line="107" column="23" selection-start-line="107" selection-start-column="23" selection-end-line="107" selection-end-column="23" />
               <folding>
                 <element signature="e#48#66#0" expanded="true" />
               </folding>
@@ -82,8 +97,8 @@
       <file leaf-file-name="SLIM.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/slim/SLIM.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="450">
-              <caret line="54" selection-start-line="54" selection-end-line="54" />
+            <state relative-caret-position="-405">
+              <caret line="33" column="79" lean-forward="true" selection-start-line="33" selection-start-column="79" selection-end-line="33" selection-end-column="82" />
               <folding>
                 <element signature="e#48#66#0" expanded="true" />
               </folding>
@@ -94,8 +109,8 @@
       <file leaf-file-name="example_quadruple_well_3d.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/examples/example_quadruple_well_3d.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="150">
-              <caret line="10" column="104" lean-forward="true" selection-start-line="9" selection-end-line="10" selection-end-column="104" />
+            <state relative-caret-position="-1365">
+              <caret line="23" column="12" lean-forward="true" selection-start-line="23" selection-start-column="12" selection-end-line="23" selection-end-column="12" />
               <folding>
                 <element signature="e#430#448#0" expanded="true" />
               </folding>
@@ -181,7 +196,6 @@
         <option value="$PROJECT_DIR$/examples/example_mandy_chua.py" />
         <option value="$PROJECT_DIR$/examples/example_mandy_kuramoto.py" />
         <option value="$PROJECT_DIR$/tests/test_mandy.py" />
-        <option value="$PROJECT_DIR$/tests/test_tt.py" />
         <option value="$PROJECT_DIR$/models/signaling_cascade.py" />
         <option value="$PROJECT_DIR$/examples/example_two_step_destruction.py" />
         <option value="$PROJECT_DIR$/examples/example_signaling_cascade.py" />
@@ -194,6 +208,7 @@
         <option value="$PROJECT_DIR$/examples/example_triple_well.py" />
         <option value="$PROJECT_DIR$/solvers/EVP.py" />
         <option value="$PROJECT_DIR$/examples/example_quadruple_well_3d.py" />
+        <option value="$PROJECT_DIR$/tests/test_tt.py" />
         <option value="$PROJECT_DIR$/scikit_tt/tt.py" />
       </list>
     </option>
@@ -222,6 +237,11 @@
             <path>
               <item name="scikit_tt" type="b2602c69:ProjectViewProjectNode" />
               <item name="scikit_tt" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="scikit_tt" type="b2602c69:ProjectViewProjectNode" />
+              <item name="scikit_tt" type="462c0819:PsiDirectoryNode" />
+              <item name="examples" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="scikit_tt" type="b2602c69:ProjectViewProjectNode" />
@@ -574,24 +594,6 @@
     <servers />
   </component>
   <component name="TestHistory">
-    <history-entry file="Unittests_in_test_tt_py_(1) - 2018.08.09 at 13h 21m 25s.xml">
-      <configuration name="Unittests in test_tt.py (1)" configurationId="tests" />
-    </history-entry>
-    <history-entry file="Unittests_in_test_tt_py_(1) - 2018.08.09 at 13h 21m 28s.xml">
-      <configuration name="Unittests in test_tt.py (1)" configurationId="tests" />
-    </history-entry>
-    <history-entry file="Unittests_in_test_tt_py_(1) - 2018.08.09 at 14h 08m 40s.xml">
-      <configuration name="Unittests in test_tt.py (1)" configurationId="tests" />
-    </history-entry>
-    <history-entry file="Unittests_in_test_tt_py_(1) - 2018.08.09 at 14h 08m 44s.xml">
-      <configuration name="Unittests in test_tt.py (1)" configurationId="tests" />
-    </history-entry>
-    <history-entry file="Unittests_in_test_tt_py_(1) - 2018.08.09 at 14h 08m 47s.xml">
-      <configuration name="Unittests in test_tt.py (1)" configurationId="tests" />
-    </history-entry>
-    <history-entry file="Unittests_in_test_tt_py_(1) - 2018.08.09 at 14h 08m 50s.xml">
-      <configuration name="Unittests in test_tt.py (1)" configurationId="tests" />
-    </history-entry>
     <history-entry file="Unittests_in_test_tt_py_(1) - 2018.08.09 at 14h 44m 51s.xml">
       <configuration name="Unittests in test_tt.py (1)" configurationId="tests" />
     </history-entry>
@@ -602,6 +604,24 @@
       <configuration name="Unittests in test_tt.py (1)" configurationId="tests" />
     </history-entry>
     <history-entry file="Unittests_in_test_tt_py_(1) - 2018.11.26 at 12h 51m 42s.xml">
+      <configuration name="Unittests in test_tt.py (1)" configurationId="tests" />
+    </history-entry>
+    <history-entry file="Unittests_in_test_tt_py_(1) - 2018.11.26 at 16h 03m 33s.xml">
+      <configuration name="Unittests in test_tt.py (1)" configurationId="tests" />
+    </history-entry>
+    <history-entry file="Unittests_in_test_tt_py_(1) - 2018.11.26 at 16h 03m 50s.xml">
+      <configuration name="Unittests in test_tt.py (1)" configurationId="tests" />
+    </history-entry>
+    <history-entry file="Unittests_in_test_tt_py_(1) - 2018.11.26 at 16h 04m 02s.xml">
+      <configuration name="Unittests in test_tt.py (1)" configurationId="tests" />
+    </history-entry>
+    <history-entry file="Unittests_in_test_tt_py_(1) - 2018.11.26 at 16h 10m 24s.xml">
+      <configuration name="Unittests in test_tt.py (1)" configurationId="tests" />
+    </history-entry>
+    <history-entry file="Unittests_in_test_tt_py_(1) - 2018.11.26 at 16h 17m 23s.xml">
+      <configuration name="Unittests in test_tt.py (1)" configurationId="tests" />
+    </history-entry>
+    <history-entry file="Unittests_in_test_tt_py_(1) - 2018.11.26 at 16h 31m 01s.xml">
       <configuration name="Unittests in test_tt.py (1)" configurationId="tests" />
     </history-entry>
   </component>
@@ -624,16 +644,16 @@
       <window_info anchor="bottom" id="Database Changes" order="7" show_stripe_button="false" />
       <window_info anchor="bottom" id="Version Control" order="8" />
       <window_info anchor="bottom" id="Python Console" order="9" sideWeight="0.49520767" weight="0.32917467" />
-      <window_info active="true" anchor="bottom" x="30" y="285" width="1878" height="466" id="Run" order="13" sideWeight="0.49307775" visible="true" weight="0.49183476" />
+      <window_info anchor="bottom" x="30" y="285" width="1878" height="466" id="Run" order="13" sideWeight="0.49307775" visible="true" weight="0.49183476" />
       <window_info anchor="bottom" id="Terminal" order="10" weight="0.32917467" />
-      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.48833594" visible="true" weight="0.14323749" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" sideWeight="0.48833594" visible="true" weight="0.14323749" />
       <window_info anchor="bottom" id="Docker" order="11" show_stripe_button="false" weight="0.32917467" />
       <window_info anchor="right" id="Database" order="5" weight="0.32960597" />
       <window_info anchor="bottom" id="Find" order="1" weight="0.32917467" />
       <window_info anchor="right" id="SciView" order="4" sideWeight="0.6407465" visible="true" weight="0.29233226" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" sideWeight="0.5116641" side_tool="true" weight="0.19755058" />
-      <window_info anchor="bottom" id="Debug" order="2" sideWeight="0.49946752" weight="0.39923224" />
+      <window_info anchor="bottom" id="Debug" order="2" sideWeight="0.49946752" weight="0.39865515" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="3" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="4" weight="0.4" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="1" type="SLIDING" weight="0.4" />
@@ -963,16 +983,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/examples/example_signaling_cascade.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-270">
-          <caret line="3" selection-start-line="3" selection-end-line="8" selection-end-column="19" />
-          <folding>
-            <element signature="e#48#66#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/solvers/ODE.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1020">
@@ -1010,16 +1020,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/examples/example_quadruple_well_3d.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="150">
-          <caret line="10" column="104" lean-forward="true" selection-start-line="9" selection-end-line="10" selection-end-column="104" />
-          <folding>
-            <element signature="e#430#448#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/examples/example_triple_well.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="973">
@@ -1030,20 +1030,40 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/slim/SLIM.py">
+    <entry file="file://$PROJECT_DIR$/tests/test_tt.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="450">
-          <caret line="54" selection-start-line="54" selection-end-line="54" />
+        <state relative-caret-position="278">
+          <caret line="107" column="23" selection-start-line="107" selection-start-column="23" selection-end-line="107" selection-end-column="23" />
           <folding>
             <element signature="e#48#66#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/tests/test_tt.py">
+    <entry file="file://$PROJECT_DIR$/examples/example_signaling_cascade.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="225">
-          <caret line="15" column="53" selection-start-line="15" selection-start-column="53" selection-end-line="15" selection-end-column="53" />
+        <state relative-caret-position="120">
+          <caret line="37" column="65" selection-start-line="37" selection-start-column="65" selection-end-line="37" selection-end-column="65" />
+          <folding>
+            <element signature="e#48#66#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/examples/example_quadruple_well_3d.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-1365">
+          <caret line="23" column="12" lean-forward="true" selection-start-line="23" selection-start-column="12" selection-end-line="23" selection-end-column="12" />
+          <folding>
+            <element signature="e#430#448#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/slim/SLIM.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-405">
+          <caret line="33" column="79" lean-forward="true" selection-start-line="33" selection-start-column="79" selection-end-line="33" selection-end-column="82" />
           <folding>
             <element signature="e#48#66#0" expanded="true" />
           </folding>
@@ -1052,8 +1072,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/scikit_tt/tt.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="225">
-          <caret line="15" column="33" lean-forward="true" selection-start-line="10" selection-start-column="4" selection-end-line="15" selection-end-column="33" />
+        <state relative-caret-position="281">
+          <caret line="767" column="15" lean-forward="true" selection-start-line="767" selection-start-column="12" selection-end-line="767" selection-end-column="15" />
           <folding>
             <element signature="e#48#60#0" expanded="true" />
           </folding>
