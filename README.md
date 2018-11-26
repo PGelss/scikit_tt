@@ -4,7 +4,7 @@ A toolbox for tensor train calculations.
 
 ## Short description
 
-
+The simulation and analysis of high-dimensional problems is often infeasible due to the curse of dimensionality. Using the TT format and tensor-based solvers, scikit_tt can be applied to various numerical problems in order to reduce the memory consumption and the computational costs compared to classical approaches significantly. Possible application areas are the computation of low-rank approximations for high-dimensional systems, solving systems of linear equations and eigenvalue problems in the TT format, representing operators based on nearest-neighbor interactions in the TT format, constructing pseudoinverses for tensor-based reformulations of dimensionality reduction methods, and the approximation of transfer operators as well as governing equations of dynamical systems.
 
 ## Content
 
