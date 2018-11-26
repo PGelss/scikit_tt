@@ -18,7 +18,7 @@ class TT(object):
     Parameters
     ----------
     X: ndarray or list of ndarrays
-        describe this parameter.
+        either a full tensor or a list of TT cores
 
     Attributes
     ----------
@@ -31,138 +31,257 @@ class TT(object):
     ranks: list of ints
         list of the ranks of the tensor train
     cores: list of ndarrays
-        list of the cores of the tensor train
-        core[i] has dimensions ranks[i] x row_dims[i] x col_dims[i] x ranks[i+1]
+        list of the cores of the tensor train (core[i] has dimensions ranks[i] x row_dims[i] x col_dims[i] x ranks[i+1])
 
     References
     ----------
     .. [1] I. V. Oseledets, "Tensor-Train Decomposition", SIAM Journal on Scientific Computing, 2009
-    .. [2] P. Gelß, "The Tensor-Train Format and Its Applications", dissertation, FU Berlin, 2017
-
+    .. [2] P. Gelß. "The Tensor-Train Format and Its Applications: Modeling and Analysis of Chemical Reaction
+           Networks, Catalytic Processes, Fluid Flows, and Brownian Dynamics", Freie Universität Berlin, 2017
     """
 
     def __init__(self, X):
-        if isinstance(X, numpy.ndarray):  # initialize from full array
-            order = len(X.shape) // 2  # X is an array with dimensions m_1 x ... x m_d x n_1 x ... x n_d
-            row_dims = X.shape[:order]  # define row dimensions
-            col_dims = X.shape[order:]  # define column dimensions
-            p = [order * j + i for i in range(order) for j in range(2)]  # e.g., for d = 4: p = [0, 4, 1, 5, 2, 6, 3, 7]
-            Y = numpy.transpose(X, p).copy()  # permute dimensions of X and store as Y
-            ranks = [1] * (order + 1)  # set r = [1, 1, ... , 1]
-            cores = [None] * order  # set cores = [None, None, ... , None]
-            for i in range(order - 1):  # decompose Y
-                m = ranks[i] * row_dims[i] * col_dims[i]  # define row dimensions
-                n = numpy.prod(row_dims[i + 1:]) * numpy.prod(col_dims[i + 1:])  # define column dimensions
-                Y = numpy.reshape(Y, [m, n])  # reshape Y
-                [U, S, V] = scipy.linalg.svd(Y, full_matrices=False)  # apply SVD
-                ranks[i + 1] = U.shape[1]  # define new rank
-                cores[i] = numpy.reshape(U, [ranks[i], row_dims[i], col_dims[i], ranks[i + 1]])  # define new core
-                Y = numpy.diag(S) @ V  # set Y to residual tensor
-            cores[-1] = numpy.reshape(Y, [ranks[-2], row_dims[-1], col_dims[-1], 1])  # define last core
-            self.__init__(cores)  # initialize tensor train
 
-        else:  # initialize using list of cores
-            self.order = len(X)  # number of dimensions
-            self.row_dims = [X[i].shape[1] for i in range(self.order)]  # row sizes
-            self.col_dims = [X[i].shape[2] for i in range(self.order)]  # column sizes
-            self.ranks = [X[i].shape[0] for i in range(self.order)] + [1]  # ranks
-            self.cores = X  # cores of the tensor
+        # initialize from full array
+        # --------------------------
+
+        # X is an array with dimensions m_1 x ... x m_d x n_1 x ... x n_d
+
+        if isinstance(X, numpy.ndarray):
+
+            # define order, row dimensions, column dimensions, ranks, and cores
+
+            order = len(X.shape) // 2
+            row_dims = X.shape[:order]
+            col_dims = X.shape[order:]
+            ranks = [1] * (order + 1)
+            cores = [None] * order
+
+            # permute dimensions, e.g., for order = 4: p = [0, 4, 1, 5, 2, 6, 3, 7]
+
+            p = [order * j + i for i in range(order) for j in range(2)]
+            Y = numpy.transpose(X, p).copy()
+
+            # decompose the full tensor
+
+            for i in range(order - 1):
+                # reshape residual tensor
+
+                m = ranks[i] * row_dims[i] * col_dims[i]
+                n = numpy.prod(row_dims[i + 1:]) * numpy.prod(col_dims[i + 1:])
+                Y = numpy.reshape(Y, [m, n])
+
+                # apply SVD in order to isolate modes
+
+                [U, S, V] = scipy.linalg.svd(Y, full_matrices=False)
+
+                # define new TT core
+
+                ranks[i + 1] = U.shape[1]
+                cores[i] = numpy.reshape(U, [ranks[i], row_dims[i], col_dims[i], ranks[i + 1]])
+
+                # set new residual tensor
+
+                Y = numpy.diag(S) @ V
+
+            # define last TT core
+
+            cores[-1] = numpy.reshape(Y, [ranks[-2], row_dims[-1], col_dims[-1], 1])
+
+            # initialize tensor train
+
+            self.__init__(cores)
+
+        # initialize from list of cores
+        # -----------------------------
+
+        else:
+
+            # define order, row dimensions, column dimensions, ranks, and cores
+
+            self.order = len(X)
+            self.row_dims = [X[i].shape[1] for i in range(self.order)]
+            self.col_dims = [X[i].shape[2] for i in range(self.order)]
+            self.ranks = [X[i].shape[0] for i in range(self.order)] + [1]
+            self.cores = X
 
     def __repr__(self):
-        # print attributes
+        """string representation of tensor trains
+
+        Print the attributes of a given tensor train.
+        """
         return ('\n'
                 'Tensor train with order    = {d}, \n'
                 '                  row_dims = {m}, \n'
                 '                  col_dims = {n}, \n'
                 '                  ranks    = {r}'.format(d=self.order, m=self.row_dims, n=self.col_dims, r=self.ranks))
 
-    def __add__(self, tt_tensor):
-        # sum of two tensor trains
-        if isinstance(tt_tensor, TT):
-            d = self.order  # define dimension
-            r = [1] + [self.ranks[i] + tt_tensor.ranks[i] for i in range(1, d)] + [1]  # define new TT ranks
-            cores = [None] * d  # create new core list
-            for i in range(d):  # add cores
-                cores[i] = numpy.zeros([r[i], self.row_dims[i], self.col_dims[i], r[i + 1]])  # set size of array
-                cores[i][0:self.ranks[i], :, :, 0:self.ranks[i + 1]] = self.cores[i]  # insert first core
-                cores[i][r[i] - tt_tensor.ranks[i]:r[i], :, :, r[i + 1] - tt_tensor.ranks[i + 1]:r[i + 1]] = \
-                    tt_tensor.cores[i]  # insert second core
-            return TT(cores)
+    def __add__(self, tt_add):
+        """sum of two tensor trains
+
+        Add two given tensor trains.
+
+        Parameters
+        ----------
+        tt_add: instance of TT class
+            tensor train which is added to self
+
+        Returns
+        -------
+        tt_sum: instance of TT class
+            sum of tt_add and self
+        """
+
+        if isinstance(tt_add, TT):
+
+            # define order, ranks, and cores
+            # ------------------------------
+
+            order = self.order
+            ranks = [1] + [self.ranks[i] + tt_add.ranks[i] for i in range(1, order)] + [1]
+            cores = [None] * order
+
+            # construct cores
+            # ---------------
+
+            for i in range(order):
+                # set core to zero array
+
+                cores[i] = numpy.zeros([ranks[i], self.row_dims[i], self.col_dims[i], ranks[i + 1]])
+
+                # insert core of self
+
+                cores[i][0:self.ranks[i], :, :, 0:self.ranks[i + 1]] = self.cores[i]
+
+                # insert core of tt_add
+
+                cores[i][ranks[i] - tt_add.ranks[i]:ranks[i], :, :, ranks[i + 1] - tt_add.ranks[i + 1]:ranks[i + 1]] = \
+                    tt_add.cores[i]
+
+            # define tt_sum
+            # -------------
+
+            tt_sum = TT(cores)
+
+            return tt_sum
         else:
             raise ValueError('unsupported argument')
 
-    def __sub__(self, tt_tensor):
-        # difference of two tensor trains
-        return self + (-1) * tt_tensor  # define by addition and left-multiplication
+    def __sub__(self, tt_sub):
+        """difference of two tensor trains
+
+        Subtract two given tensor trains.
+
+        Parameters
+        ----------
+        tt_sub: instance of TT class
+            tensor train which is subtracted from self
+
+        Returns
+        -------
+        tt_diff: instance of TT class
+            difference of tt_add and self
+        """
+
+        # define difference in terms of addition and left-multiplication
+        # --------------------------------------------------------------
+
+        tt_diff = self + (-1) * tt_sub
+
+        return tt_diff
 
     def __mul__(self, scalar):
         """left-multiplication of tensor trains and scalars
 
-        Arguments
-        ---------
+        Parameters
+        ----------
         scalar: float
             scalar value for the left-multiplication
 
         Returns
         -------
-        T: instane of TT class
+        tt_prod: instance of TT class
             product of scalar and self
         """
-        if isinstance(self, TT):
-            T = self.copy()  # copy tensor train
-            T.cores[0] *= scalar  # multiply first core with scalar
-            return T
-        else:
-            raise ValueError('unsupported argument')
+
+        # multiply first core with scalar
+        # -------------------------------
+
+        tt_prod = self.copy()
+        tt_prod.cores[0] *= scalar
+        return tt_prod
 
     def __rmul__(self, scalar):
         """right-multiplication of tensor trains and scalars
 
-        Arguments
-        ---------
+        Parameters
+        ----------
         scalar: float
             scalar value for the right-multiplication
 
         Returns
         -------
-        T: instane of TT class
+        tt_prod: instance of TT class
             product of self and scalar
         """
-        T = self * scalar  # define by left-multiplication
-        return T
 
-    def __matmul__(self, tt_tensor):
+        # define product in terms of left-multiplication
+        # ----------------------------------------------
+
+        tt_prod = self * scalar
+
+        return tt_prod
+
+    def __matmul__(self, tt_mul):
         """multiplication of tensor trains
 
-        Arguments
-        ---------
-        tt_tensor: instance of TT class
-            multiply self with tt_tensor
+        Parameters
+        ----------
+        tt_mul: instance of TT class
+            tensor train which is multiplied with self
 
         Returns
         -------
-        tt_prod: instane of TT class
-            product of self and tt_tensor
+        tt_prod: instance of TT class
+            product of self and tt_mul
         """
-        cores = [numpy.tensordot(self.cores[i],tt_tensor.cores[i], axes=(2, 1)).transpose([0,3,1,4,2,5]).reshape(self.ranks[i] * tt_tensor.ranks[i], self.row_dims[i], tt_tensor.col_dims[i],self.ranks[i + 1] * tt_tensor.ranks[i + 1]) for i in range(self.order)]
-        #cores = [numpy.einsum('ijkl,mkno->imjnlo', self.cores[i], tt_tensor.cores[i]). \
-        #             reshape(self.ranks[i] * tt_tensor.ranks[i], self.row_dims[i], tt_tensor.col_dims[i],
-        #                     self.ranks[i + 1] * tt_tensor.ranks[i + 1]) for i in
-        #         range(self.order)]  # use einsum for contraction
-        tt_prod = TT(cores)  # define product tensor
-        return tt_prod
+
+        if isinstance(tt_mul, TT):
+
+            # multiply TT cores
+            # -----------------
+            cores = [numpy.tensordot(self.cores[i], tt_mul.cores[i], axes=(2, 1)).transpose([0, 3, 1, 4, 2, 5]).reshape(
+                self.ranks[i] * tt_mul.ranks[i], self.row_dims[i], tt_mul.col_dims[i],
+                self.ranks[i + 1] * tt_mul.ranks[i + 1]) for i in range(self.order)]
+
+            # define product tensor
+            # ---------------------
+
+            tt_prod = TT(cores)
+
+            return tt_prod
+        else:
+            raise ValueError('unsupported argument')
 
     def copy(self):
         """deep copy of tensor trains
 
         Returns
         -------
-        tt_tensor: instance of TT class
+        tt_copy: instance of TT class
             deep copy of self
         """
-        cores = [self.cores[i].copy() for i in range(self.order)]  # copy cores
-        tt_tensor = TT(cores)
-        return tt_tensor
+
+        # copy TT cores
+        # -------------
+        cores = [self.cores[i].copy() for i in range(self.order)]
+
+        # define copied version of self
+        # -----------------------------
+
+        tt_copy = TT(cores)
+
+        return tt_copy
 
     def full(self):
         """conversion to full format
@@ -170,32 +289,44 @@ class TT(object):
         Returns
         -------
         full_tensor : ndarray
-            full tensor representation of self
+            full tensor representation of self (dimensions: m_1 x ... x m_d x n_1 x ... x n_d)
         """
-        if isinstance(self, TT):
-            full_tensor = self.cores[0].reshape(self.row_dims[0] * self.col_dims[0], self.ranks[1])
-            for i in range(1, self.order):
-                full_tensor = full_tensor @ self.cores[i].reshape(self.ranks[i],
-                                                                  self.row_dims[i] * self.col_dims[i] * self.ranks[
-                                                                      i + 1])
-                full_tensor = full_tensor.reshape(numpy.prod(self.row_dims[:i + 1]) * numpy.prod(self.col_dims[:i + 1]),
-                                                  self.ranks[i + 1])
-            p = [None] * 2 * self.order
-            p[::2] = self.row_dims
-            p[1::2] = self.col_dims
-            q = [2 * i for i in range(self.order)] + [1 + 2 * i for i in range(self.order)]
-            full_tensor = full_tensor.reshape(p).transpose(q)
-            return full_tensor
-        else:
-            raise ValueError('unsupported argument')
+
+        # conversion
+        # ----------
+
+        # reshape first core
+
+        full_tensor = self.cores[0].reshape(self.row_dims[0] * self.col_dims[0], self.ranks[1])
+
+        for i in range(1, self.order):
+
+            # contract full_tensor with next TT core and reshape
+
+            full_tensor = full_tensor @ self.cores[i].reshape(self.ranks[i],
+                                                              self.row_dims[i] * self.col_dims[i] * self.ranks[
+                                                                  i + 1])
+            full_tensor = full_tensor.reshape(numpy.prod(self.row_dims[:i + 1]) * numpy.prod(self.col_dims[:i + 1]),
+                                              self.ranks[i + 1])
+
+        # reshape and transpose full_tensor
+
+        p = [None] * 2 * self.order
+        p[::2] = self.row_dims
+        p[1::2] = self.col_dims
+        q = [2 * i for i in range(self.order)] + [1 + 2 * i for i in range(self.order)]
+        full_tensor = full_tensor.reshape(p).transpose(q)
+
+        return full_tensor
+
 
     def element(self, coordinates):
-        """single elements of tensor trains
+        """single element of tensor trains
 
-        Arguments
-        ---------
+        Parameters
+        ----------
         coordinates: tuple of ints
-            coordinates of a single entry of self
+            coordinates of a single entry of self ([x_1, ..., x_d, y_1, ..., y_d])
 
         Returns
         -------
@@ -203,11 +334,22 @@ class TT(object):
             single entry of self
         """
 
+        # compute entry of self
+        # ---------------------
+
+        # construct matrix for first row and column coordinates
 
         entry = numpy.squeeze(self.cores[0][:, coordinates[0], coordinates[self.order], :]).reshape(1, self.ranks[1])
+
+        # multiply with respective matrices for the following coordinates
+
         for i in range(1, self.order):
-            entry = entry @ numpy.squeeze(self.cores[i][:, coordinates[i], coordinates[self.order + i], :]).reshape(self.ranks[i],self.ranks[i+1])
-        return entry[0,0]
+            entry = entry @ numpy.squeeze(self.cores[i][:, coordinates[i], coordinates[self.order + i], :]).reshape(
+                self.ranks[i], self.ranks[i + 1])
+
+        entry = entry[0,0]
+
+        return entry
 
     def transpose(self):
         """transpose of tensor trains
@@ -237,7 +379,7 @@ class TT(object):
         op_bool = not (all([i == 1 for i in self.row_dims]) or all([i == 1 for i in self.col_dims]))
         return op_bool
 
-    def zeros(row_dims, col_dims, ranks = 1):
+    def zeros(row_dims, col_dims, ranks=1):
         """tensor train of all zeros
 
         Arguments
@@ -254,11 +396,12 @@ class TT(object):
         """
         if not isinstance(ranks, list):
             ranks = [1] + [ranks] * (len(row_dims) - 1) + [1]
-        cores = [numpy.zeros([ranks[i], row_dims[i], col_dims[i], ranks[i+1]]) for i in range(len(row_dims))]  # define cores
+        cores = [numpy.zeros([ranks[i], row_dims[i], col_dims[i], ranks[i + 1]]) for i in
+                 range(len(row_dims))]  # define cores
         tt_zeros = TT(cores)
         return tt_zeros
 
-    def ones(row_dims, col_dims, ranks = 1):
+    def ones(row_dims, col_dims, ranks=1):
         """tensor train of all ones
 
         Arguments
@@ -275,7 +418,8 @@ class TT(object):
         """
         if not isinstance(ranks, list):
             ranks = [1] + [ranks] * (len(row_dims) - 1) + [1]
-        cores = [numpy.ones([ranks[i], row_dims[i], col_dims[i], ranks[i+1]]) for i in range(len(row_dims))]  # define cores
+        cores = [numpy.ones([ranks[i], row_dims[i], col_dims[i], ranks[i + 1]]) for i in
+                 range(len(row_dims))]  # define cores
         tt_ones = TT(cores)
         return tt_ones
 
@@ -321,7 +465,7 @@ class TT(object):
         tt_rand = TT(cores)
         return tt_rand
 
-    def uniform(row_dims, ranks, norm = 1):
+    def uniform(row_dims, ranks, norm=1):
         """uniformly distributed tensor train
 
         Arguments
@@ -336,10 +480,10 @@ class TT(object):
         tt_uni: instance of TT class
             uniformly distributed tensor train
         """
-        factor = (norm/(numpy.sqrt(numpy.prod(row_dims))*numpy.prod(ranks)))**(1/len(row_dims))
+        factor = (norm / (numpy.sqrt(numpy.prod(row_dims)) * numpy.prod(ranks))) ** (1 / len(row_dims))
         if not isinstance(ranks, list):
             ranks = [1] + [ranks] * (len(row_dims) - 1) + [1]
-        cores = [factor*numpy.ones([ranks[i], row_dims[i], 1, ranks[i + 1]]) for i in range(len(row_dims))]
+        cores = [factor * numpy.ones([ranks[i], row_dims[i], 1, ranks[i + 1]]) for i in range(len(row_dims))]
         tt_uni = TT(cores)
         return tt_uni
 
@@ -376,9 +520,11 @@ class TT(object):
             tt_ortho.cores[i] = U.reshape(tt_ortho.ranks[i], tt_ortho.row_dims[i], tt_ortho.col_dims[i],
                                           tt_ortho.ranks[i + 1])
             tt_ortho.cores[i + 1] = numpy.diag(S) @ V @ tt_ortho.cores[i + 1].reshape(tt_ortho.cores[i + 1].shape[0],
-                                                                                      tt_ortho.row_dims[i + 1] * tt_ortho.col_dims[i+1] *
+                                                                                      tt_ortho.row_dims[i + 1] *
+                                                                                      tt_ortho.col_dims[i + 1] *
                                                                                       tt_ortho.ranks[i + 2])
-            tt_ortho.cores[i + 1] = tt_ortho.cores[i + 1].reshape(tt_ortho.ranks[i + 1], tt_ortho.row_dims[i + 1], tt_ortho.col_dims[i+1],
+            tt_ortho.cores[i + 1] = tt_ortho.cores[i + 1].reshape(tt_ortho.ranks[i + 1], tt_ortho.row_dims[i + 1],
+                                                                  tt_ortho.col_dims[i + 1],
                                                                   tt_ortho.ranks[i + 2])
         return tt_ortho
 
@@ -405,7 +551,8 @@ class TT(object):
         for i in range(start_index - 1, end_index - 2, -1):
             [U, S, V] = scipy.linalg.svd(tt_ortho.cores[i].reshape(tt_ortho.ranks[i],
                                                                    tt_ortho.row_dims[i] * tt_ortho.col_dims[i] *
-                                                                   tt_ortho.ranks[i + 1]), full_matrices=False, lapack_driver='gesvd')
+                                                                   tt_ortho.ranks[i + 1]), full_matrices=False,
+                                         lapack_driver='gesvd')
             if threshold != 0:
                 indices = numpy.where(S / S[0] > threshold)[0]
                 U = U[:, indices]
@@ -465,14 +612,14 @@ class TT(object):
                                                                              tt_tensor.ranks[i + 1]) for i in
                                range(tt_tensor.order)]  # sum over row axis
             tt_tensor.row_dims = [1] * tt_tensor.order  # define new row dimensions
-            norm = tt_tensor.element([0]*2*tt_tensor.order)
+            norm = tt_tensor.element([0] * 2 * tt_tensor.order)
         if p == 2:
             tt_tensor = tt_tensor.ortho_right()  # right-orthonormalize tensor train
             norm = numpy.linalg.norm(
                 tt_tensor.cores[0].reshape(tt_tensor.row_dims[0] * tt_tensor.ranks[1]))  # compute norm from first core
         return norm
 
-    def tt2qtt(self,row_dims,col_dims,threshold=0):
+    def tt2qtt(self, row_dims, col_dims, threshold=0):
         """conversion from TT format into QTT format
 
         ... same lengths of lists!!! ...
@@ -498,20 +645,24 @@ class TT(object):
             rank = tt_tensor.ranks[i]
             row_dim = tt_tensor.row_dims[i]
             col_dim = tt_tensor.col_dims[i]
-            for j in range(len(row_dims[i])-1):
-                core = core.reshape(rank, row_dims[i][j], int(row_dim/row_dims[i][j]), col_dims[i][j], int(col_dim/col_dims[i][j]),tt_tensor.ranks[i+1]).transpose([0, 1, 3, 2, 4, 5])
-                [U, S, V] = scipy.linalg.svd(core.reshape(rank*row_dims[i][j]*col_dims[i][j], int(row_dim/row_dims[i][j])*int(col_dim/col_dims[i][j])*tt_tensor.ranks[i+1]), full_matrices=False)
+            for j in range(len(row_dims[i]) - 1):
+                core = core.reshape(rank, row_dims[i][j], int(row_dim / row_dims[i][j]), col_dims[i][j],
+                                    int(col_dim / col_dims[i][j]), tt_tensor.ranks[i + 1]).transpose([0, 1, 3, 2, 4, 5])
+                [U, S, V] = scipy.linalg.svd(core.reshape(rank * row_dims[i][j] * col_dims[i][j],
+                                                          int(row_dim / row_dims[i][j]) * int(
+                                                              col_dim / col_dims[i][j]) * tt_tensor.ranks[i + 1]),
+                                             full_matrices=False)
                 if threshold != 0:
                     indices = numpy.where(S / S[0] > threshold)[0]
                     U = U[:, indices]
                     S = S[indices]
                     V = V[indices, :]
                 qtt_cores.append(U.reshape(rank, row_dims[i][j], col_dims[i][j], S.shape[0]))
-                core = numpy.diag(S)@V
+                core = numpy.diag(S) @ V
                 rank = S.shape[0]
                 row_dim = int(row_dim / row_dims[i][j])
                 col_dim = int(col_dim / col_dims[i][j])
-            qtt_cores.append(core.reshape(rank, row_dim, col_dim, tt_tensor.ranks[i+1]))
+            qtt_cores.append(core.reshape(rank, row_dim, col_dim, tt_tensor.ranks[i + 1]))
         qtt_tensor = TT(qtt_cores)
         return qtt_tensor
 
@@ -535,15 +686,11 @@ class TT(object):
         k = 0
         for i in range(len(merge_indices)):
             core = qtt_tensor.cores[k]
-            for j in range(k+1,merge_indices[i]+1):
-                core = numpy.tensordot(core, qtt_tensor.cores[j], axes=(3,0)).transpose(0, 1, 3, 2, 4, 5)
-                core = core.reshape(core.shape[0], core.shape[1]*core.shape[2], core.shape[3]*core.shape[4], core.shape[5])
+            for j in range(k + 1, merge_indices[i] + 1):
+                core = numpy.tensordot(core, qtt_tensor.cores[j], axes=(3, 0)).transpose(0, 1, 3, 2, 4, 5)
+                core = core.reshape(core.shape[0], core.shape[1] * core.shape[2], core.shape[3] * core.shape[4],
+                                    core.shape[5])
             tt_cores.append(core)
-            k = merge_indices[i]+1
+            k = merge_indices[i] + 1
         tt_tensor = TT(tt_cores)
         return tt_tensor
-
-
-
-
-
