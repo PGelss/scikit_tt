@@ -15,6 +15,8 @@ The simulation and analysis of high-dimensional problems is often infeasible due
 5. Models
 6. Examples
 7. Tests
+8. Subfunctions and tools
+9. References
 
 ## 1. TT class
 
@@ -24,3 +26,22 @@ tensor trains operators, i.e. a classical tensor train is represented by cores w
 An instance of the tensor train class can be initialized from a full tensor representation (in this case, the tensor
 is decomposed into the TT format) or from a list of cores. For more information on the implemented tensor
 operations, we refer to [2]_.
+
+## 2. TT solvers
+
+## 3. SLIM decomposition
+
+## 4. Multidimensional approximation of nonlinear dynamical systems (MANDy)
+
+## 5. Models
+
+## 6. Examples
+
+## 7. Tests
+
+## 8. Subfunctions and tools
+
+## 9. References
+
+[1] I. V. Oseledets, "Tensor-Train Decomposition", SIAM Journal on Scientific Computing, 2009
+[2] P. Gelß. "The Tensor-Train Format and Its Applications: Modeling and Analysis of Chemical Reaction Networks, Catalytic Processes, Fluid Flows, and Brownian Dynamics", Freie Universität Berlin, 2017
