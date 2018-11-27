@@ -557,11 +557,11 @@ class TT(object):
         Parameters
         ----------
         start_index: int, optional
-            start index for orthonormalization, default is
-        end_index: int
-            end index for orthonormalization
-        threshold: float
-            threshold for reduced SVD decompositions
+            start index for orthonormalization, default is order of self minus 1
+        end_index: int, optional
+            end index for orthonormalization, default is 0
+        threshold: float, optional
+            threshold for reduced SVD decompositions, default is 0
 
         Returns
         -------
