@@ -44,4 +44,5 @@ operations, we refer to [2]_.
 ## 9. References
 
 [1] I. V. Oseledets, "Tensor-Train Decomposition", SIAM Journal on Scientific Computing, 2009
+
 [2] P. Gelß. "The Tensor-Train Format and Its Applications: Modeling and Analysis of Chemical Reaction Networks, Catalytic Processes, Fluid Flows, and Brownian Dynamics", Freie Universität Berlin, 2017
