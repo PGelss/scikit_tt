@@ -53,7 +53,6 @@ print('\nTT approach')
 print('-----------\n')
 with tls.Timer() as time:
     solution = ODE.trapezoidal_rule_als(operator, initial_distribution, initial_guess, step_sizes)
-
 print('CPU time ' + '.' * 23 + ' ' + str("%.2f" % time.elapsed) + 's\n')
 
 # operator in QTT format
