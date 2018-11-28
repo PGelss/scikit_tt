@@ -8,7 +8,7 @@ The simulation and analysis of high-dimensional problems is often infeasible due
 
 ## Content
 
-1. TT classs
+1. TT class
 2. TT solvers
 3. SLIM decomposition
 4. Multidimensional approximation of nonlinear dynamical systems (MANDy)
@@ -36,6 +36,10 @@ ALS and MALS can also be used to find approximations of eigenvalues and correspo
 
 ### 2.3 Ordinary differential equations
 
+In order to compute time-dependent or stationary distributions of ordinary differential equations given by Markovian master equations, **scikit_tt** uses implicit integration schemes such as the implicit Euler method or the trapezoidal rule. In order to approximate the solutions at each time step, ALS and MALS, respectively, are used. In addition to the fact that implicit integration schemes are more suitable for the solution of stiff equations than explicit methods, we have control over the ranks of the TT approximations without implementing computationally expensive tensor multiplications and subsequent rank truncations.
+
+**TODO: _revise code_**
+
 ## 3. SLIM decomposition
 
 ## 4. Multidimensional approximation of nonlinear dynamical systems (MANDy)
@@ -43,6 +47,10 @@ ALS and MALS can also be used to find approximations of eigenvalues and correspo
 ## 5. Models
 
 ## 6. Examples
+
+Numerical experiments from different application areas are included in **scikit_tt**. For instance, the application of the TT format to the chemical master equation, heterogeneous catalytic process, fluid dynamics, and molecular dynamics can be found in the directory scikit_tt/examples.
+
+**TODO: _revise code_**
 
 ## 7. Tests
 
