@@ -767,7 +767,7 @@ class TT(object):
 
         return qtt_tensor
 
-    def qtt2tt(self, merge_indices):
+    def qtt2tt(self, merge_numbers):
         """conversion from QTT format into TT format
 
         Contract the QTT cores of a given quantized tensor train in order to obtain a TT representation.
@@ -778,13 +778,13 @@ class TT(object):
 
             t_tt = qtt2tt(t, [c_1, ..., c_e])
 
-        defines a new instance of the TT class with order e, i.e. qtt2tt merges t.cores[0] to t.cores[c_1],
-        t.cores[c_1+1] to t.cores[c_2], and so on. It is c_e = d.
+        defines a new instance of the TT class with order e, i.e. qtt2tt merges the first c_1 cores, the second c_2
+        cores, and so on.
 
         Parameters
         ----------
-        merge_indices: list of ints
-            list of core indices for contractions
+        merge_numbers: list of ints
+            list of core numbers for contractions
 
         Returns
         -------
@@ -802,13 +802,13 @@ class TT(object):
         # first index
         k = 0
 
-        for i in range(len(merge_indices)):
+        for i in range(len(merge_numbers)):
 
             # set new QTT core
             core = qtt_tensor.cores[k]
 
             # begin contractions
-            for j in range(k + 1, merge_indices[i] + 1):
+            for j in range(k + 1, k + merge_numbers[i]):
                 # contract with next core and reshape
                 core = numpy.tensordot(core, qtt_tensor.cores[j], axes=(3, 0)).transpose(0, 1, 3, 2, 4, 5)
                 core = core.reshape(core.shape[0], core.shape[1] * core.shape[2], core.shape[3] * core.shape[4],
@@ -818,7 +818,7 @@ class TT(object):
             tt_cores.append(core)
 
             # increase contraction index
-            k = merge_indices[i] + 1
+            k = k + merge_numbers[i]
 
         # define tensor train
         tt_tensor = TT(tt_cores)
