@@ -13,7 +13,7 @@ References
 
 import numpy as np
 import scikit_tt as skt
-import scikit_tt.tt as tt
+import scikit_tt.tensor_train as tt
 import models as mdl
 import scikit_tt.solvers.ODE as ODE
 import subfunctions as sf

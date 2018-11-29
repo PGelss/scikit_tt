@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import scikit_tt.tt as tt
+import scikit_tt.tensor_train as tt
 import scikit_tt.models as mdl
 import scikit_tt.solvers.EVP as evp
 import scikit_tt.solvers.ODE as ODE
