@@ -14,10 +14,7 @@ import numpy as np
 import scipy.io as spio
 import scipy.sparse.linalg as splin
 import matplotlib.pyplot as plt
-from mpl_toolkits.axes_grid1 import make_axes_locatable
-from mpl_toolkits.mplot3d import Axes3D
 import scikit_tt as tt
-import solvers.EVP as evp
 import tools.tools as tls
 import os
 
@@ -68,7 +65,7 @@ operator = (1 / snapshots) * tt.TT(cores).transpose()
 
 tls.progress('Approximate eigenfunctions in the TT format', 0, dots=5)
 initial = tt.TT.uniform(operator.row_dims, ranks=[1, 20, 10, 1])
-eigenfunctions, eigenvalues = evp.als(operator, initial, number_ev, 2)
+eigenfunctions, eigenvalues = EVP.als(operator, initial, number_ev, 2)
 tls.progress('Approximate eigenfunctions in the TT format', 100, dots=5)
 
 # compute exact eigenvectors

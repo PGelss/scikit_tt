@@ -13,9 +13,7 @@ References
 
 import numpy as np
 import scipy.io as spio
-import scipy.sparse.linalg as splin
 import scikit_tt as tt
-import solvers.EVP as evp
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
@@ -58,8 +56,8 @@ tls.progress('Construct operator', 100, dots=30)
 # approximate leading eigenfunctions of the Perron-Frobenius and Koopman operator
 # -------------------------------------------------------------------------------
 initial = tt.TT.ones(operator.row_dims, [1] * operator.order, ranks=11)
-eigenfunctions_pf, eigenvalues_pf = evp.als(operator, initial, number_ev, 3)
-eigenfunctions_km, eigenvalues_km = evp.als(operator.transpose(), initial, number_ev, 2)
+eigenfunctions_pf, eigenvalues_pf = EVP.als(operator, initial, number_ev, 3)
+eigenfunctions_km, eigenvalues_km = EVP.als(operator.transpose(), initial, number_ev, 2)
 
 # compute exact eigenvectors
 # --------------------------

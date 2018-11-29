@@ -12,11 +12,12 @@ References
 """
 
 import numpy as np
+import scikit_tt as skt
 import scikit_tt.tt as tt
 import models as mdl
-import solvers.ODE as ODE
+import scikit_tt.solvers.ODE as ODE
 import subfunctions as sf
-import tools.tools as tls
+import tools as tls
 import matplotlib.pyplot as plt
 
 # parameters
@@ -37,7 +38,7 @@ operator = mdl.signaling_cascade(order)
 # initial distribution in TT format
 # ---------------------------------
 
-initial_distribution = tt.TT.zeros(operator.col_dims, [1] * order)
+initial_distribution = skt.TT.zeros(operator.col_dims, [1] * order)
 for i in range(initial_distribution.order):
     initial_distribution.cores[i][0, 0, 0, 0] = 1
 
