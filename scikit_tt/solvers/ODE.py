@@ -5,7 +5,7 @@ import sys
 import solvers.SLE as SLE
 import scikit_tt.tt as tt
 import numpy as np
-import tools.tools as tls
+import tools as tls
 
 
 def adaptive_als(operator, initial_value, initial_guess, first_step, T_end, repeats=1, loc_tol=10 ** -3, tau_max=10,

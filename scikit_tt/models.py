@@ -3,7 +3,7 @@
 
 import numpy as np
 import scikit_tt as tt
-import slim.SLIM as slim
+from scikit_tt import SLIM
 
 
 def signaling_cascade(d):
@@ -170,6 +170,6 @@ def co_oxidation(order, k_ad_CO):
                                  [0, 2, 2, 0, k_diff_CO], [2, 0, 0, 2, k_diff_CO]]
 
     # define operator
-    operator = slim.slim_mme(state_space, single_cell_reactions, two_cell_reactions)
+    operator = SLIM.slim_mme(state_space, single_cell_reactions, two_cell_reactions)
 
     return operator

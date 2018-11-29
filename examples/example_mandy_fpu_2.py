@@ -75,7 +75,7 @@ def construct_Xi_exact(d):
     return Xi_exact
 
 
-# D = scipy.io.loadmat("../data/FPU_d10_m6000.mat")  # load data
+# D = scipy.io.loadmat("data/FPU_d10_m6000.mat")  # load data
 # X = D["X"]
 # Y = D["Y"]
 # psi = [lambda x: 1, lambda x: x, lambda x: x ** 2, lambda x: x ** 3]  # basis functions
@@ -129,7 +129,7 @@ repeats = 1
 #         T_tt[j,i] = T_tt[j,i]/repeats
 #         # Xi_tt = Xi_tt.full().reshape(np.prod(Xi_tt.row_dims[:-1]), Xi_tt.row_dims[-1], order='F')
 #         E_tt[j,i] = scikit_tt.norm(Xi_tt - Xi_exact_tt) / np.linalg.norm(Xi_exact_tt)
-# np.savez('../data/example_mandy_fpu_test', m_mat=m_mat, T_mat=T_mat, E_mat=E_mat, m_tt=m_tt, T_tt=T_tt, E_tt=E_tt)
+# np.savez('data/example_mandy_fpu_test', m_mat=m_mat, T_mat=T_mat, E_mat=E_mat, m_tt=m_tt, T_tt=T_tt, E_tt=E_tt)
 #
 #
 # plots
@@ -140,7 +140,7 @@ repeats = 1
 # plt.rcParams.update({'font.size': 18})
 # plt.rcParams.update({'figure.autolayout': True})
 #
-# npzfile = np.load('../data/example_mandy_fpu_1.npz') # load data
+# npzfile = np.load('data/example_mandy_fpu_1.npz') # load data
 # m_mat = npzfile['m_mat']
 # T_mat = npzfile['T_mat']
 # E_mat = npzfile['E_mat']
@@ -242,7 +242,7 @@ d_number = 19
 #         m = m_start + i * m_step
 #         d = d_start + j * d_step
 #         print("Running MANDy for d=" + str(d) + ", m=" + str(m) + ", and eps=0")
-#         D = scipy.io.loadmat("../data/FPU_d"+str(d)+"_m6000.mat")  # load data
+#         D = scipy.io.loadmat("data/FPU_d"+str(d)+"_m6000.mat")  # load data
 #         X = D["X"]
 #         Y = D["Y"]
 #         Xi_tt = mandy.mandy_basis_major(X[:, :m], Y[:, :m], psi, threshold=10**-10)
@@ -252,12 +252,12 @@ d_number = 19
 #         E[j,i] = Xi_tmp.norm()/Xi.norm()
 #         # E[j,i] = scikit_tt.norm(Xi_tt - Xi) / np.linalg.norm(Xi)
 #         print(E[j,i])
-# np.savez('../data/example_mandy_fpu_b', E=E)
+# np.savez('data/example_mandy_fpu_b', E=E)
 
 
 # plots
 
-npzfile = np.load('../data/example_mandy_fpu_b.npz') # load data
+npzfile = np.load('data/example_mandy_fpu_b.npz') # load data
 E = npzfile['E']
 
 

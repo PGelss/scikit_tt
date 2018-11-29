@@ -160,9 +160,9 @@ Xi_exact = construct_Xi_exact()  # construct exact coefficient tensor
 error = scikit_tt.TT.norm(Xi_tt - Xi_exact) / scikit_tt.TT.norm(Xi_exact)  # compute error
 print('relative error:  ',error)
 
-# np.savez('../data/example_mandy_kuramoto',Xi_tt=Xi_tt)
+# np.savez('data/example_mandy_kuramoto',Xi_tt=Xi_tt)
 
-# npzfile = np.load('../data/example_mandy_kuramoto.npz') # load data
+# npzfile = np.load('data/example_mandy_kuramoto.npz') # load data
 
 # Xi_tt = npzfile['Xi_tt']
 print(Xi_tt)

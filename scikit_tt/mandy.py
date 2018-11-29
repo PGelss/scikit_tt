@@ -3,7 +3,6 @@
 import numpy as np
 import scipy
 import scikit_tt
-import timeit
 import tools
 
 

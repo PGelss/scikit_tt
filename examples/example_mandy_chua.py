@@ -11,7 +11,7 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 from matplotlib.colors import LogNorm
 from mpl_toolkits.mplot3d import Axes3D
 
-D = scipy.io.loadmat("../data/ChuaData.mat")  # load data
+D = scipy.io.loadmat("data/ChuaData.mat")  # load data
 y = D["y"]
 ya1=D["ya1"]
 ya2=D["ya2"]
@@ -73,7 +73,7 @@ plt.show()
 
 
 #
-# npzfile = np.load('../data/example_mandy_fpu_1.npz') # load data
+# npzfile = np.load('data/example_mandy_fpu_1.npz') # load data
 # m_mat = npzfile['m_mat']
 # T_mat = npzfile['T_mat']
 # E_mat = npzfile['E_mat']

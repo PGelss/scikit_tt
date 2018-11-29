@@ -2,7 +2,9 @@
 # -*- coding: utf-8 -*-
 
 import scipy.io
-import mandy
+
+from scikit_tt import mandy
+
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -13,7 +15,7 @@ plt.rcParams.update({'font.size': 18})
 plt.rcParams.update({'figure.autolayout': True})
 
 
-D = scipy.io.loadmat("../data/FPU_d10_m6000.mat")  # load data
+D = scipy.io.loadmat("data/FPU_d10_m6000.mat")  # load data
 X = D["X"]
 Y = D["Y"]
 Xi = D["Xi"]
@@ -63,12 +65,12 @@ repeats = 3
 #         T_tt[j,i] = T_tt[j,i]/repeats
 #         Xi_tt = Xi_tt.full().reshape(np.prod(Xi_tt.row_dims[:-1]), Xi_tt.row_dims[-1], order='F')
 #         E_tt[j,i] = np.linalg.norm(Xi_tt - Xi) / np.linalg.norm(Xi)
-# np.savez('../data/example_mandy_fpu_1', m_mat=m_mat, T_mat=T_mat, E_mat=E_mat, m_tt=m_tt, T_tt=T_tt, E_tt=E_tt)
+# np.savez('data/example_mandy_fpu_1', m_mat=m_mat, T_mat=T_mat, E_mat=E_mat, m_tt=m_tt, T_tt=T_tt, E_tt=E_tt)
 
 
 # plots
 
-npzfile = np.load('../data/example_mandy_fpu_1.npz') # load data
+npzfile = np.load('data/example_mandy_fpu_1.npz') # load data
 m_mat = npzfile['m_mat']
 T_mat = npzfile['T_mat']
 E_mat = npzfile['E_mat']

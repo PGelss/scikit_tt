@@ -14,9 +14,9 @@ References
 import numpy as np
 import scikit_tt.tt as tt
 import models as mdl
-import solvers.ODE as ODE
+import ODE as ODE
 import subfunctions as sf
-import tools.tools as tls
+import tools as tls
 import matplotlib.pyplot as plt
 
 # parameters

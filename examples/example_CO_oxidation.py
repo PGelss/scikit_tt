@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 
 import scikit_tt.tt as tt
-import models as mdl
-import solvers.EVP as evp
-import solvers.ODE as ODE
+import scikit_tt.models as mdl
+import scikit_tt.solvers.EVP as evp
+import scikit_tt.solvers.ODE as ODE
 import tools as tls
 import matplotlib.pyplot as plt
 

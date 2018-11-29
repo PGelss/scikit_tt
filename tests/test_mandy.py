@@ -13,7 +13,7 @@ class TestMANDy(TestCase):
     def setUp(self):
         """load snapshot matrices"""
         self.tol = 0.05  # set tolerance for relative errors
-        D = scipy.io.loadmat("../data/FPU_d2_m6000.mat")  # load data
+        D = scipy.io.loadmat("../examples/data/FPU_d2_m6000.mat")  # load data
         X = D["X"]
         Y = D["Y"]
         Xi = D["Xi"]
