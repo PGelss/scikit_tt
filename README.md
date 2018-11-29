@@ -18,7 +18,8 @@ The simulation and analysis of high-dimensional problems is often infeasible due
 8. Tests
 9. Subfunctions and tools
 10. Additional information
-11. References
+11. Acknowledgments
+12. References
 
 ## 1. Installing
 
@@ -83,11 +84,15 @@ Numerical experiments from different application areas are included in **scikit_
 
 This project is licensed under the ... license - see LICENSE (+Link) for details.
 
-### 10.4 Acknowledgments
+### 10.4 Versioning
+
+We use ... for versioning. For the available versions, see ...
+
+## 11. Acknowledgments
 
 * ...
 
-## 11. References
+## 12. References
 
 [1] I. V. Oseledets, "Tensor-Train Decomposition", SIAM Journal on Scientific Computing 33 (5) (2011) 2295-2317
 
