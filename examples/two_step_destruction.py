@@ -12,15 +12,15 @@ References
 """
 
 import numpy as np
-import scikit_tt.tt as tt
-import models as mdl
-import ODE as ODE
-import subfunctions as sf
-import tools as tls
+import scikit_tt.tensor_train as tt
+import scikit_tt.models as mdl
+import scikit_tt.subfunctions as sf
+import scikit_tt.tools as tls
 import matplotlib.pyplot as plt
 
 # parameters
 # ----------
+from scikit_tt.solvers import ODE
 
 m = 3
 step_sizes = [0.001] * 100 + [0.1] * 9 + [1] * 9

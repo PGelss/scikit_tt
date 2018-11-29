@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
-import scikit_tt.tt as tt
+import scikit_tt.tensor_train as tt
 
 
 def unit_vector(dimension, index):

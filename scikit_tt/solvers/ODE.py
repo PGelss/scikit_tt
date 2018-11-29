@@ -2,10 +2,11 @@
 # -*- coding: utf-8 -*-
 
 import sys
-import solvers.SLE as SLE
-import scikit_tt.tt as tt
+#from . import SLE
+from scikit_tt.solvers import SLE
+from scikit_tt.tensor_train import TT
 import numpy as np
-import tools as tls
+import scikit_tt.tools as tls
 
 
 def adaptive_als(operator, initial_value, initial_guess, first_step, T_end, repeats=1, loc_tol=10 ** -3, tau_max=10,
@@ -19,23 +20,23 @@ def adaptive_als(operator, initial_value, initial_guess, first_step, T_end, repe
     i = 0
     while time < T_end:
 
-        # S1 = SLE.als(tt.TT.eye(operator.row_dims) - 0.5 * tau * operator, X,
-        #            (tt.TT.eye(operator.row_dims) + 0.5 * tau * operator) @ solution[i], solver=solver,
+        # S1 = SLE.als(TT.eye(operator.row_dims) - 0.5 * tau * operator, X,
+        #            (TT.eye(operator.row_dims) + 0.5 * tau * operator) @ solution[i], solver=solver,
         #            repeats=repeats)
 
-        S1 = SLE.als(tt.TT.eye(operator.row_dims) - tau * operator, X, solution[i], solver=solver, repeats=repeats)
+        S1 = SLE.als(TT.eye(operator.row_dims) - tau * operator, X, solution[i], solver=solver, repeats=repeats)
         S1 = (1 / S1.norm(p=1)) * S1
 
-        # S2 = SLE.als(tt.TT.eye(operator.row_dims) - 0.5 * tau * operator, X,
-        #            (tt.TT.eye(operator.row_dims) + 0.5 * tau * operator) @ solution[i], solver=solver,
+        # S2 = SLE.als(TT.eye(operator.row_dims) - 0.5 * tau * operator, X,
+        #            (TT.eye(operator.row_dims) + 0.5 * tau * operator) @ solution[i], solver=solver,
         #            repeats=repeats)
-        # S2 = SLE.als(tt.TT.eye(operator.row_dims) - 0.5 * tau * operator, S2,
-        #             (tt.TT.eye(operator.row_dims) + 0.5 * tau * operator) @ solution[i], solver=solver,
+        # S2 = SLE.als(TT.eye(operator.row_dims) - 0.5 * tau * operator, S2,
+        #             (TT.eye(operator.row_dims) + 0.5 * tau * operator) @ solution[i], solver=solver,
         #             repeats=repeats)
 
-        S2 = SLE.als(tt.TT.eye(operator.row_dims) - 0.5 * tau * operator, X, solution[i], solver=solver,
+        S2 = SLE.als(TT.eye(operator.row_dims) - 0.5 * tau * operator, X, solution[i], solver=solver,
                      repeats=repeats)
-        S2 = SLE.als(tt.TT.eye(operator.row_dims) - 0.5 * tau * operator, S2, solution[i], solver=solver,
+        S2 = SLE.als(TT.eye(operator.row_dims) - 0.5 * tau * operator, S2, solution[i], solver=solver,
                      repeats=repeats)
         S2 = (1 / S2.norm(p=1)) * S2
 
@@ -65,7 +66,7 @@ def implicit_euler_als(operator, initial_value, initial_guess, step_sizes, repea
 
     for i in range(len(step_sizes)):
 
-        X = SLE.als(tt.TT.eye(operator.row_dims) - step_sizes[i] * operator, X, solution[i], solver=solver,
+        X = SLE.als(TT.eye(operator.row_dims) - step_sizes[i] * operator, X, solution[i], solver=solver,
                     repeats=repeats)
         X = (1 / X.norm(p=1)) * X
         solution.append(X.copy())
@@ -73,7 +74,7 @@ def implicit_euler_als(operator, initial_value, initial_guess, step_sizes, repea
             '\r' + 'Running implicit_euler_mals... ' + str(int(1000 * (i + 1) / len(step_sizes)) / 10) + '%')
         if compute_errors:
             errors.append(
-                ((tt.TT.eye(operator.row_dims) - step_sizes[i] * operator) @ solution[i + 1] - solution[i]).norm() /
+                ((TT.eye(operator.row_dims) - step_sizes[i] * operator) @ solution[i + 1] - solution[i]).norm() /
                 solution[i].norm())
 
     if compute_errors:
@@ -130,7 +131,7 @@ def implicit_euler_mals(operator, initial_value, initial_guess, step_sizes, repe
     for i in range(len(step_sizes)):
 
         # solve system of linear equations for current time step
-        tt_tmp = SLE.mals(tt.TT.eye(operator.row_dims) - step_sizes[i] * operator, tt_tmp, solution[i],
+        tt_tmp = SLE.mals(TT.eye(operator.row_dims) - step_sizes[i] * operator, tt_tmp, solution[i],
                           solver=solver, threshold=threshold, repeats=repeats, max_rank=max_rank)
 
         # normalize solution
@@ -145,7 +146,7 @@ def implicit_euler_mals(operator, initial_value, initial_guess, step_sizes, repe
         # compute error and append
         if compute_errors:
             errors.append(
-                ((tt.TT.eye(operator.row_dims) - step_sizes[i] * operator) @ solution[i + 1] - solution[i]).norm() /
+                ((TT.eye(operator.row_dims) - step_sizes[i] * operator) @ solution[i + 1] - solution[i]).norm() /
                 solution[i].norm())
 
     if compute_errors:
@@ -198,8 +199,8 @@ def trapezoidal_rule_als(operator, initial_value, initial_guess, step_sizes, rep
     for i in range(len(step_sizes)):
 
         # solve system of linear equations for current time step
-        tt_tmp = SLE.als(tt.TT.eye(operator.row_dims) - 0.5 * step_sizes[i] * operator, tt_tmp,
-                         (tt.TT.eye(operator.row_dims) + 0.5 * step_sizes[i] * operator) @ solution[i], solver=solver,
+        tt_tmp = SLE.als(TT.eye(operator.row_dims) - 0.5 * step_sizes[i] * operator, tt_tmp,
+                         (TT.eye(operator.row_dims) + 0.5 * step_sizes[i] * operator) @ solution[i], solver=solver,
                          repeats=repeats)
 
         # normalize solution
@@ -213,9 +214,9 @@ def trapezoidal_rule_als(operator, initial_value, initial_guess, step_sizes, rep
 
         # compute error and append
         if compute_errors:
-            errors.append(((tt.TT.eye(operator.row_dims) - 0.5 * step_sizes[i] * operator) @ solution[i + 1] - (
-                    tt.TT.eye(operator.row_dims) + 0.5 * step_sizes[i] * operator) @ solution[i]).norm() / (
-                                  (tt.TT.eye(operator.row_dims) + 0.5 * step_sizes[i] * operator) @ solution[
+            errors.append(((TT.eye(operator.row_dims) - 0.5 * step_sizes[i] * operator) @ solution[i + 1] - (
+                    TT.eye(operator.row_dims) + 0.5 * step_sizes[i] * operator) @ solution[i]).norm() / (
+                                  (TT.eye(operator.row_dims) + 0.5 * step_sizes[i] * operator) @ solution[
                               i]).norm())
 
     if compute_errors:
@@ -233,17 +234,17 @@ def trapezoidal_rule_mals(operator, initial_value, initial_guess, step_sizes, re
 
     for i in range(len(step_sizes)):
 
-        X = SLE.mals(tt.TT.eye(operator.row_dims) - 0.5 * step_sizes[i] * operator, X,
-                     (tt.TT.eye(operator.row_dims) + 0.5 * step_sizes[i] * operator) @ solution[i], solver=solver,
+        X = SLE.mals(TT.eye(operator.row_dims) - 0.5 * step_sizes[i] * operator, X,
+                     (TT.eye(operator.row_dims) + 0.5 * step_sizes[i] * operator) @ solution[i], solver=solver,
                      threshold=threshold, repeats=repeats, max_rank=max_rank)
         X = (1 / X.norm(p=1)) * X
         solution.append(X.copy())
         sys.stdout.write(
             '\r' + 'Running trapezoidal_rule_mals... ' + str(int(1000 * (i + 1) / len(step_sizes)) / 10) + '%')
         if compute_errors:
-            errors.append(((tt.TT.eye(operator.row_dims) - 0.5 * step_sizes[i] * operator) @ solution[i + 1] - (
-                    tt.TT.eye(operator.row_dims) + 0.5 * step_sizes[i] * operator) @ solution[i]).norm() / (
-                                  (tt.TT.eye(operator.row_dims) + 0.5 * step_sizes[i] * operator) @ solution[
+            errors.append(((TT.eye(operator.row_dims) - 0.5 * step_sizes[i] * operator) @ solution[i + 1] - (
+                    TT.eye(operator.row_dims) + 0.5 * step_sizes[i] * operator) @ solution[i]).norm() / (
+                                  (TT.eye(operator.row_dims) + 0.5 * step_sizes[i] * operator) @ solution[
                               i]).norm())
 
     if compute_errors:
