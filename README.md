@@ -8,19 +8,30 @@ The simulation and analysis of high-dimensional problems is often infeasible due
 
 ## Content
 
-1. TT class
-2. TT solvers
-3. SLIM decomposition
-4. Multidimensional approximation of nonlinear dynamical systems (MANDy)
-5. Models
-6. Examples
-7. Tests
-8. Subfunctions and tools
-9. References
+1. Getting started
+2. TT class
+3. TT solvers
+4. SLIM decomposition
+5. Multidimensional approximation of nonlinear dynamical systems (MANDy)
+6. Models
+7. Examples
+8. Tests
+9. Subfunctions and tools
+10. References
+11. Additional information
+
+## 1. Installing
+
+To install scikit_tt type
+
+`...`
 
 ## 1. TT class
 
 Tensor trains [1] are defined in terms of different attributes. In particular, the attribute 'cores' is a list of 4-dimensional tensors representing the corresponding TT cores. There is no distinguish between tensor trains and tensor-train operators, i.e. a classical tensor train is represented by cores with column dimensions equal to 1. An instance of the tensor train class can be initialized from a full tensor representation (in this case, the tensor is decomposed into the TT format) or from a list of cores. For more information on the implemented tensor operations, we refer to [2].
+
+... implemented in tensor_train.py ...
+... list of modules ...
 
 ## 2. TT solvers
 
@@ -65,3 +76,20 @@ Numerical experiments from different application areas are included in **scikit_
 [3] S. Holtz, T. Rohwedder, R. Schneider, "The Alternating Linear Scheme for Tensor Optimization in the Tensor Train Format", SIAM Journal on Scientific Computing 34 (2) (2012) A683-A713
 
 [4] P. Gelß, S. Klus, S. Matera, C. Schütte, "Nearest-Neighbor Interaction Systems in the Tensor-Train Format", Journal of Computational Physics 341 (2017) 140-162
+
+## 11. Additional information
+
+# 11.1 Authors 
+
+* **Patrick Gelß** - _initial work_ - Freie Universität Berlin
+* **Stefan Klus**
+* **Martin Scherer**
+
+# 11.2 Built with
+
+* PyCharm (+Link)
+
+# 11.3 License
+
+This project is licensed under the ... license - see LICENSE (+Link) for details.
+
