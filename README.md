@@ -79,17 +79,17 @@ Numerical experiments from different application areas are included in **scikit_
 
 ## 11. Additional information
 
-# 11.1 Authors 
+### 11.1 Authors 
 
 * **Patrick Gelß** - _initial work_ - Freie Universität Berlin
 * **Stefan Klus**
 * **Martin Scherer**
 
-# 11.2 Built with
+### 11.2 Built with
 
 * PyCharm (+Link)
 
-# 11.3 License
+### 11.3 License
 
 This project is licensed under the ... license - see LICENSE (+Link) for details.
 
