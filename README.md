@@ -189,4 +189,4 @@ We use ... for versioning. For the available versions, see ...
 
 [4] P. Gelß, S. Klus, S. Matera, C. Schütte, "Nearest-Neighbor Interaction Systems in the Tensor-Train Format", Journal of Computational Physics 341 (2017) 140-162
 
-[5] P. Gelß, S. Matera, C. Schütte, "Solving the master equation without kinetic Monte Carlo: Tensor train approximations for a CO oxidation model", Journal of Computational Physics 314 (2016) 489502. doi:10.1016/j.jcp
+[5] P. Gelß, S. Matera, C. Schütte, "Solving the Master Equation without Kinetic Monte Carlo: Tensor Train Approximations for a CO Oxidation Model", Journal of Computational Physics 314 (2016) 489502
