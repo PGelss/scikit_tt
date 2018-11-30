@@ -12,7 +12,7 @@ References
 """
 
 import numpy as np
-import scikit_tt.tensor_train as tt
+from scikit_tt.tensor_train import TT
 import scikit_tt.models as mdl
 import scikit_tt.subfunctions as sf
 import scikit_tt.tools as tls
@@ -37,18 +37,18 @@ operator = mdl.two_step_destruction(1, 2, m).tt2qtt([[2] * m] + [[2] * (m + 1)] 
 # initial distribution in TT format and convert to QTT format
 # -----------------------------------------------------------
 
-initial_distribution = tt.TT.zeros([2 ** m, 2 ** (m + 1), 2 ** m, 2 ** m], [1] * 4)
+initial_distribution = TT.zeros([2 ** m, 2 ** (m + 1), 2 ** m, 2 ** m], [1] * 4)
 initial_distribution.cores[0][0, -1, 0, 0] = 1
 initial_distribution.cores[1][0, -2, 0, 0] = 1
 initial_distribution.cores[2][0, 0, 0, 0] = 1
 initial_distribution.cores[3][0, 0, 0, 0] = 1
-initial_distribution = tt.TT.tt2qtt(initial_distribution, [[2] * m] + [[2] * (m + 1)] + [[2] * m] + [[2] * m],
-                                    [[1] * m] + [[1] * (m + 1)] + [[1] * m] + [[1] * m], threshold=0)
+initial_distribution = TT.tt2qtt(initial_distribution, [[2] * m] + [[2] * (m + 1)] + [[2] * m] + [[2] * m],
+                                 [[1] * m] + [[1] * (m + 1)] + [[1] * m] + [[1] * m], threshold=0)
 
 # initial guess in QTT format
 # ---------------------------
 
-initial_guess = tt.TT.uniform([2] * (4 * m + 1), ranks=qtt_rank).ortho_right()
+initial_guess = TT.uniform([2] * (4 * m + 1), ranks=qtt_rank).ortho_right()
 
 # solve Markovian master equation in QTT format
 # ---------------------------------------------
@@ -65,7 +65,7 @@ print('Maximum error ' + '.' * 17 + ' ' + str("%.2e" % np.amax(errors)))
 # ---------------------------------------------
 
 for i in range(len(solution)):
-    solution[i] = tt.TT.qtt2tt(solution[i], [m, m + 1, m, m])
+    solution[i] = TT.qtt2tt(solution[i], [m, m + 1, m, m])
 mean = sf.mean_concentrations(solution)
 
 # plot mean concentrations
@@ -76,13 +76,11 @@ plt.rc('font', family='serif')
 plt.rcParams["mathtext.fontset"] = "cm"
 plt.rcParams.update({'font.size': 14})
 plt.rcParams.update({'figure.autolayout': True})
-plt.plot(np.insert(np.cumsum(step_sizes),0,0), mean)
+plt.plot(np.insert(np.cumsum(step_sizes), 0, 0), mean)
 plt.title('Mean concentrations', y=1.05)
 plt.xlabel(r'$t$')
 plt.ylabel(r'$\overline{x_i}(t)$')
-plt.axis([0, 2, 0, 2**(m+1)-2])
+plt.axis([0, 2, 0, 2 ** (m + 1) - 2])
 plt.grid(which='major')
 plt.legend(['species ' + str(i) for i in range(1, 5)], loc=1)
 plt.show()
-
-
