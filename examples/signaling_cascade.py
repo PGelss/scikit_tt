@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 """
@@ -12,12 +11,11 @@ References
 """
 
 import numpy as np
-import scikit_tt as skt
 import scikit_tt.tensor_train as tt
-import models as mdl
+import scikit_tt.models as mdl
 import scikit_tt.solvers.ODE as ODE
-import subfunctions as sf
-import tools as tls
+import scikit_tt.subfunctions as sf
+import scikit_tt.tools as tls
 import matplotlib.pyplot as plt
 
 # parameters
@@ -38,7 +36,7 @@ operator = mdl.signaling_cascade(order)
 # initial distribution in TT format
 # ---------------------------------
 
-initial_distribution = skt.TT.zeros(operator.col_dims, [1] * order)
+initial_distribution = tt.TT.zeros(operator.col_dims, [1] * order)
 for i in range(initial_distribution.order):
     initial_distribution.cores[i][0, 0, 0, 0] = 1
 
