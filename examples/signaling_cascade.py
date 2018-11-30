@@ -10,12 +10,12 @@ References
       Networks, Catalytic Processes, Fluid Flows, and Brownian Dynamics", Freie Universität Berlin, 2017
 """
 
-import numpy as np
-import scikit_tt.tensor_train as tt
+from scikit_tt.tensor_train import TT
 import scikit_tt.models as mdl
 import scikit_tt.solvers.ODE as ODE
 import scikit_tt.subfunctions as sf
 import scikit_tt.tools as tls
+import numpy as np
 import matplotlib.pyplot as plt
 
 # parameters
@@ -36,14 +36,14 @@ operator = mdl.signaling_cascade(order)
 # initial distribution in TT format
 # ---------------------------------
 
-initial_distribution = tt.TT.zeros(operator.col_dims, [1] * order)
+initial_distribution = TT.zeros(operator.col_dims, [1] * order)
 for i in range(initial_distribution.order):
     initial_distribution.cores[i][0, 0, 0, 0] = 1
 
 # initial guess in TT format
 # --------------------------
 
-initial_guess = tt.TT.ones(operator.col_dims, [1] * order, ranks=tt_rank).ortho_right()
+initial_guess = TT.ones(operator.col_dims, [1] * order, ranks=tt_rank).ortho_right()
 
 # solve Markovian master equation in TT format
 # --------------------------------------------
@@ -57,19 +57,19 @@ print('CPU time ' + '.' * 23 + ' ' + str("%.2f" % time.elapsed) + 's\n')
 # operator in QTT format
 # ----------------------
 
-operator = tt.TT.tt2qtt(operator, qtt_modes, qtt_modes, threshold=threshold)
+operator = TT.tt2qtt(operator, qtt_modes, qtt_modes, threshold=threshold)
 
 # initial distribution in QTT format
 # ----------------------------------
 
-initial_distribution = tt.TT.zeros(operator.col_dims, [1] * operator.order)
+initial_distribution = TT.zeros(operator.col_dims, [1] * operator.order)
 for i in range(initial_distribution.order):
     initial_distribution.cores[i][0, 0, 0, 0] = 1
 
 # initial guess in QTT format
 # ---------------------------
 
-initial_guess = tt.TT.ones(operator.col_dims, [1] * operator.order, ranks=qtt_rank).ortho_right()
+initial_guess = TT.ones(operator.col_dims, [1] * operator.order, ranks=qtt_rank).ortho_right()
 
 # solve Markovian master equation in QTT format
 # ---------------------------------------------
@@ -84,7 +84,7 @@ print('CPU time ' + '.' * 23 + ' ' + str("%.2f" % time.elapsed) + 's\n')
 # ---------------------------------------------
 
 for i in range(len(solution)):
-    solution[i] = tt.TT.qtt2tt(solution[i], [len(qtt_modes[0])] * order)
+    solution[i] = TT.qtt2tt(solution[i], [len(qtt_modes[0])] * order)
 mean = sf.mean_concentrations(solution)
 
 # plot mean concentrations
@@ -95,11 +95,11 @@ plt.rc('font', family='serif')
 plt.rcParams["mathtext.fontset"] = "cm"
 plt.rcParams.update({'font.size': 14})
 plt.rcParams.update({'figure.autolayout': True})
-plt.plot(np.insert(np.cumsum(step_sizes),0,0), mean)
+plt.plot(np.insert(np.cumsum(step_sizes), 0, 0), mean)
 plt.title('Mean concentrations', y=1.05)
 plt.xlabel(r'$t$')
 plt.ylabel(r'$\overline{x_i}(t)$')
 plt.axis([0, len(step_sizes), 0, np.amax(mean)+0.5])
 plt.grid(which='major')
-plt.legend(['species ' + str(i) for i in range(1, np.amin([8,order]))] + ['...'], loc=4)
+plt.legend(['species ' + str(i) for i in range(1, np.amin([8, order]))] + ['...'], loc=4)
 plt.show()
