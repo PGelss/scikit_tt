@@ -1,6 +1,6 @@
 # scikit_tt
 
-A toolbox for tensor train calculations.
+A toolbox for tensor train computations.
 
 ## Short description
 
@@ -11,9 +11,9 @@ The simulation and analysis of high-dimensional problems is often infeasible due
 1. [Installing](README.md#1-installing)
 2. [TT class](README.md#2-tt-class) 
 3. [TT solvers](README.md#3-tt-solvers)
-   3.1 [Systems of linear equations](README.md#31-systems-of-linear-equations)
-   3.2 [Eigenvalue problems](README.md#32-eigenvalue-problems)
-   3.3 [Linear differential equations](README.md#33-linear-differential-equations)
+   - [Systems of linear equations](README.md#31-systems-of-linear-equations)
+   - [Eigenvalue problems](README.md#32-eigenvalue-problems)
+   - [Linear differential equations](README.md#33-linear-differential-equations)
 4. [SLIM decomposition](README.md#4-slim-decomposition)
 5. [Multidimensional approximation of nonlinear dynamical systems (MANDy)](README.md#5-multidimensional-approximation-of-nonlinear-dynamical-systems-mandy)
 6. [Models](README.md#6-models)
