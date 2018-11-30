@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-import numpy
-import scipy
+import numpy as np
+import scipy as sp
 
 
 class TT(object):
@@ -46,7 +46,7 @@ class TT(object):
 
         # X is an array with dimensions m_1 x ... x m_d x n_1 x ... x n_d
 
-        if isinstance(x, numpy.ndarray):
+        if isinstance(x, np.ndarray):
 
             # define order, row dimensions, column dimensions, ranks, and cores
             order = len(x.shape) // 2
@@ -57,27 +57,27 @@ class TT(object):
 
             # permute dimensions, e.g., for order = 4: p = [0, 4, 1, 5, 2, 6, 3, 7]
             p = [order * j + i for i in range(order) for j in range(2)]
-            y = numpy.transpose(x, p).copy()
+            y = np.transpose(x, p).copy()
 
             # decompose the full tensor
             for i in range(order - 1):
                 # reshape residual tensor
                 m = ranks[i] * row_dims[i] * col_dims[i]
-                n = numpy.prod(row_dims[i + 1:]) * numpy.prod(col_dims[i + 1:])
-                y = numpy.reshape(y, [m, n])
+                n = np.prod(row_dims[i + 1:]) * np.prod(col_dims[i + 1:])
+                y = np.reshape(y, [m, n])
 
                 # apply SVD in order to isolate modes
-                [u, s, v] = scipy.linalg.svd(y, full_matrices=False)
+                [u, s, v] = sp.linalg.svd(y, full_matrices=False)
 
                 # define new TT core
                 ranks[i + 1] = u.shape[1]
-                cores[i] = numpy.reshape(u, [ranks[i], row_dims[i], col_dims[i], ranks[i + 1]])
+                cores[i] = np.reshape(u, [ranks[i], row_dims[i], col_dims[i], ranks[i + 1]])
 
                 # set new residual tensor
-                y = numpy.diag(s) @ v
+                y = np.diag(s) @ v
 
             # define last TT core
-            cores[-1] = numpy.reshape(y, [ranks[-2], row_dims[-1], col_dims[-1], 1])
+            cores[-1] = np.reshape(y, [ranks[-2], row_dims[-1], col_dims[-1], 1])
 
             # initialize tensor train
             self.__init__(cores)
@@ -132,7 +132,7 @@ class TT(object):
             # construct cores
             for i in range(order):
                 # set core to zero array
-                cores[i] = numpy.zeros([ranks[i], self.row_dims[i], self.col_dims[i], ranks[i + 1]])
+                cores[i] = np.zeros([ranks[i], self.row_dims[i], self.col_dims[i], ranks[i + 1]])
 
                 # insert core of self
                 cores[i][0:self.ranks[i], :, :, 0:self.ranks[i + 1]] = self.cores[i]
@@ -225,7 +225,7 @@ class TT(object):
         if isinstance(tt_mul, TT):
 
             # multiply TT cores
-            cores = [numpy.tensordot(self.cores[i], tt_mul.cores[i], axes=(2, 1)).transpose([0, 3, 1, 4, 2, 5]).reshape(
+            cores = [np.tensordot(self.cores[i], tt_mul.cores[i], axes=(2, 1)).transpose([0, 3, 1, 4, 2, 5]).reshape(
                 self.ranks[i] * tt_mul.ranks[i], self.row_dims[i], tt_mul.col_dims[i],
                 self.ranks[i + 1] * tt_mul.ranks[i + 1]) for i in range(self.order)]
 
@@ -270,7 +270,7 @@ class TT(object):
             full_tensor = full_tensor @ self.cores[i].reshape(self.ranks[i],
                                                               self.row_dims[i] * self.col_dims[i] * self.ranks[
                                                                   i + 1])
-            full_tensor = full_tensor.reshape(numpy.prod(self.row_dims[:i + 1]) * numpy.prod(self.col_dims[:i + 1]),
+            full_tensor = full_tensor.reshape(np.prod(self.row_dims[:i + 1]) * np.prod(self.col_dims[:i + 1]),
                                               self.ranks[i + 1])
 
         # reshape and transpose full_tensor
@@ -297,11 +297,11 @@ class TT(object):
         """
 
         # construct matrix for first row and column coordinates
-        entry = numpy.squeeze(self.cores[0][:, coordinates[0], coordinates[self.order], :]).reshape(1, self.ranks[1])
+        entry = np.squeeze(self.cores[0][:, coordinates[0], coordinates[self.order], :]).reshape(1, self.ranks[1])
 
         # multiply with respective matrices for the following coordinates
         for i in range(1, self.order):
-            entry = entry @ numpy.squeeze(self.cores[i][:, coordinates[i], coordinates[self.order + i], :]).reshape(
+            entry = entry @ np.squeeze(self.cores[i][:, coordinates[i], coordinates[self.order + i], :]).reshape(
                 self.ranks[i], self.ranks[i + 1])
 
         entry = entry[0, 0]
@@ -322,7 +322,7 @@ class TT(object):
 
         for i in range(self.order):
             # permute second and third dimension of each core
-            tt_transpose.cores[i] = numpy.transpose(tt_transpose.cores[i], [0, 2, 1, 3])
+            tt_transpose.cores[i] = np.transpose(tt_transpose.cores[i], [0, 2, 1, 3])
 
             # interchange row and column dimensions
             tt_transpose.row_dims[i] = self.col_dims[i]
@@ -367,7 +367,7 @@ class TT(object):
             ranks = [1] + [ranks] * (len(row_dims) - 1) + [1]
 
         # define TT cores of tt_zeros
-        cores = [numpy.zeros([ranks[i], row_dims[i], col_dims[i], ranks[i + 1]]) for i in range(len(row_dims))]
+        cores = [np.zeros([ranks[i], row_dims[i], col_dims[i], ranks[i + 1]]) for i in range(len(row_dims))]
 
         # define tensor train
         tt_zeros = TT(cores)
@@ -397,7 +397,7 @@ class TT(object):
             ranks = [1] + [ranks] * (len(row_dims) - 1) + [1]
 
         # define TT cores of tt_ones
-        cores = [numpy.ones([ranks[i], row_dims[i], col_dims[i], ranks[i + 1]]) for i in range(len(row_dims))]
+        cores = [np.ones([ranks[i], row_dims[i], col_dims[i], ranks[i + 1]]) for i in range(len(row_dims))]
 
         # define tensor train
         tt_ones = TT(cores)
@@ -419,9 +419,9 @@ class TT(object):
         """
 
         # define cores of tt_eye
-        cores = [numpy.zeros([1, dims[i], dims[i], 1]) for i in range(len(dims))]
+        cores = [np.zeros([1, dims[i], dims[i], 1]) for i in range(len(dims))]
         for i in range(len(dims)):
-            cores[i][0, :, :, 0] = numpy.eye(dims[i])
+            cores[i][0, :, :, 0] = np.eye(dims[i])
 
         # define tensor train
         tt_eye = TT(cores)
@@ -451,7 +451,7 @@ class TT(object):
             ranks = [1] + [ranks] * (len(row_dims) - 1) + [1]
 
         # define TT cores of tt_rand
-        cores = [scipy.rand(ranks[i], row_dims[i], col_dims[i], ranks[i + 1]) for i in range(len(row_dims))]
+        cores = [sp.rand(ranks[i], row_dims[i], col_dims[i], ranks[i + 1]) for i in range(len(row_dims))]
 
         # define tensor train
         tt_rand = TT(cores)
@@ -481,10 +481,10 @@ class TT(object):
             ranks = [1] + [ranks] * (len(row_dims) - 1) + [1]
 
         # compute factor for each core such that tt_uni has given norm
-        factor = (norm / (numpy.sqrt(numpy.prod(row_dims)) * numpy.prod(ranks))) ** (1 / len(row_dims))
+        factor = (norm / (np.sqrt(np.prod(row_dims)) * np.prod(ranks))) ** (1 / len(row_dims))
 
         # define TT cores of tt_uni
-        cores = [factor * numpy.ones([ranks[i], row_dims[i], 1, ranks[i + 1]]) for i in range(len(row_dims))]
+        cores = [factor * np.ones([ranks[i], row_dims[i], 1, ranks[i + 1]]) for i in range(len(row_dims))]
 
         # define tensor train
         tt_uni = TT(cores)
@@ -522,14 +522,14 @@ class TT(object):
         for i in range(start_index, end_index):
 
             # apply SVD to ith TT core
-            [u, s, v] = scipy.linalg.svd(
+            [u, s, v] = sp.linalg.svd(
                 tt_ortho.cores[i].reshape(tt_ortho.ranks[i] * tt_ortho.row_dims[i] * tt_ortho.col_dims[i],
                                           tt_ortho.ranks[i + 1]),
                 full_matrices=False, overwrite_a=True, check_finite=False, lapack_driver='gesvd')
 
             # rank reduction
             if threshold != 0:
-                indices = numpy.where(s / s[0] > threshold)[0]
+                indices = np.where(s / s[0] > threshold)[0]
                 u = u[:, indices]
                 s = s[indices]
                 v = v[indices, :]
@@ -540,10 +540,10 @@ class TT(object):
                                           tt_ortho.ranks[i + 1])
 
             # shift non-orthonormal part to next core
-            tt_ortho.cores[i + 1] = numpy.diag(s) @ v @ tt_ortho.cores[i + 1].reshape(tt_ortho.cores[i + 1].shape[0],
-                                                                                      tt_ortho.row_dims[i + 1] *
-                                                                                      tt_ortho.col_dims[i + 1] *
-                                                                                      tt_ortho.ranks[i + 2])
+            tt_ortho.cores[i + 1] = np.diag(s) @ v @ tt_ortho.cores[i + 1].reshape(tt_ortho.cores[i + 1].shape[0],
+                                                                                   tt_ortho.row_dims[i + 1] *
+                                                                                   tt_ortho.col_dims[i + 1] *
+                                                                                   tt_ortho.ranks[i + 2])
             tt_ortho.cores[i + 1] = tt_ortho.cores[i + 1].reshape(tt_ortho.ranks[i + 1], tt_ortho.row_dims[i + 1],
                                                                   tt_ortho.col_dims[i + 1],
                                                                   tt_ortho.ranks[i + 2])
@@ -575,20 +575,20 @@ class TT(object):
         if start_index is None:
             start_index = tt_ortho.order - 1
 
-            # right-orthonormalization
+        # right-orthonormalization
         # ------------------------
 
         for i in range(start_index, end_index, -1):
 
             # apply SVD to ith TT core
-            [u, s, v] = scipy.linalg.svd(
+            [u, s, v] = sp.linalg.svd(
                 tt_ortho.cores[i].reshape(tt_ortho.ranks[i],
                                           tt_ortho.row_dims[i] * tt_ortho.col_dims[i] * tt_ortho.ranks[i + 1]),
                 full_matrices=False, overwrite_a=True, check_finite=False, lapack_driver='gesvd')
 
             # rank reduction
             if threshold != 0:
-                indices = numpy.where(s / s[0] > threshold)[0]
+                indices = np.where(s / s[0] > threshold)[0]
                 u = u[:, indices]
                 s = s[indices]
                 v = v[indices, :]
@@ -601,7 +601,7 @@ class TT(object):
             # shift non-orthonormal part to previous core
             tt_ortho.cores[i - 1] = tt_ortho.cores[i - 1].reshape(
                 tt_ortho.ranks[i - 1] * tt_ortho.row_dims[i - 1] * tt_ortho.col_dims[i - 1],
-                tt_ortho.cores[i - 1].shape[3]) @ u @ numpy.diag(s)
+                tt_ortho.cores[i - 1].shape[3]) @ u @ np.diag(s)
             tt_ortho.cores[i - 1] = tt_ortho.cores[i - 1].reshape(tt_ortho.ranks[i - 1], tt_ortho.row_dims[i - 1],
                                                                   tt_ortho.col_dims[i - 1], tt_ortho.ranks[i])
 
@@ -622,7 +622,7 @@ class TT(object):
         tt_mat = self.copy()
 
         # conversion to full format and reshape into matrix
-        tt_mat = tt_mat.full().reshape(numpy.prod(self.row_dims), numpy.prod(self.col_dims))
+        tt_mat = tt_mat.full().reshape(np.prod(self.row_dims), np.prod(self.col_dims))
 
         return tt_mat
 
@@ -663,7 +663,7 @@ class TT(object):
         if p == 1:
             # sum over row axes
             tt_tensor.cores = [
-                numpy.sum(tt_tensor.cores[i], axis=1).reshape(tt_tensor.ranks[i], 1, 1, tt_tensor.ranks[i + 1]) for i in
+                np.sum(tt_tensor.cores[i], axis=1).reshape(tt_tensor.ranks[i], 1, 1, tt_tensor.ranks[i + 1]) for i in
                 range(tt_tensor.order)]
 
             # define new row dimensions
@@ -680,7 +680,7 @@ class TT(object):
             tt_tensor = tt_tensor.ortho_right()
 
             # compute norm from first core
-            norm = numpy.linalg.norm(tt_tensor.cores[0].reshape(tt_tensor.row_dims[0] * tt_tensor.ranks[1]))
+            norm = np.linalg.norm(tt_tensor.cores[0].reshape(tt_tensor.row_dims[0] * tt_tensor.ranks[1]))
 
         return norm
 
@@ -696,7 +696,7 @@ class TT(object):
             t_qtt = tt2qtt(t, [M_1, ..., M_d], [N_1, ..., N_d])
 
         defines a new instance of the TT class with dimensions given by the lists M_1, ..., M_d and N_1, ..., N_d,
-        respectively. M_i and N_i are lists of ints such that numpy.prod(M_i) = m_i and numpy.prod(N_i)=n_i.
+        respectively. M_i and N_i are lists of ints such that np.prod(M_i) = m_i and np.prod(N_i)=n_i.
 
         Parameters
         ----------
@@ -740,13 +740,13 @@ class TT(object):
                                     tt_tensor.ranks[i + 1]).transpose([0, 1, 3, 2, 4, 5])
 
                 # apply SVD in order to split core
-                [u, s, v] = scipy.linalg.svd(
+                [u, s, v] = sp.linalg.svd(
                     core.reshape(rank * row_dims[i][j] * col_dims[i][j], row_dim * col_dim * tt_tensor.ranks[i + 1]),
                     full_matrices=False, overwrite_a=True, check_finite=False, lapack_driver='gesvd')
 
                 # rank reduction
                 if threshold != 0:
-                    indices = numpy.where(s / s[0] > threshold)[0]
+                    indices = np.where(s / s[0] > threshold)[0]
                     u = u[:, indices]
                     s = s[indices]
                     v = v[indices, :]
@@ -755,7 +755,7 @@ class TT(object):
                 qtt_cores.append(u.reshape(rank, row_dims[i][j], col_dims[i][j], s.shape[0]))
 
                 # update residual core and rank
-                core = numpy.diag(s) @ v
+                core = np.diag(s) @ v
                 rank = s.shape[0]
 
             # define last QTT core
@@ -809,7 +809,7 @@ class TT(object):
             # begin contractions
             for j in range(k + 1, k + merge_numbers[i]):
                 # contract with next core and reshape
-                core = numpy.tensordot(core, qtt_tensor.cores[j], axes=(3, 0)).transpose(0, 1, 3, 2, 4, 5)
+                core = np.tensordot(core, qtt_tensor.cores[j], axes=(3, 0)).transpose(0, 1, 3, 2, 4, 5)
                 core = core.reshape(core.shape[0], core.shape[1] * core.shape[2], core.shape[3] * core.shape[4],
                                     core.shape[5])
 
