@@ -23,9 +23,9 @@ The simulation and analysis of high-dimensional problems is often infeasible due
 
 ## 1. Installing
 
-To install scikit_tt type
+A setup.py is included in the package. To install scikit_tt simply enter:
 
-`...`
+`python setup.py install --user`
 
 ## 2. TT class
 
