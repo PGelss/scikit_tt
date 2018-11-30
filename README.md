@@ -8,7 +8,7 @@ The simulation and analysis of high-dimensional problems is often infeasible due
 
 ## Content
 
-1. [Getting started](README.md#1-getting-started)
+1. [Installing](README.md#1-installing)
 2. [TT class](README.md#2-tt-class) 
 3. [TT solvers](README.md#3-tt-solvers)
 4. [SLIM decomposition](README.md#4-slim-decomposition)
