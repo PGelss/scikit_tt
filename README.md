@@ -31,8 +31,7 @@ A setup.py is included in the package. To install **scikit_tt** simply enter:
 
 The tensor-train class - implemented in the module *tensor-train.py* - is the core of **scikit_tt** and enables us to work with the tensor-train format. We define tensor trains in terms of different attributes such as *order*, *row_dims*, *col_dims*, *ranks*, and *cores*. The member functions of the class are:
 
-| Tables        | Are           | Cool  |
-| ------------- |:-------------:| -----:|
+
 | col 3 is      | right-aligned | $1600 |
 | col 2 is      | centered      |   $12 |
 | zebra stripes | are neat      |    $1 |
