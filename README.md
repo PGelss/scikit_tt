@@ -9,8 +9,10 @@ The simulation and analysis of high-dimensional problems is often infeasible due
 ## Content
 
 [1. Getting started](scikit_tt#1-getting-started)
-[2. TT class](scikit_tt#2-tt-class)
+
+[2. TT class](scikit_tt#2-tt-class) 
 [3. TT solvers](scikit_tt#3-tt-solvers)
+
 [4. SLIM decomposition](scikit_tt#4-slim-decomposition)
 [5. Multidimensional approximation of nonlinear dynamical systems (MANDy)](scikit_tt#5-multidimensional-approximation-of-nonlinear-dynamical-systems-mandy)
 [6. Models](scikit_tt#6-models)
