@@ -59,7 +59,7 @@ qtt2tt ............... convert from QTT to TT format
 
 ### 3.1 Systems of linear equations
 
-In order to approximate the solution of a system of linear equations in the TT format, the *alternating linear scheme* (ALS) and the *modified alternating linear scheme* (MALS) are implemented in **scikit_tt**. The basic idea is to fix all components of the tensor network except for one (or two in the MALS case). This yields a series of low-dimensional problems, which can then be solved using classical numerical methods. For details, see [3].
+In order to approximate the solution of a system of linear equations in the TT format, a series of low-dimensional problems can be solved by fixing certain components of the tensor network. For this purpose, the *alternating linear scheme* (ALS) and the *modified alternating linear scheme* (MALS) [3] are implemented in *solvers/sle.py*.
 
 ```
 als .................. alternating linear scheme for solving systems of linear equations in the TT format
@@ -68,9 +68,13 @@ mals ................. modified alternating linear scheme for solving systems of
 
 ### 3.2 Eigenvalue problems
 
-ALS and MALS can also be used to find approximations of eigenvalues and corresponding eigentensors of TT operators. The basic procedures of ALS and MALS for eigenvalue problems are similar to the ones for systems of linear equations. The main difference is the type of optimization problem which has to be solved in the iteration steps. For details, see [3].
+ALS and MALS can also be used to find approximations of eigenvalues and corresponding eigentensors of TT operators. The basic procedures of ALS and MALS - implemented in *solvers/evp* - for eigenvalue problems are similar to the ones for systems of linear equations. The main difference is the type of optimization problem which has to be solved in the iteration steps. See [3] for details. 
 
-**TODO: _add MALS for eigenvalue problems_**
+```
+als .................. alternating linear scheme for solving eigenvalue problems in the TT format
+```
+
+**TODO: _add MALS for eigenvalue problems_ / _implement solvers for generalized EVPs_**
 
 ### 3.3 Ordinary differential equations
 
