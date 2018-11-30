@@ -19,7 +19,7 @@ The simulation and analysis of high-dimensional problems is often infeasible due
 9. Subfunctions and tools
 10. Additional information
 11. Acknowledgments
-12. References
+12. [References](README.md#104-versioning)
 
 ## 1. Installing
 
