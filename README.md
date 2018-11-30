@@ -68,7 +68,7 @@ mals ................. modified alternating linear scheme for solving systems of
 
 ### 3.2 Eigenvalue problems
 
-ALS and MALS can also be used to find approximations of eigenvalues and corresponding eigentensors of TT operators. The basic procedures of ALS and MALS - implemented in *solvers/evp* - for eigenvalue problems are similar to the ones for systems of linear equations. The main difference is the type of optimization problem which has to be solved in the iteration steps. See [3] for details. 
+ALS and MALS can also be used to find approximations of eigenvalues and corresponding eigentensors of TT operators. The basic procedures of ALS and MALS - implemented in *solvers/evp.py* - for eigenvalue problems are similar to the ones for systems of linear equations. The main difference is the type of optimization problem which has to be solved in the iteration steps. See [3] for details. 
 
 ```
 als .................. alternating linear scheme for solving eigenvalue problems in the TT format
@@ -78,15 +78,21 @@ als .................. alternating linear scheme for solving eigenvalue problems
 
 ### 3.3 Ordinary differential equations
 
-In order to compute time-dependent or stationary distributions of ordinary differential equations given by Markovian master equations, **scikit_tt** uses implicit integration schemes such as the implicit Euler method or the trapezoidal rule. In order to approximate the solutions at each time step, ALS and MALS, respectively, are used. In addition to the fact that implicit integration schemes are more suitable for the solution of stiff equations than explicit methods, we have control over the ranks of the TT approximations without implementing computationally expensive tensor multiplications and subsequent rank truncations.
+In order to compute time-dependent or stationary distributions of linear differential equations in the TT format, **scikit_tt** uses implicit integration schemes such as the implicit Euler method or the trapezoidal rule. In order to approximate the solutions at each time step, ALS and MALS, respectively, are used. The methods can be found in *solvers/ode.py*.
 
-**TODO: _revise code_**
+**TODO: _revise code_ / _combine ALS/MALS methods_ / _explicit methods?_**
 
 ## 4. SLIM decomposition
 
 ## 5. Multidimensional approximation of nonlinear dynamical systems (MANDy)
 
 ## 6. Models
+
+```
+signaling_cascade .... cascading process on a genetic network consisting of genes of different species
+two_step_destruction . two-step mechanism for the destruction of molecules
+co_oxidation ......... CO oxidation on a RuO2 surface
+```
 
 ## 7. Examples
 
