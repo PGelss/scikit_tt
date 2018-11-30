@@ -25,8 +25,7 @@ The simulation and analysis of high-dimensional problems is often infeasible due
     - [Built with](README.md#102-built-with)
     - [License](README.md#103-license)
     - [Versioning](README.md#104-versioning)
-11. [Acknowledgments](README.md#11-acknowledgments)
-12. [References](README.md#12-references)
+11. [References](README.md#11-references)
 
 ## 1. Installing
 
@@ -143,11 +142,7 @@ This project is licensed under the [LGPLv3+](https://www.gnu.org/licenses/lgpl-3
 
 We use ... for versioning. For the available versions, see ...
 
-## 11. Acknowledgments
-
-* ...
-
-## 12. References
+## 11. References
 
 [1] I. V. Oseledets, "Tensor-Train Decomposition", SIAM Journal on Scientific Computing 33 (5) (2011) 2295-2317
 
