@@ -29,7 +29,7 @@ The simulation and analysis of high-dimensional problems is often infeasible due
 
 ## 1. Installing
 
-A *setup.py* is included in the package. To install **scikit_tt** simply enter:
+A [*setup.py*](setup.py) is included in the package. To install **scikit_tt** simply enter:
 
 ```
 python setup.py install --user
@@ -161,9 +161,11 @@ unit_vector .......... canonical unit vector
 
 ### 10.1 Authors & contact
 
-* **Patrick Gelß** - _major contribution_ - Freie Universität Berlin, CRC 1114
-* **Stefan Klus** - _initial work_ - Freie Universität Berlin, CRC 1114
-* **Martin Scherer** - _setup_ - Freie Universität Berlin, Computational Molecular Biology
+* **Patrick Gelß** - _major contribution_ - CRC 1114, Freie Universität Berlin, Germany
+  - address: Arnimallee 9, 14195 Berlin
+  - Email: p.gelss@fu-berlin.de
+* **Stefan Klus** - _initial work_ - CRC 1114, Freie Universität Berlin, Germany
+* **Martin Scherer** - _setup_ - Computational Molecular Biology, Freie Universität Berlin, Germany
 
 ### 10.2 Built with
 
