@@ -74,7 +74,7 @@ mals ................. modified alternating linear scheme for solving systems of
 
 ### 3.2 Eigenvalue problems
 
-ALS and MALS can also be used to find approximations of eigenvalues and corresponding eigentensors of TT operators. The basic procedures of ALS and MALS - implemented in [*solvers/evp.py**](scikit_tt/solvers/evp.py) - for eigenvalue problems are similar to the ones for systems of linear equations. The main difference is the type of optimization problem which has to be solved in the iteration steps. See [3] for details. 
+ALS and MALS can also be used to find approximations of eigenvalues and corresponding eigentensors of TT operators. The basic procedures of ALS and MALS - implemented in [*solvers/evp.py*](scikit_tt/solvers/evp.py) - for eigenvalue problems are similar to the ones for systems of linear equations. The main difference is the type of optimization problem which has to be solved in the iteration steps. See [3] for details. 
 
 ```
 als .................. alternating linear scheme for solving eigenvalue problems in the TT format
