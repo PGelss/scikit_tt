@@ -704,8 +704,8 @@ class TT(object):
             row dimensions for the QTT representation
         col_dims: list of lists of ints
             col dimensions for the QTT representation
-        threshold: float
-            threshold for reduced SVD decompositions
+        threshold: float, optional
+            threshold for reduced SVD decompositions, default is 0
 
         Returns
         -------
