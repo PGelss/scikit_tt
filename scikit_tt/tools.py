@@ -3,6 +3,7 @@
 import time as _time
 import sys
 
+
 class Timer(object):
     """Measure CPU time"""
 
@@ -17,7 +18,7 @@ class Timer(object):
 def progress(text, percent, dots=3):
     """Show progress in percent"""
 
-    sys.stdout.write('\r' + text + ' ' + dots*'.' + ' ' + str("%.1f" % percent) + '%')
+    sys.stdout.write('\r' + text + ' ' + dots * '.' + ' ' + str("%.1f" % percent) + '%')
 
     if percent == 100:
         sys.stdout.write('\n')
