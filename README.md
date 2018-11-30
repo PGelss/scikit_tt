@@ -11,6 +11,9 @@ The simulation and analysis of high-dimensional problems is often infeasible due
 1. [Installing](README.md#1-installing)
 2. [TT class](README.md#2-tt-class) 
 3. [TT solvers](README.md#3-tt-solvers)
+   3.1 [Systems of linear equations](README.md#31-systems-of-linear-equations)
+   3.2 [Eigenvalue problems](README.md#32-eigenvalue-problems)
+   3.3 [Linear differential equations](README.md#33-linear-differential-equations)
 4. [SLIM decomposition](README.md#4-slim-decomposition)
 5. [Multidimensional approximation of nonlinear dynamical systems (MANDy)](README.md#5-multidimensional-approximation-of-nonlinear-dynamical-systems-mandy)
 6. [Models](README.md#6-models)
@@ -76,7 +79,7 @@ als .................. alternating linear scheme for solving eigenvalue problems
 
 **TODO: _add MALS for eigenvalue problems_ / _implement solvers for generalized EVPs_**
 
-### 3.3 Ordinary differential equations
+### 3.3 Linear differential equations
 
 In order to compute time-dependent or stationary distributions of linear differential equations in the TT format, **scikit_tt** uses implicit integration schemes such as the implicit Euler method or the trapezoidal rule. In order to approximate the solutions at each time step, ALS and MALS, respectively, are used. The methods can be found in *solvers/ode.py*.
 
@@ -106,7 +109,7 @@ Numerical experiments from different application areas are included in **scikit_
 
 ## 10. Additional information
 
-### 10.1 Authors 
+### 10.1 Authors & contact
 
 * **Patrick Gelß** - _major contribution_ - Freie Universität Berlin, CRC 1114
 * **Stefan Klus** - _initial work_ - Freie Universität Berlin, CRC 1114
