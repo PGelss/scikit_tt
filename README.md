@@ -23,7 +23,7 @@ The simulation and analysis of high-dimensional problems is often infeasible due
 
 ## 1. Installing
 
-A setup.py is included in the package. To install **scikit_tt** simply enter:
+A *setup.py* is included in the package. To install **scikit_tt** simply enter:
 
 ```
 python setup.py install --user
@@ -60,6 +60,11 @@ qtt2tt ............... convert from QTT to TT format
 ### 3.1 Systems of linear equations
 
 In order to approximate the solution of a system of linear equations in the TT format, the *alternating linear scheme* (ALS) and the *modified alternating linear scheme* (MALS) are implemented in **scikit_tt**. The basic idea is to fix all components of the tensor network except for one (or two in the MALS case). This yields a series of low-dimensional problems, which can then be solved using classical numerical methods. For details, see [3].
+
+```
+als .................. alternating linear scheme for solving systems of linear equations in the TT format
+mals ................. modified alternating linear scheme for solving systems of linear equations in the TT format
+```
 
 ### 3.2 Eigenvalue problems
 
