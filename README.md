@@ -163,7 +163,7 @@ unit_vector .......... canonical unit vector
 
 * **Patrick Gelß** - _major contribution_ - CRC 1114, Freie Universität Berlin, Germany
   - address: Arnimallee 9, 14195 Berlin
-  - Email: p.gelss@fu-berlin.de
+  - email: p.gelss@fu-berlin.de
 * **Stefan Klus** - _initial work_ - CRC 1114, Freie Universität Berlin, Germany
 * **Martin Scherer** - _setup_ - Computational Molecular Biology, Freie Universität Berlin, Germany
 
