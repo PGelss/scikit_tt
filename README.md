@@ -161,10 +161,10 @@ unit_vector .......... canonical unit vector
 
 ### 10.1 Authors & contact
 
-* **Patrick Gelß** - _major contribution_ - CRC 1114, Freie Universität Berlin, Germany
-  - address: Arnimallee 9, 14195 Berlin
+* **Dr. Patrick Gelß** - _major contribution_ - CRC 1114, Freie Universität Berlin, Germany
+  - address: Arnimallee 9, 14195 Berlin, Germany
   - email: p.gelss@fu-berlin.de
-* **Stefan Klus** - _initial work_ - CRC 1114, Freie Universität Berlin, Germany
+* **Dr. Stefan Klus** - _initial work_ - CRC 1114, Freie Universität Berlin, Germany
 * **Martin Scherer** - _setup_ - Computational Molecular Biology, Freie Universität Berlin, Germany
 
 ### 10.2 Built with
