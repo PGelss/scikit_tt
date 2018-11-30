@@ -68,8 +68,8 @@ qtt2tt ............... convert from QTT to TT format
 In order to approximate the solution of a system of linear equations in the TT format, a series of low-dimensional problems can be solved by fixing certain components of the tensor network. For this purpose, the *alternating linear scheme* (ALS) and the *modified alternating linear scheme* (MALS) [[3](README.md#11-references)] are implemented in [*solvers/sle.py*](scikit_tt/solvers/sle.py).
 
 ```
-als .................. alternating linear scheme for solving systems of linear equations in the TT format
-mals ................. modified alternating linear scheme for solving systems of linear equations in the TT format
+als .................. alternating linear scheme for systems of linear equations in the TT format
+mals ................. modified ALS for systems of linear equations in the TT format
 ```
 
 ### 3.2 Eigenvalue problems
@@ -77,7 +77,7 @@ mals ................. modified alternating linear scheme for solving systems of
 ALS and MALS can also be used to find approximations of eigenvalues and corresponding eigentensors of TT operators. The basic procedures of ALS and MALS - implemented in [*solvers/evp.py*](scikit_tt/solvers/evp.py) - for eigenvalue problems are similar to the ones for systems of linear equations. The main difference is the type of optimization problem which has to be solved in the iteration steps. See [[3](README.md#11-references)]  for details. 
 
 ```
-als .................. alternating linear scheme for solving eigenvalue problems in the TT format
+als .................. alternating linear scheme for eigenvalue problems in the TT format
 ```
 
 **TODO: _add MALS for eigenvalue problems_ / _implement solvers for generalized EVPs_**
