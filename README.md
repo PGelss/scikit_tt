@@ -144,7 +144,7 @@ two_step_destruction . apply QTT and MALS to a two-step destruction process
 
 ## 9. Subfunctions and tools
 
-In [*subfunctions.py*](subfunctions.py) we collect algorithms and tools which are employed at several points in **scikit_tt** and/or helpful for data analysis, comparisons, and visualization.
+In [*subfunctions.py*](scikit_tt/subfunctions.py) we collect algorithms and tools which are employed at several points in **scikit_tt** and/or helpful for data analysis, comparisons, and visualization.
 
 ```
 mean_concentration ... mean concentrations of TT series
