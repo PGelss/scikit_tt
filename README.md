@@ -105,6 +105,18 @@ co_oxidation ......... CO oxidation on a RuO2 surface
 
 Numerical experiments from different application areas are included in **scikit_tt**. For instance, the application of the TT format to the chemical master equation, heterogeneous catalytic process, fluid dynamics, and molecular dynamics can be found in the directory *examples*.
 
+```
+chua_circuit ......... apply MANDy to Chua's circuit
+co_oxidation ......... compute stationary distributions of a catalytic process
+fermi_pasta_ulam ..... apply MANDy to the Fermi-Pasta-Ulam problem
+fractals ............. create self-similar patterns using tensors
+kuramoto ............. apply MANDy to the Kuramoto model
+quadruple_well ....... approximate eigenfunctions of the Perron-Frobenius operator in 3D
+signaling_cascade .... compute mean concentrations of a 20-dimensional signaling cascade
+triple_well .......... approximate eigenfunctions of the Perron-Frobenius operator in 2D
+two_step_destruction . apply QTT and MALS to a two-step destruction process
+```
+
 **TODO: _revise code_**
 
 ## 8. Tests
