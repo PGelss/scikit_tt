@@ -3,8 +3,8 @@
 
 import numpy as np
 import scipy as sp
-import subfunctions as sf
-import scikit_tt as tt
+from scikit_tt.tensor_train import TT
+import scikit_tt.subfunctions as sf
 
 
 def slim_mme(state_space, single_cell_reactions, two_cell_reactions, threshold=10 ** -14):
@@ -146,7 +146,7 @@ def slim_mme(state_space, single_cell_reactions, two_cell_reactions, threshold=1
     cores[-1][1 + beta[-2], :, :, 0] = S[-1]
     cores[-1][2 + beta[-2]:2 + beta[-2] + beta[-1], :, :, 0] = L[-1]
 
-    operator = tt.TT(cores)
+    operator = TT(cores)
 
     return operator
 
