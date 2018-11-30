@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
-import scikit_tt.tensor_train as tt
+from scikit_tt.tensor_train import TT
 
 
 def unit_vector(dimension, index):
@@ -56,9 +56,9 @@ def mean_concentrations(series):
             cores = [np.ones([1, series[0].row_dims[k], 1, 1]) for k in range(series[0].order)]
             cores[j] = np.zeros([1, series[0].row_dims[j], 1, 1])
             cores[j][0, :, 0, 0] = np.arange(series[0].row_dims[j])
-            tensor_mean = tt.TT(cores)
+            tensor_mean = TT(cores)
 
             # define entry of mean
-            mean[i, j] = (series[i].transpose() @ tensor_mean).matricize()[0, 0]
+            mean[i, j] = (series[i].transpose() @ tensor_mean).element([0]*2*series[0].order)
 
     return mean
