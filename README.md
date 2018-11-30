@@ -29,21 +29,29 @@ A setup.py is included in the package. To install **scikit_tt** simply enter:
 
 ## 2. TT class
 
-The tensor-train class - implemented in the module *tensor-train.py* - is the core of **scikit_tt** and enables us to work with the tensor-train format. We define tensor trains in terms of different attributes such as *order*, *row_dims*, *col_dims*, *ranks*, and *cores*. The member functions of the class are:
+The tensor-train class - implemented in the module *tensor-train.py* - is the core of **scikit_tt** and enables us to work with the tensor-train format. We define tensor trains in terms of different attributes such as *order*, *row_dims*, *col_dims*, *ranks*, and *cores*. An overview of the member functions of the class is shown in the following table.
 
-
-<table align="center">
-    <tr>
-        <td align="center">...</td>
-        <td align="center">Some other text</td>
-        <td align="center">More text</td>
-    </tr>
-    <tr>
-        <td align="center">...</td>
-        <td align="center">Some other text 2</td>
-        <td align="center">More text 2</td>
-    </tr>
-</table>
+| Member function  | Description   | 
+| ---------------- | ------------- | 
+| TT               | construct tensor train from array or list of cores |
+| print            | print the attributes of a given tensor train |
+| +,-,*,@          | basic operations on tensor trains      |
+| copy             | deep copy of a tensor train |
+| full             | convert a tensor train to full format |
+| element          | compute single element of a tensor train |
+| transpose        | transpose of a tensor train |
+| isoperator       | check if a tensor train is an operator |
+| zeros            | construct a tensor train of all zeros |
+| ones             | construct a tensor train of all ones |
+| eye              | construct an identity tensor train |
+| rand             | construct a random tensor train |
+| uniform          | construct a uniformly distributed tensor train |
+| ortho_left       | left-orthonormalize a tensor train |
+| ortho_right      | right-orthonormalize a tensor train |
+| matricize        | matricize a tensor train |
+| norm             | compute the norm of a tensor train |
+| tt2qtt           | convert from TT to QTT format |
+| qtt2tt           | convert from QTT to TT format |
 
 
 ... implemented in tensor_train.py ...
