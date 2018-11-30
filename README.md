@@ -96,7 +96,7 @@ co_oxidation ......... CO oxidation on a RuO2 surface
 
 ## 7. Examples
 
-Numerical experiments from different application areas are included in **scikit_tt**. For instance, the application of the TT format to the chemical master equation, heterogeneous catalytic process, fluid dynamics, and molecular dynamics can be found in the directory scikit_tt/examples.
+Numerical experiments from different application areas are included in **scikit_tt**. For instance, the application of the TT format to the chemical master equation, heterogeneous catalytic process, fluid dynamics, and molecular dynamics can be found in the directory *examples*.
 
 **TODO: _revise code_**
 
