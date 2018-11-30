@@ -8,18 +8,18 @@ The simulation and analysis of high-dimensional problems is often infeasible due
 
 ## Content
 
-1. [Getting started](scikit_tt#1-getting-started)
-2. [TT class](scikit_tt#2-tt-class) 
-3. [TT solvers](scikit_tt#3-tt-solvers)
-4. [SLIM decomposition](scikit_tt#4-slim-decomposition)
-5. [Multidimensional approximation of nonlinear dynamical systems (MANDy)](scikit_tt#5-multidimensional-approximation-of-nonlinear-dynamical-systems-mandy)
-6. [Models](scikit_tt#6-models)
-7. [Examples](scikit_tt#7-examples)
-8. [Tests](scikit_tt#8-tests)
-9. [Subfunctions and tools](scikit_tt#9-subfunctions-and-tools)
-10. [Additional information](scikit_tt#10-additional-information)
-11. [Acknowledgments](scikit_tt#11-acknowledgements)
-12. [References](scikit_tt#12-references)
+1. [Getting started](README.md#1-getting-started)
+2. [TT class](README.md#2-tt-class) 
+3. [TT solvers](README.md#3-tt-solvers)
+4. [SLIM decomposition](README.md#4-slim-decomposition)
+5. [Multidimensional approximation of nonlinear dynamical systems (MANDy)](README.md#5-multidimensional-approximation-of-nonlinear-dynamical-systems-mandy)
+6. [Models](README.md#6-models)
+7. [Examples](README.md#7-examples)
+8. [Tests](README.md#8-tests)
+9. [Subfunctions and tools](README.md#9-subfunctions-and-tools)
+10. [Additional information](README.md#10-additional-information)
+11. [Acknowledgments](README.md#11-acknowledgements)
+12. [References](README.md#12-references)
 
 ## 1. Installing
 
