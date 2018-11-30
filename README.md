@@ -86,19 +86,41 @@ als .................. alternating linear scheme for solving eigenvalue problems
 
 In order to compute time-dependent or stationary distributions of linear differential equations in the TT format, **scikit_tt** uses implicit integration schemes such as the implicit Euler method or the trapezoidal rule. In order to approximate the solutions at each time step, ALS and MALS, respectively, are used. The methods can be found in *solvers/ode.py*.
 
+```
+implicit_euler ....... implicit Euler method for linear differential equations in the TT format
+trapezoidal_rule ..... trapezoidal rule for linear differential equations in the TT format
+adaptive_step_size ... adaptive step size method for linear differential equations in the TT format
+```
+
 **TODO: _revise code_ / _combine ALS/MALS methods_ / _explicit methods?_**
 
 ## 4. SLIM decomposition
 
+The SLIM decomposition is a specific form of TT decompositions which represent tensors networks with a certain structure. For instance, tensor operators corresponding to nearest-neighbor interaction systems can be systematicly decomposed into a tensor-train operator using the algorithms in *slim.py*.
+
+```
+slim_gen ............. general SLIM decomposition
+slim_mme ............. SLIM decomposition for Markov generators
+slim_mme_hom ......... SLIM decomposition for homogeneous Markov generators
+```
+
+**TODO: _write routines_**
+
 ## 5. Multidimensional approximation of nonlinear dynamical systems (MANDy)
 
+**TODO: _rewrite and check_**
+
 ## 6. Models
+
+The construction of several models from various fields is included in *models.py*. 
 
 ```
 signaling_cascade .... cascading process on a genetic network consisting of genes of different species
 two_step_destruction . two-step mechanism for the destruction of molecules
 co_oxidation ......... CO oxidation on a RuO2 surface
 ```
+
+**TODO: _include other models_**
 
 ## 7. Examples
 
@@ -121,6 +143,19 @@ two_step_destruction . apply QTT and MALS to a two-step destruction process
 ## 8. Tests
 
 ## 9. Subfunctions and tools
+
+In [*subfunctions.py*](subfunctions.py) we collect algorithms and tools which are employed at several points in **scikit_tt** and/or helpful for data analysis, comparisons, and visualization.
+
+```
+mean_concentration ... mean concentrations of TT series
+progress ............. show progress in percent
+sindy ................ SINDy for the analysis of nonlinear dynamical systems
+timer ................ measure CPU time
+turn_over_frequency .. turn-over frequency of probabilty distributions for catalytic reactions
+unit_vector .......... canonical unit vector
+```
+
+**TODO: _write routines_**
 
 ## 10. Additional information
 
