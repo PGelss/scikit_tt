@@ -23,13 +23,20 @@ The simulation and analysis of high-dimensional problems is often infeasible due
 
 ## 1. Installing
 
-A setup.py is included in the package. To install scikit_tt simply enter:
+A setup.py is included in the package. To install **scikit_tt** simply enter:
 
 `python setup.py install --user`
 
 ## 2. TT class
 
-Tensor trains [1] are defined in terms of different attributes. In particular, the attribute 'cores' is a list of 4-dimensional tensors representing the corresponding TT cores. There is no distinguish between tensor trains and tensor-train operators, i.e. a classical tensor train is represented by cores with column dimensions equal to 1. An instance of the tensor train class can be initialized from a full tensor representation (in this case, the tensor is decomposed into the TT format) or from a list of cores. For more information on the implemented tensor operations, we refer to [2].
+The tensor-train class - implemented in the module *tensor-train.py* - is the core of **scikit_tt** and enables us to work with the tensor-train format. We define tensor trains in terms of different attributes such as *order*, *row_dims*, *col_dims*, *ranks*, and *cores*. The member functions of the class are:
+
+| Tables        | Are           | Cool  |
+| ------------- |:-------------:| -----:|
+| col 3 is      | right-aligned | $1600 |
+| col 2 is      | centered      |   $12 |
+| zebra stripes | are neat      |    $1 |
+
 
 ... implemented in tensor_train.py ...
 ... list of modules ...
