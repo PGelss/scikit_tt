@@ -108,17 +108,17 @@ Numerical experiments from different application areas are included in **scikit_
 
 ### 10.1 Authors 
 
-* **Patrick Gelß** - _initial work_ - Freie Universität Berlin
-* **Stefan Klus**
-* **Martin Scherer**
+* **Patrick Gelß** - _major contribution_ - Freie Universität Berlin, CRC 1114
+* **Stefan Klus** - _initial work_ - Freie Universität Berlin, CRC 1114
+* **Martin Scherer** - _setup_ - Freie Universität Berlin, Computational Molecular Biology
 
 ### 10.2 Built with
 
-* PyCharm (+Link)
+* [PyCharm](https://www.jetbrains.com/pycharm/)
 
 ### 10.3 License
 
-This project is licensed under the ... license - see LICENSE (+Link) for details.
+This project is licensed under the [LGPLv3+](https://www.gnu.org/licenses/lgpl-3.0.en.html) license - see [LICENSE](LICENSE) for details.
 
 ### 10.4 Versioning
 
