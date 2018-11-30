@@ -65,7 +65,7 @@ qtt2tt ............... convert from QTT to TT format
 
 ### 3.1 Systems of linear equations
 
-In order to approximate the solution of a system of linear equations in the TT format, a series of low-dimensional problems can be solved by fixing certain components of the tensor network. For this purpose, the *alternating linear scheme* (ALS) and the *modified alternating linear scheme* (MALS) [3] are implemented in [*solvers/sle.py*](scikit_tt/solvers/sle.py).
+In order to approximate the solution of a system of linear equations in the TT format, a series of low-dimensional problems can be solved by fixing certain components of the tensor network. For this purpose, the *alternating linear scheme* (ALS) and the *modified alternating linear scheme* (MALS) [[3](README.md#11-references)] are implemented in [*solvers/sle.py*](scikit_tt/solvers/sle.py).
 
 ```
 als .................. alternating linear scheme for solving systems of linear equations in the TT format
@@ -74,7 +74,7 @@ mals ................. modified alternating linear scheme for solving systems of
 
 ### 3.2 Eigenvalue problems
 
-ALS and MALS can also be used to find approximations of eigenvalues and corresponding eigentensors of TT operators. The basic procedures of ALS and MALS - implemented in [*solvers/evp.py*](scikit_tt/solvers/evp.py) - for eigenvalue problems are similar to the ones for systems of linear equations. The main difference is the type of optimization problem which has to be solved in the iteration steps. See [3] for details. 
+ALS and MALS can also be used to find approximations of eigenvalues and corresponding eigentensors of TT operators. The basic procedures of ALS and MALS - implemented in [*solvers/evp.py*](scikit_tt/solvers/evp.py) - for eigenvalue problems are similar to the ones for systems of linear equations. The main difference is the type of optimization problem which has to be solved in the iteration steps. See [[3](README.md#11-references)]  for details. 
 
 ```
 als .................. alternating linear scheme for solving eigenvalue problems in the TT format
@@ -96,7 +96,7 @@ adaptive_step_size ... adaptive step size method for linear differential equatio
 
 ## 4. SLIM decomposition
 
-The SLIM decomposition is a specific form of TT decompositions which represent tensors networks with a certain structure. For instance, tensor operators corresponding to nearest-neighbor interaction systems can be systematicly decomposed into a tensor-train operator using the algorithms in [*slim.py*](scikit_tt/slim.py).
+The SLIM decomposition is a specific form of TT decompositions which represent tensors networks with a certain structure. For instance, tensor operators corresponding to nearest-neighbor interaction systems can be systematicly decomposed into a tensor-train operator using the algorithms in [*slim.py*](scikit_tt/slim.py). See [[4](README.md#11-references)] for details.
 
 ```
 slim_gen ............. general SLIM decomposition
@@ -124,7 +124,7 @@ co_oxidation ......... CO oxidation on a RuO2 surface
 
 ## 7. Examples
 
-Numerical experiments from different application areas are included in **scikit_tt**. For instance, the application of the TT format to the chemical master equation, heterogeneous catalytic process, fluid dynamics, and molecular dynamics can be found in the directory [*examples*](examples/).
+Numerical experiments from different application areas are included in **scikit_tt**. For instance, the application of the TT format to chemical master equations, heterogeneous catalytic processes [[5](README.md#11-references)], fluid dynamics, and molecular dynamics can be found in the directory [*examples*](examples/).
 
 ```
 chua_circuit ......... apply MANDy to Chua's circuit
@@ -188,3 +188,5 @@ We use ... for versioning. For the available versions, see ...
 [3] S. Holtz, T. Rohwedder, R. Schneider, "The Alternating Linear Scheme for Tensor Optimization in the Tensor Train Format", SIAM Journal on Scientific Computing 34 (2) (2012) A683-A713
 
 [4] P. Gelß, S. Klus, S. Matera, C. Schütte, "Nearest-Neighbor Interaction Systems in the Tensor-Train Format", Journal of Computational Physics 341 (2017) 140-162
+
+[5] P. Gelß, S. Matera, C. Schütte, "Solving the master equation without kinetic Monte Carlo: Tensor train approximations for a CO oxidation model", Journal of Computational Physics 314 (2016) 489502. doi:10.1016/j.jcp
