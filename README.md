@@ -183,7 +183,7 @@ unit_vector .......... canonical unit vector
 
 ### 10.3 License
 
-This project is licensed under the [LGPLv3+](https://www.gnu.org/licenses/lgpl-3.0.en.html) license - see [LICENSE](LICENSE) for details.
+This project is licensed under the [LGPLv3+](https://www.gnu.org/licenses/lgpl-3.0.en.html) license - see [LICENSE.txt](LICENSE.txt) for details.
 
 ### 10.4 Versioning
 
