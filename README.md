@@ -142,6 +142,16 @@ two_step_destruction . apply QTT and MALS to a two-step destruction process
 
 ## 8. Tests
 
+Modules containing unit tests are provided in the directory [*tests*](tests/).
+
+```
+test_tensor_train .... unit tests for tensor_train.py
+test_mandy ........... unit tests for mandy.py
+test_slim ............ unit tests for slim.py
+```
+
+**TODO: _write other tests_**
+
 ## 9. Subfunctions and tools
 
 In [*subfunctions.py*](scikit_tt/subfunctions.py) we collect algorithms and tools which are employed at several points in **scikit_tt** and/or helpful for data analysis, comparisons, and visualization.
