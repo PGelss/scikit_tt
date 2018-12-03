@@ -6,6 +6,61 @@ from scikit_tt.tensor_train import TT
 import scikit_tt.slim as slim
 
 
+def co_oxidation(order, k_ad_co):
+    """"Co oxidation on RuO2
+
+    Model for the CO oxidation on a RuO2 surface. For a detailed description of the process and the construction of the
+    corresponding TT operator, we refer to [1]_,[2]_, and [3]_.
+
+    Arguments
+    ---------
+    order: int
+        number of reaction sites (= order of the operator)
+    k_ad_co: float
+        reaction rate constant for the adsorption of CO
+
+    Returns
+    -------
+    operator: instance of TT class
+        TT operator of the process
+
+
+    References
+    ----------
+    .. [1] P. Gelß. "The Tensor-Train Format and Its Applications: Modeling and Analysis of Chemical Reaction
+           Networks, Catalytic Processes, Fluid Flows, and Brownian Dynamics", Freie Universität Berlin, 2017
+    .. [2] P. Gelß, S. Matera, C. Schütte, "Solving the master equation without kinetic Monte Carlo: Tensor train
+           approximations for a CO oxidation model", Journal of Computational Physics 314 (2016) 489–502
+    .. [3] P. Gelß, S. Klus, S. Matera, C. Schütte, "Nearest-neighbor interaction systems in the tensor-train format",
+           Journal of Computational Physics 341 (2017) 140-162
+    """
+
+    # define reaction rate constants
+    k_ad_o2 = 9.7e7
+    k_de_co = 9.2e6
+    k_de_o2 = 2.8e1
+    k_diff_co = 6.6e-2
+    k_diff_o = 5.0e-1
+    k_de_co2 = 1.7e5
+
+    # define state space
+    state_space = [3] * order
+
+    # define operator using automatic construction of SLIM decomposition
+    # ------------------------------------------------------------------
+
+    # define list of reactions
+    single_cell_reactions = [[[0, 2, k_ad_co], [2, 0, k_de_co]]] * order
+    two_cell_reactions = [[[0, 1, 0, 1, k_ad_o2], [1, 0, 1, 0, k_de_o2], [2, 0, 1, 0, k_de_co2],
+                           [1, 0, 2, 0, k_de_co2], [1, 0, 0, 1, k_diff_o], [0, 1, 1, 0, k_diff_o],
+                           [0, 2, 2, 0, k_diff_co], [2, 0, 0, 2, k_diff_co]]] * order
+
+    # define operator
+    operator = slim.slim_mme(state_space, single_cell_reactions, two_cell_reactions)
+
+    return operator
+
+
 def signaling_cascade(d):
     """Signaling cascade
 
@@ -29,29 +84,29 @@ def signaling_cascade(d):
     """
 
     # define core elements
-    s_star = 0.7 * (np.eye(64, k=-1) - np.eye(64)) + 0.07 * (np.eye(64, k=1) - np.eye(64)) @ np.diag(np.arange(64))
-    s = 0.07 * (np.eye(64, k=1) - np.eye(64)) @ np.diag(np.arange(64))
-    l = np.diag(np.arange(64)) @ np.diag(np.reciprocal(np.arange(5.0, 69.0)))
-    i = np.eye(64)
-    m = np.eye(64, k=-1) - np.eye(64)
+    s_mat_0 = 0.7 * (np.eye(64, k=-1) - np.eye(64)) + 0.07 * (np.eye(64, k=1) - np.eye(64)) @ np.diag(np.arange(64))
+    s_mat = 0.07 * (np.eye(64, k=1) - np.eye(64)) @ np.diag(np.arange(64))
+    l_mat = np.diag(np.arange(64)) @ np.diag(np.reciprocal(np.arange(5.0, 69.0)))
+    i_mat = np.eye(64)
+    m_mat = np.eye(64, k=-1) - np.eye(64)
 
     # define TT cores
     cores = [np.zeros([1, 64, 64, 3])]
-    cores[0][0, :, :, 0] = s_star
-    cores[0][0, :, :, 1] = l
-    cores[0][0, :, :, 2] = i
+    cores[0][0, :, :, 0] = s_mat_0
+    cores[0][0, :, :, 1] = l_mat
+    cores[0][0, :, :, 2] = i_mat
     cores.append(np.zeros([3, 64, 64, 3]))
-    cores[1][0, :, :, 0] = i
-    cores[1][1, :, :, 0] = m
-    cores[1][2, :, :, 0] = s
-    cores[1][2, :, :, 1] = l
-    cores[1][2, :, :, 2] = i
+    cores[1][0, :, :, 0] = i_mat
+    cores[1][1, :, :, 0] = m_mat
+    cores[1][2, :, :, 0] = s_mat
+    cores[1][2, :, :, 1] = l_mat
+    cores[1][2, :, :, 2] = i_mat
     for k in range(2, d - 1):
         cores.append(cores[1])
     cores.append(np.zeros([3, 64, 64, 1]))
-    cores[d - 1][0, :, :, 0] = i
-    cores[d - 1][1, :, :, 0] = m
-    cores[d - 1][2, :, :, 0] = s
+    cores[d - 1][0, :, :, 0] = i_mat
+    cores[d - 1][1, :, :, 0] = m_mat
+    cores[d - 1][2, :, :, 0] = s_mat
 
     # define TT operator
     operator = TT(cores)
@@ -110,60 +165,5 @@ def two_step_destruction(k_1, k_2, m):
 
     # define operator
     operator = TT(cores)
-
-    return operator
-
-
-def co_oxidation(order, k_ad_co):
-    """"Co oxidation on RuO2
-
-    Model for the CO oxidation on a RuO2 surface. For a detailed description of the process and the construction of the
-    corresponding TT operator, we refer to [1]_,[2]_, and [3]_.
-
-    Arguments
-    ---------
-    order: int
-        number of reaction sites (= order of the operator)
-    k_ad_co: float
-        reaction rate constant for the adsorption of CO
-
-    Returns
-    -------
-    operator: instance of TT class
-        TT operator of the process
-
-
-    References
-    ----------
-    .. [1] P. Gelß. "The Tensor-Train Format and Its Applications: Modeling and Analysis of Chemical Reaction
-           Networks, Catalytic Processes, Fluid Flows, and Brownian Dynamics", Freie Universität Berlin, 2017
-    .. [2] P. Gelß, S. Matera, C. Schütte, "Solving the master equation without kinetic Monte Carlo: Tensor train
-           approximations for a CO oxidation model", Journal of Computational Physics 314 (2016) 489–502
-    .. [3] P. Gelß, S. Klus, S. Matera, C. Schütte, "Nearest-neighbor interaction systems in the tensor-train format",
-           Journal of Computational Physics 341 (2017) 140-162
-    """
-
-    # define reaction rate constants
-    k_ad_o2 = 9.7e7
-    k_de_co = 9.2e6
-    k_de_o2 = 2.8e1
-    k_diff_co = 6.6e-2
-    k_diff_o = 5.0e-1
-    k_de_co2 = 1.7e5
-
-    # define state space
-    state_space = [3] * order
-
-    # define operator using automatic construction of SLIM decomposition
-    # ------------------------------------------------------------------
-
-    # define list of reactions
-    single_cell_reactions = [[[0, 2, k_ad_co], [2, 0, k_de_co]]] * order
-    two_cell_reactions = [[[0, 1, 0, 1, k_ad_o2], [1, 0, 1, 0, k_de_o2], [2, 0, 1, 0, k_de_co2],
-                           [1, 0, 2, 0, k_de_co2], [1, 0, 0, 1, k_diff_o], [0, 1, 1, 0, k_diff_o],
-                           [0, 2, 2, 0, k_diff_co], [2, 0, 0, 2, k_diff_co]]] * order
-
-    # define operator
-    operator = slim.slim_mme(state_space, single_cell_reactions, two_cell_reactions)
 
     return operator
