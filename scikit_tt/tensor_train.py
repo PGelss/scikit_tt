@@ -344,6 +344,25 @@ class TT(object):
 
         return full_tensor
 
+    def matricize(self):
+        """matricization of tensor trains
+
+        If self is a TT operator, then tt_mat is a matrix. Otherwise, the result is a vector.
+
+        Returns
+        -------
+        tt_mat: ndarray
+            matricization of self
+        """
+
+        # copy self
+        tt_mat = self.copy()
+
+        # conversion to full format and reshape into matrix
+        tt_mat = tt_mat.full().reshape(np.prod(self.row_dims), np.prod(self.col_dims))
+
+        return tt_mat
+
     def ortho_left(self, start_index=0, end_index=None, threshold=0):
         """left-orthonormalization of tensor trains
 
@@ -459,25 +478,6 @@ class TT(object):
                                                                   tt_ortho.col_dims[i - 1], tt_ortho.ranks[i])
 
         return tt_ortho
-
-    def matricize(self):
-        """matricization of tensor trains
-
-        If self is a TT operator, then tt_mat is a matrix. Otherwise, the result is a vector.
-
-        Returns
-        -------
-        tt_mat: ndarray
-            matricization of self
-        """
-
-        # copy self
-        tt_mat = self.copy()
-
-        # conversion to full format and reshape into matrix
-        tt_mat = tt_mat.full().reshape(np.prod(self.row_dims), np.prod(self.col_dims))
-
-        return tt_mat
 
     def norm(self, p=2):
         """norm of tensor trains
