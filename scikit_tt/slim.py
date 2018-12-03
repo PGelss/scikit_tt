@@ -11,20 +11,9 @@ def slim_mme(state_space, single_cell_reactions, two_cell_reactions, threshold=1
     """SLIM decomposition for Markov generators
 
     Construct a tensor-train decomposition of a Markov generator representing a nearest-neighbor interaction system
-    (NNIS) described by a list of single-cell and two-cell reactions. The output is a TT operator of the form
-
-                                       -                     -         -                         -   -       -
-             -                     -   | I[1]  0    0    0   |         | I[-2]   0     0     0   |   | I[-1] |
-             | S[0] L[0] I[0] M[0] | x | M[1]  0    0    0   | x ... x | M[-2]   0     0     0   | x | M[-1] | ,
-             -                     -   | S[1] L[1] I[1]  0   |         | S[-2] L[-2] I[-2]   0   |   | S[-1] |
-                                       |  0    0    0   J[1] |         |   0     0     0   J[-2] |   | L[-1] |
-                                       -                     -         -                         -   -       -
-
-    where S[i] represents the singel-cell reactions on cell i and L[i] and M[i+1] the two-cell reactions between cell i
-    and cell i+1. I[i] denotes an identity matrix.
-
-    Note that the implementation of the SLIM algorithm differs from that described in [1]_ and [2]_ in order to simplify
-    the parameter passing. However, the resulting operator corresponds to the described decompositions in [1]_ and [2]_.
+    (NNIS) described by a list of single-cell and two-cell reactions. Note that the implementation of the SLIM algorithm
+    differs from that described in [1]_ and [2]_ in order to simplify the parameter passing. However, the resulting
+    operator corresponds to the described decompositions in [1]_ and [2]_.
 
     Parameters
     ----------
@@ -150,8 +139,27 @@ def slim_mme(state_space, single_cell_reactions, two_cell_reactions, threshold=1
 
     return operator
 
-
 def slim_tcr_decomposition(LM, threshold):
+    """Two-cell reaction decomposition
+
+    Decomposes a super-core representing the interactions between two cells.
+
+    Parameters
+    ----------
+    LM: ndarray
+        tensor with order 4
+    threshold: float
+            threshold for reduced SVD decompositions
+
+    Returns
+    -------
+    L: ndarray
+        TT core for first cell
+    M: ndarry
+        TT core for second cell
+    rank: int
+        TT rank
+    """
     dimension_1 = LM.shape[0]
     dimension_2 = LM.shape[2]
     [U, S, V] = sp.linalg.svd(LM.reshape(dimension_1 ** 2, dimension_2 ** 2),
