@@ -165,7 +165,7 @@ class TT(object):
         """
 
         # define difference in terms of addition and left-multiplication
-        tt_diff = self + (-1) * tt_sub
+        tt_diff = self + (-1) * tt_sub.copy()
 
         return tt_diff
 
@@ -204,7 +204,7 @@ class TT(object):
         """
 
         # define product in terms of left-multiplication
-        tt_prod = self * scalar
+        tt_prod = self.copy() * scalar
 
         return tt_prod
 
