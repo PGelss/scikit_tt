@@ -8,7 +8,10 @@ from scikit_tt.tensor_train import TT
 
 
 class Timer(object):
-    """Measure CPU time"""
+    """Measure CPU time
+
+    Can be executed using the 'with' statement in order to measure the CPU time needed for calculations.
+    """
 
     def __enter__(self):
         self.start_time = _time.time()
@@ -19,7 +22,19 @@ class Timer(object):
 
 
 def progress(text, percent, dots=3):
-    """Show progress in percent"""
+    """Show progress in percent
+
+    Print strings of the form, e.g., 'Running ... 10%' etc., without line breaks.
+
+    Parameters
+    ----------
+    text: string
+        string to print
+    percent: float
+        current progress
+    dots: int, optional
+        number of dots to print, default is 3
+    """
 
     sys.stdout.write('\r' + text + ' ' + dots * '.' + ' ' + str("%.1f" % percent) + '%')
 
