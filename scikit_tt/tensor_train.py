@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
-import scipy as sp
+from scipy import linalg
 
 
 class TT(object):
@@ -53,7 +53,7 @@ class TT(object):
             row_dims = x.shape[:order]
             col_dims = x.shape[order:]
             ranks = [1] * (order + 1)
-            cores = [None] * order
+            cores = []
 
             # permute dimensions, e.g., for order = 4: p = [0, 4, 1, 5, 2, 6, 3, 7]
             p = [order * j + i for i in range(order) for j in range(2)]
@@ -67,17 +67,17 @@ class TT(object):
                 y = np.reshape(y, [m, n])
 
                 # apply SVD in order to isolate modes
-                [u, s, v] = sp.linalg.svd(y, full_matrices=False)
+                [u, s, v] = linalg.svd(y, full_matrices=False)
 
                 # define new TT core
                 ranks[i + 1] = u.shape[1]
-                cores[i] = np.reshape(u, [ranks[i], row_dims[i], col_dims[i], ranks[i + 1]])
+                cores.append(np.reshape(u, [ranks[i], row_dims[i], col_dims[i], ranks[i + 1]]))
 
                 # set new residual tensor
                 y = np.diag(s) @ v
 
             # define last TT core
-            cores[-1] = np.reshape(y, [ranks[-2], row_dims[-1], col_dims[-1], 1])
+            cores.append(np.reshape(y, [ranks[-2], row_dims[-1], col_dims[-1], 1]))
 
             # initialize tensor train
             self.__init__(cores)
@@ -127,12 +127,12 @@ class TT(object):
             # define order, ranks, and cores
             order = self.order
             ranks = [1] + [self.ranks[i] + tt_add.ranks[i] for i in range(1, order)] + [1]
-            cores = [None] * order
+            cores = []
 
             # construct cores
             for i in range(order):
                 # set core to zero array
-                cores[i] = np.zeros([ranks[i], self.row_dims[i], self.col_dims[i], ranks[i + 1]])
+                cores.append(np.zeros([ranks[i], self.row_dims[i], self.col_dims[i], ranks[i + 1]]))
 
                 # insert core of self
                 cores[i][0:self.ranks[i], :, :, 0:self.ranks[i + 1]] = self.cores[i]
@@ -236,78 +236,6 @@ class TT(object):
         else:
             raise ValueError('unsupported argument')
 
-    def copy(self):
-        """deep copy of tensor trains
-
-        Returns
-        -------
-        tt_copy: instance of TT class
-            deep copy of self
-        """
-
-        # copy TT cores
-        cores = [self.cores[i].copy() for i in range(self.order)]
-
-        # define copied version of self
-        tt_copy = TT(cores)
-
-        return tt_copy
-
-    def full(self):
-        """conversion to full format
-
-        Returns
-        -------
-        full_tensor : ndarray
-            full tensor representation of self (dimensions: m_1 x ... x m_d x n_1 x ... x n_d)
-        """
-
-        # reshape first core
-        full_tensor = self.cores[0].reshape(self.row_dims[0] * self.col_dims[0], self.ranks[1])
-
-        for i in range(1, self.order):
-            # contract full_tensor with next TT core and reshape
-            full_tensor = full_tensor @ self.cores[i].reshape(self.ranks[i],
-                                                              self.row_dims[i] * self.col_dims[i] * self.ranks[
-                                                                  i + 1])
-            full_tensor = full_tensor.reshape(np.prod(self.row_dims[:i + 1]) * np.prod(self.col_dims[:i + 1]),
-                                              self.ranks[i + 1])
-
-        # reshape and transpose full_tensor
-        p = [None] * 2 * self.order
-        p[::2] = self.row_dims
-        p[1::2] = self.col_dims
-        q = [2 * i for i in range(self.order)] + [1 + 2 * i for i in range(self.order)]
-        full_tensor = full_tensor.reshape(p).transpose(q)
-
-        return full_tensor
-
-    def element(self, coordinates):
-        """single element of tensor trains
-
-        Parameters
-        ----------
-        coordinates: list of ints
-            coordinates of a single entry of self ([x_1, ..., x_d, y_1, ..., y_d])
-
-        Returns
-        -------
-        entry: float
-            single entry of self
-        """
-
-        # construct matrix for first row and column coordinates
-        entry = np.squeeze(self.cores[0][:, coordinates[0], coordinates[self.order], :]).reshape(1, self.ranks[1])
-
-        # multiply with respective matrices for the following coordinates
-        for i in range(1, self.order):
-            entry = entry @ np.squeeze(self.cores[i][:, coordinates[i], coordinates[self.order + i], :]).reshape(
-                self.ranks[i], self.ranks[i + 1])
-
-        entry = entry[0, 0]
-
-        return entry
-
     def transpose(self):
         """transpose of tensor trains
 
@@ -344,152 +272,77 @@ class TT(object):
 
         return op_bool
 
-    def zeros(row_dims, col_dims, ranks=1):
-        """tensor train of all zeros
-
-        Parameters
-        ----------
-        row_dims: list of ints
-            list of the row dimensions of the tensor train of all zeros
-        col_dims: list of ints
-            list of the column dimensions of the tensor train of all zeros
-        ranks: list of ints, optional
-            list of the ranks of the tensor train of all zeros, default is [1, ..., 1]
+    def copy(self):
+        """deep copy of tensor trains
 
         Returns
         -------
-        tt_zeros: instance of TT class
-            tensor train of all zeros
+        tt_copy: instance of TT class
+            deep copy of self
         """
 
-        # set ranks of tt_zeros
-        if not isinstance(ranks, list):
-            ranks = [1] + [ranks] * (len(row_dims) - 1) + [1]
+        # copy TT cores
+        cores = [self.cores[i].copy() for i in range(self.order)]
 
-        # define TT cores of tt_zeros
-        cores = [np.zeros([ranks[i], row_dims[i], col_dims[i], ranks[i + 1]]) for i in range(len(row_dims))]
+        # define copied version of self
+        tt_copy = TT(cores)
 
-        # define tensor train
-        tt_zeros = TT(cores)
+        return tt_copy
 
-        return tt_zeros
-
-    def ones(row_dims, col_dims, ranks=1):
-        """tensor train of all ones
+    def element(self, coordinates):
+        """single element of tensor trains
 
         Parameters
         ----------
-        row_dims: list of ints
-            list of the row dimensions of the tensor train of all ones
-        col_dims: list of ints
-            list of the column dimensions of the tensor train of all ones
-        ranks: list of ints, optional
-            list of the ranks of the tensor train of all ones, default is [1, ..., 1]
+        coordinates: list of ints
+            coordinates of a single entry of self ([x_1, ..., x_d, y_1, ..., y_d])
 
         Returns
         -------
-        tt_ones: instance of TT class
-            tensor train of all ones
+        entry: float
+            single entry of self
         """
 
-        # set ranks of tt_ones
-        if not isinstance(ranks, list):
-            ranks = [1] + [ranks] * (len(row_dims) - 1) + [1]
+        # construct matrix for first row and column coordinates
+        entry = np.squeeze(self.cores[0][:, coordinates[0], coordinates[self.order], :]).reshape(1, self.ranks[1])
 
-        # define TT cores of tt_ones
-        cores = [np.ones([ranks[i], row_dims[i], col_dims[i], ranks[i + 1]]) for i in range(len(row_dims))]
+        # multiply with respective matrices for the following coordinates
+        for i in range(1, self.order):
+            entry = entry @ np.squeeze(self.cores[i][:, coordinates[i], coordinates[self.order + i], :]).reshape(
+                self.ranks[i], self.ranks[i + 1])
 
-        # define tensor train
-        tt_ones = TT(cores)
+        entry = entry[0, 0]
 
-        return tt_ones
+        return entry
 
-    def eye(dims):
-        """identity tensor train
-
-        Parameters
-        ----------
-        dims: list of ints
-            list of row/column dimensions of the identity tensor train
+    def full(self):
+        """conversion to full format
 
         Returns
         -------
-        tt_eye: instance of TT class
-            identity tensor train
+        full_tensor : ndarray
+            full tensor representation of self (dimensions: m_1 x ... x m_d x n_1 x ... x n_d)
         """
 
-        # define cores of tt_eye
-        cores = [np.zeros([1, dims[i], dims[i], 1]) for i in range(len(dims))]
-        for i in range(len(dims)):
-            cores[i][0, :, :, 0] = np.eye(dims[i])
+        # reshape first core
+        full_tensor = self.cores[0].reshape(self.row_dims[0] * self.col_dims[0], self.ranks[1])
 
-        # define tensor train
-        tt_eye = TT(cores)
+        for i in range(1, self.order):
+            # contract full_tensor with next TT core and reshape
+            full_tensor = full_tensor @ self.cores[i].reshape(self.ranks[i],
+                                                              self.row_dims[i] * self.col_dims[i] * self.ranks[
+                                                                  i + 1])
+            full_tensor = full_tensor.reshape(np.prod(self.row_dims[:i + 1]) * np.prod(self.col_dims[:i + 1]),
+                                              self.ranks[i + 1])
 
-        return tt_eye
+        # reshape and transpose full_tensor
+        p = [None] * 2 * self.order
+        p[::2] = self.row_dims
+        p[1::2] = self.col_dims
+        q = [2 * i for i in range(self.order)] + [1 + 2 * i for i in range(self.order)]
+        full_tensor = full_tensor.reshape(p).transpose(q)
 
-    def rand(row_dims, col_dims, ranks=1):
-        """random tensor train
-
-        Parameters
-        ----------
-        row_dims: list of ints
-            list of row dimensions of the random tensor train
-        col_dims: list of ints
-            list of column dimensions of the random tensor train
-        ranks: list of ints, optional
-            list of the ranks of the random tensor train, default is [1, ..., 1]
-
-        Returns
-        -------
-        tt_rand: instance of TT class
-            random tensor train
-        """
-
-        # set ranks of tt_rand
-        if not isinstance(ranks, list):
-            ranks = [1] + [ranks] * (len(row_dims) - 1) + [1]
-
-        # define TT cores of tt_rand
-        cores = [sp.rand(ranks[i], row_dims[i], col_dims[i], ranks[i + 1]) for i in range(len(row_dims))]
-
-        # define tensor train
-        tt_rand = TT(cores)
-
-        return tt_rand
-
-    def uniform(row_dims, ranks=1, norm=1):
-        """uniformly distributed tensor train
-
-        Parameters
-        ----------
-        row_dims: list of ints
-            list of row dimensions of the random tensor train
-        ranks: list of ints, optional
-            list of the ranks of the uniformly distributed tensor train, default is [1, ..., 1]
-        norm: float, optional
-            norm of the uniformly distributed tensor train, default is 1
-
-        Returns
-        -------
-        tt_uni: instance of TT class
-            uniformly distributed tensor train
-        """
-
-        # set ranks of tt_uni
-        if not isinstance(ranks, list):
-            ranks = [1] + [ranks] * (len(row_dims) - 1) + [1]
-
-        # compute factor for each core such that tt_uni has given norm
-        factor = (norm / (np.sqrt(np.prod(row_dims)) * np.prod(ranks))) ** (1 / len(row_dims))
-
-        # define TT cores of tt_uni
-        cores = [factor * np.ones([ranks[i], row_dims[i], 1, ranks[i + 1]]) for i in range(len(row_dims))]
-
-        # define tensor train
-        tt_uni = TT(cores)
-
-        return tt_uni
+        return full_tensor
 
     def ortho_left(self, start_index=0, end_index=None, threshold=0):
         """left-orthonormalization of tensor trains
@@ -522,7 +375,7 @@ class TT(object):
         for i in range(start_index, end_index):
 
             # apply SVD to ith TT core
-            [u, s, v] = sp.linalg.svd(
+            [u, s, v] = linalg.svd(
                 tt_ortho.cores[i].reshape(tt_ortho.ranks[i] * tt_ortho.row_dims[i] * tt_ortho.col_dims[i],
                                           tt_ortho.ranks[i + 1]),
                 full_matrices=False, overwrite_a=True, check_finite=False, lapack_driver='gesvd')
@@ -581,7 +434,7 @@ class TT(object):
         for i in range(start_index, end_index, -1):
 
             # apply SVD to ith TT core
-            [u, s, v] = sp.linalg.svd(
+            [u, s, v] = linalg.svd(
                 tt_ortho.cores[i].reshape(tt_ortho.ranks[i],
                                           tt_ortho.row_dims[i] * tt_ortho.col_dims[i] * tt_ortho.ranks[i + 1]),
                 full_matrices=False, overwrite_a=True, check_finite=False, lapack_driver='gesvd')
@@ -740,7 +593,7 @@ class TT(object):
                                     tt_tensor.ranks[i + 1]).transpose([0, 1, 3, 2, 4, 5])
 
                 # apply SVD in order to split core
-                [u, s, v] = sp.linalg.svd(
+                [u, s, v] = linalg.svd(
                     core.reshape(rank * row_dims[i][j] * col_dims[i][j], row_dim * col_dim * tt_tensor.ranks[i + 1]),
                     full_matrices=False, overwrite_a=True, check_finite=False, lapack_driver='gesvd')
 
@@ -823,3 +676,158 @@ class TT(object):
         tt_tensor = TT(tt_cores)
 
         return tt_tensor
+
+
+# construction of specific tensor-train decompositions
+# ----------------------------------------------------
+
+def zeros(row_dims, col_dims, ranks=1):
+    """tensor train of all zeros
+
+    Parameters
+    ----------
+    row_dims: list of ints
+        list of the row dimensions of the tensor train of all zeros
+    col_dims: list of ints
+        list of the column dimensions of the tensor train of all zeros
+    ranks: list of ints, optional
+        list of the ranks of the tensor train of all zeros, default is [1, ..., 1]
+
+    Returns
+    -------
+    tt_zeros: instance of TT class
+        tensor train of all zeros
+    """
+
+    # set ranks of tt_zeros
+    if not isinstance(ranks, list):
+        ranks = [1] + [ranks] * (len(row_dims) - 1) + [1]
+
+    # define TT cores of tt_zeros
+    cores = [np.zeros([ranks[i], row_dims[i], col_dims[i], ranks[i + 1]]) for i in range(len(row_dims))]
+
+    # define tensor train
+    tt_zeros = TT(cores)
+
+    return tt_zeros
+
+
+def ones(row_dims, col_dims, ranks=1):
+    """tensor train of all ones
+
+    Parameters
+    ----------
+    row_dims: list of ints
+        list of the row dimensions of the tensor train of all ones
+    col_dims: list of ints
+        list of the column dimensions of the tensor train of all ones
+    ranks: list of ints, optional
+        list of the ranks of the tensor train of all ones, default is [1, ..., 1]
+
+    Returns
+    -------
+    tt_ones: instance of TT class
+        tensor train of all ones
+    """
+
+    # set ranks of tt_ones
+    if not isinstance(ranks, list):
+        ranks = [1] + [ranks] * (len(row_dims) - 1) + [1]
+
+    # define TT cores of tt_ones
+    cores = [np.ones([ranks[i], row_dims[i], col_dims[i], ranks[i + 1]]) for i in range(len(row_dims))]
+
+    # define tensor train
+    tt_ones = TT(cores)
+
+    return tt_ones
+
+
+def eye(dims):
+    """identity tensor train
+
+    Parameters
+    ----------
+    dims: list of ints
+        list of row/column dimensions of the identity tensor train
+
+    Returns
+    -------
+    tt_eye: instance of TT class
+        identity tensor train
+    """
+
+    # define cores of tt_eye
+    cores = [np.zeros([1, dims[i], dims[i], 1]) for i in range(len(dims))]
+    for i in range(len(dims)):
+        cores[i][0, :, :, 0] = np.eye(dims[i])
+
+    # define tensor train
+    tt_eye = TT(cores)
+
+    return tt_eye
+
+
+def rand(row_dims, col_dims, ranks=1):
+    """random tensor train
+
+    Parameters
+    ----------
+    row_dims: list of ints
+        list of row dimensions of the random tensor train
+    col_dims: list of ints
+        list of column dimensions of the random tensor train
+    ranks: list of ints, optional
+        list of the ranks of the random tensor train, default is [1, ..., 1]
+
+    Returns
+    -------
+    tt_rand: instance of TT class
+        random tensor train
+    """
+
+    # set ranks of tt_rand
+    if not isinstance(ranks, list):
+        ranks = [1] + [ranks] * (len(row_dims) - 1) + [1]
+
+    # define TT cores of tt_rand
+    cores = [np.random.rand(ranks[i], row_dims[i], col_dims[i], ranks[i + 1]) for i in range(len(row_dims))]
+
+    # define tensor train
+    tt_rand = TT(cores)
+
+    return tt_rand
+
+
+def uniform(row_dims, ranks=1, norm=1):
+    """uniformly distributed tensor train
+
+    Parameters
+    ----------
+    row_dims: list of ints
+        list of row dimensions of the random tensor train
+    ranks: list of ints, optional
+        list of the ranks of the uniformly distributed tensor train, default is [1, ..., 1]
+    norm: float, optional
+        norm of the uniformly distributed tensor train, default is 1
+
+    Returns
+    -------
+    tt_uni: instance of TT class
+        uniformly distributed tensor train
+    """
+
+    # set ranks of tt_uni
+    if not isinstance(ranks, list):
+        ranks = [1] + [ranks] * (len(row_dims) - 1) + [1]
+
+    # compute factor for each core such that tt_uni has given norm
+    factor = (norm / (np.sqrt(np.prod(row_dims)) * np.prod(ranks))) ** (1 / len(row_dims))
+
+    # define TT cores of tt_uni
+    cores = [factor * np.ones([ranks[i], row_dims[i], 1, ranks[i + 1]]) for i in range(len(row_dims))]
+
+    # define tensor train
+    tt_uni = TT(cores)
+
+    return tt_uni

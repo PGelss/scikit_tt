@@ -43,11 +43,11 @@ The tensor-train class - implemented in the module [*tensor-train.py*](scikit_tt
 TT ................... construct tensor train from array or list of cores
 print ................ print the attributes of a given tensor train
 +,-,*,@ .............. basic operations on tensor trains 
-copy ................. deep copy of a tensor train
-full ................. convert a tensor train to full format
-element .............. compute single element of a tensor train
 transpose ............ transpose of a tensor train
 isoperator ........... check if a tensor train is an operator
+copy ................. deep copy of a tensor train
+element .............. compute single element of a tensor train
+full ................. convert a tensor train to full format
 ortho_left ........... left-orthonormalize a tensor train
 ortho_right .......... right-orthonormalize a tensor train
 matricize ............ matricize a tensor train
