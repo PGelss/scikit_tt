@@ -159,7 +159,7 @@ test_slim ............ unit tests for slim.py
 
 ## 9. Subfunctions and tools
 
-In [*subfunctions.py*](scikit_tt/subfunctions.py) we collect algorithms and tools which are employed at several points in **scikit_tt** and/or helpful for data analysis, comparisons, and visualization.
+In [*utils.py*](scikit_tt/utils.py) we collect algorithms and tools which are employed at several points in **scikit_tt** and/or helpful for data analysis, comparisons, and visualization.
 
 ```
 mean_concentration ... mean concentrations of TT series
