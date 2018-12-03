@@ -48,9 +48,9 @@ isoperator ........... check if a tensor train is an operator
 copy ................. deep copy of a tensor train
 element .............. compute single element of a tensor train
 full ................. convert a tensor train to full format
+matricize ............ matricize a tensor train
 ortho_left ........... left-orthonormalize a tensor train
 ortho_right .......... right-orthonormalize a tensor train
-matricize ............ matricize a tensor train
 norm ................. compute the norm of a tensor train
 tt2qtt ............... convert from TT to QTT format
 qtt2tt ............... convert from QTT to TT format
