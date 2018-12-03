@@ -48,17 +48,22 @@ full ................. convert a tensor train to full format
 element .............. compute single element of a tensor train
 transpose ............ transpose of a tensor train
 isoperator ........... check if a tensor train is an operator
-zeros ................ construct a tensor train of all zeros
-ones ................. construct a tensor train of all ones
-eye .................. construct an identity tensor train
-rand ................. construct a random tensor train
-uniform .............. construct a uniformly distributed tensor train
 ortho_left ........... left-orthonormalize a tensor train
 ortho_right .......... right-orthonormalize a tensor train
 matricize ............ matricize a tensor train
 norm ................. compute the norm of a tensor train
 tt2qtt ............... convert from TT to QTT format
 qtt2tt ............... convert from QTT to TT format
+```
+
+Further functions defined in [*tensor-train.py*](scikit_tt/tensor_train.py) are:
+
+```
+zeros ................ construct a tensor train of all zeros
+ones ................. construct a tensor train of all ones
+eye .................. construct an identity tensor train
+rand ................. construct a random tensor train
+uniform .............. construct a uniformly distributed tensor train
 ```
 
 ## 3. TT solvers
