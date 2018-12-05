@@ -24,7 +24,7 @@ import matplotlib.pyplot as plt
 order = 20
 tt_rank = 4
 qtt_rank = 12
-step_sizes = [1] * 300
+step_sizes = [1] * 30
 qtt_modes = [[2] * 6] * order
 threshold = 1e-14
 
@@ -51,8 +51,8 @@ initial_guess = tt.ones(operator.col_dims, [1] * order, ranks=tt_rank).ortho_rig
 print('\nTT approach')
 print('-----------\n')
 with utl.Timer() as time:
-    solution = ode.trapezoidal_rule_als(operator, initial_distribution, initial_guess, step_sizes)
-print('CPU time ' + '.' * 23 + ' ' + str("%.2f" % time.elapsed) + 's\n')
+    solution = ode.trapezoidal_rule(operator, initial_distribution, initial_guess, step_sizes)
+print('CPU time ' + '.' * 19 + ' ' + str("%.2f" % time.elapsed) + 's\n')
 
 # operator in QTT format
 # ----------------------
@@ -77,8 +77,8 @@ initial_guess = tt.ones(operator.col_dims, [1] * operator.order, ranks=qtt_rank)
 print('\nQTT approach')
 print('------------\n')
 with utl.Timer() as time:
-    solution = ode.trapezoidal_rule_als(operator, initial_distribution, initial_guess, step_sizes)
-print('CPU time ' + '.' * 23 + ' ' + str("%.2f" % time.elapsed) + 's\n')
+    solution = ode.trapezoidal_rule(operator, initial_distribution, initial_guess, step_sizes)
+print('CPU time ' + '.' * 19 + ' ' + str("%.2f" % time.elapsed) + 's\n')
 
 # convert to TT and compute mean concentrations
 # ---------------------------------------------
