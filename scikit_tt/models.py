@@ -58,7 +58,6 @@ def co_oxidation(order, k_ad_co, cyclic=True):
                            [0, 2, 2, 0, k_diff_co], [2, 0, 0, 2, k_diff_co]] 
 
     # define operator
-    #operator = slim.slim_mme(state_space, single_cell_reactions, two_cell_reactions)
     operator = slim.slim_mme_hom(state_space, single_cell_reactions, two_cell_reactions, cyclic=cyclic)
 
     return operator
