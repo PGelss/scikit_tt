@@ -57,6 +57,7 @@ def plot_parameters(font_size=14):
     plt.rcParams["mathtext.fontset"] = "cm"
     plt.rcParams.update({'font.size': font_size})
     plt.rcParams.update({'figure.autolayout': True})
+    plt.rcParams.update({'axes.grid': True})
 
 
 def unit_vector(dimension, index):
