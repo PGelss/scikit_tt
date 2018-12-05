@@ -5,6 +5,11 @@ import numpy as np
 import time as _time
 import sys
 from scikit_tt.tensor_train import TT
+import matplotlib.pyplot as plt
+
+# This import registers the 3D projection, but is otherwise unused.
+from mpl_toolkits.mplot3d import Axes3D  # noqa: F401 unused import
+
 
 
 class Timer(object):
@@ -40,6 +45,88 @@ def progress(text, percent, dots=3):
 
     if percent == 100:
         sys.stdout.write('\n')
+
+def plot(axes, axes_title = None, axes_projection = None, axes_aspect = None, grid = [], figure_title=' ', figure_title_size = 18, figure_title_location = 0.98, figure_aspect = 1):
+    """Customized plot routine
+
+    Parameters
+    ----------
+    axes: 
+    grid:
+    axes_title:
+    axes_projection:
+    axes_aspect:
+    figure_title: string, optional
+        figure title, default is ' '
+    figure_title_size: int, optional
+        font size of the figure title, default is 18
+    figure_title_location: float, optional
+        y location of the figure title, default is 0.98
+    figure_aspect: float, optional
+        figure aspect, default is 1
+    """
+
+    # set text font and size
+    plt.rc('text', usetex=True)
+    plt.rc('font', family='serif')
+    plt.rcParams["mathtext.fontset"] = "cm"
+    plt.rcParams.update({'font.size': 12})
+
+    # autolayout
+    plt.rcParams.update({'figure.autolayout': True})
+
+    # create figure
+    f = plt.figure(figsize=plt.figaspect(figure_aspect))
+
+    # figure title
+    plt.suptitle(figure_title, fontsize=figure_title_size, y=figure_title_location)
+
+    # number of rows and columns of the grid
+    if grid==[]:
+        grid_rows = 1
+        grid_cols = len(axes)
+    else:
+        grid_rows = grid[0]
+        grid_cols = grid[1]
+
+    # set axes titles
+    if axes_title == None:
+        axes_title = [' ']*len(axes)
+
+    # set axes projections
+    if axes_projection == None:
+        axes_projection = [None]*len(axes)
+
+    # set axes aspects
+    if axes_aspect == None:
+        axes_aspect = [1]*len(axes)
+
+    for i in range(len(axes)):
+        ax = f.add_subplot(grid_rows, grid_cols, i + 1, projection=axes_projection[i], aspect=axes_aspect[i])
+        ax.set_title(axes_title[i])
+
+
+    # for i in range(number_ev):
+    #     indices = np.where(abs(eigentensors_tt[i]/np.amax(abs(eigentensors_tt[i]))) > 0.001)
+
+    #     ax = f.add_subplot(1, 3, i + 1, projection='3d', aspect=1)
+    #     ax.set_title(r'$\lambda$=' + str("%.4f" % np.abs(eigenvalues_exact[i])))
+
+
+    #     im = ax.scatter(indices[0], indices[1], indices[2], c=eigentensors_tt[i][indices], cmap='jet',
+    #                     s=abs(eigentensors_tt[i])[indices]/np.amax(abs(eigentensors_tt[i])) * 100, vmin=np.amin(eigentensors_tt[i]),
+    #                     vmax=np.amax(eigentensors_tt[i]))
+    #     f.colorbar(im, shrink=0.4, aspect=10)
+        
+    #     ax.xaxis.set_ticklabels([])
+    #     ax.xaxis.set_ticks([])
+    #     ax.yaxis.set_ticklabels([])
+    #     ax.yaxis.set_ticks([])
+    #     ax.zaxis.set_ticklabels([])
+    #     ax.zaxis.set_ticks([])
+
+    # display figure
+    plt.show()
 
 
 def unit_vector(dimension, index):
