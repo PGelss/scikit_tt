@@ -104,7 +104,6 @@ adaptive_step_size ... adaptive step size method for linear differential equatio
 The SLIM decomposition is a specific form of TT decompositions which represent tensors networks with a certain structure. For instance, tensor operators corresponding to nearest-neighbor interaction systems can be systematicly decomposed into a tensor-train operator using the algorithms in [*slim.py*](scikit_tt/slim.py). See [[4](README.md#11-references)] for details.
 
 ```
-slim_gen ............. general SLIM decomposition
 slim_mme ............. SLIM decomposition for Markov generators
 slim_mme_hom ......... SLIM decomposition for homogeneous Markov generators
 ```
