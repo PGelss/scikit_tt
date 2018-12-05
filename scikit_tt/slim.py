@@ -139,7 +139,7 @@ def slim_mme(state_space, single_cell_reactions, two_cell_reactions, threshold=0
         ranks.append(rank)
     else:
         l_mat.append(0)
-        m_mat[0]=0
+        m_mat[0] = 0
         ranks.append(0)
 
     # construct tensor train operator
