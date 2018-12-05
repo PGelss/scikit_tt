@@ -360,7 +360,12 @@ class TT(object):
         tt_mat = self.copy()
 
         # conversion to full format and reshape into matrix
-        tt_mat = tt_mat.full().reshape(np.prod(self.row_dims), np.prod(self.col_dims))
+        m = np.prod(self.row_dims)
+        n = np.prod(self.col_dims)
+        if n == 1:
+            tt_mat = tt_mat.full().reshape(m)
+        else:
+            tt_mat = tt_mat.full().reshape(m, n)
 
         return tt_mat
 
