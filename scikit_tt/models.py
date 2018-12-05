@@ -6,7 +6,7 @@ from scikit_tt.tensor_train import TT
 import scikit_tt.slim as slim
 
 
-def co_oxidation(order, k_ad_co):
+def co_oxidation(order, k_ad_co, cyclic=True):
     """"Co oxidation on RuO2
 
     Model for the CO oxidation on a RuO2 surface. For a detailed description of the process and the construction of the
@@ -18,6 +18,8 @@ def co_oxidation(order, k_ad_co):
         number of reaction sites (= order of the operator)
     k_ad_co: float
         reaction rate constant for the adsorption of CO
+    cyclic: bool, optional
+        whether model should be cyclic or not, default=True
 
     Returns
     -------
@@ -50,13 +52,14 @@ def co_oxidation(order, k_ad_co):
     # ------------------------------------------------------------------
 
     # define list of reactions
-    single_cell_reactions = [[[0, 2, k_ad_co], [2, 0, k_de_co]]] * order
-    two_cell_reactions = [[[0, 1, 0, 1, k_ad_o2], [1, 0, 1, 0, k_de_o2], [2, 0, 1, 0, k_de_co2],
+    single_cell_reactions = [[0, 2, k_ad_co], [2, 0, k_de_co]] 
+    two_cell_reactions = [[0, 1, 0, 1, k_ad_o2], [1, 0, 1, 0, k_de_o2], [2, 0, 1, 0, k_de_co2],
                            [1, 0, 2, 0, k_de_co2], [1, 0, 0, 1, k_diff_o], [0, 1, 1, 0, k_diff_o],
-                           [0, 2, 2, 0, k_diff_co], [2, 0, 0, 2, k_diff_co]]] * order
+                           [0, 2, 2, 0, k_diff_co], [2, 0, 0, 2, k_diff_co]] 
 
     # define operator
-    operator = slim.slim_mme(state_space, single_cell_reactions, two_cell_reactions)
+    #operator = slim.slim_mme(state_space, single_cell_reactions, two_cell_reactions)
+    operator = slim.slim_mme_hom(state_space, single_cell_reactions, two_cell_reactions, cyclic=cyclic)
 
     return operator
 
