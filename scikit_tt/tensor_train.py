@@ -138,6 +138,7 @@ class TT(object):
                 cores[i][0:self.ranks[i], :, :, 0:self.ranks[i + 1]] = self.cores[i]
 
                 # insert core of tt_add
+
                 cores[i][ranks[i] - tt_add.ranks[i]:ranks[i], :, :, ranks[i + 1] - tt_add.ranks[i + 1]:ranks[i + 1]] = \
                     tt_add.cores[i]
 
@@ -514,6 +515,7 @@ class TT(object):
         # --------------
 
         if p == 1:
+
             # sum over row axes
             tt_tensor.cores = [
                 np.sum(tt_tensor.cores[i], axis=1).reshape(tt_tensor.ranks[i], 1, 1, tt_tensor.ranks[i + 1]) for i in
@@ -529,6 +531,7 @@ class TT(object):
         # --------------
 
         if p == 2:
+
             # right-orthonormalize tt_tensor
             tt_tensor = tt_tensor.ortho_right()
 
