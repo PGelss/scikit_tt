@@ -45,8 +45,8 @@ def als(operator, initial_guess, right_hand_side, repeats=1, solver='solve'):
 
     # construct right stacks for the left- and right-hand side
     for i in range(operator.order - 1, -1, -1):
-        construct_stack_right_op(i, stack_right_op, operator, solution)
-        construct_stack_right_rhs(i, stack_right_rhs, right_hand_side, solution)
+        __construct_stack_right_op(i, stack_right_op, operator, solution)
+        __construct_stack_right_rhs(i, stack_right_rhs, right_hand_side, solution)
 
     # define iteration number
     current_iteration = 1
@@ -58,29 +58,29 @@ def als(operator, initial_guess, right_hand_side, repeats=1, solver='solve'):
         for i in range(operator.order):
 
             # update left stacks for the left- and right-hand side
-            construct_stack_left_op(i, stack_left_op, operator, solution)
-            construct_stack_left_rhs(i, stack_left_rhs, right_hand_side, solution)
+            __construct_stack_left_op(i, stack_left_op, operator, solution)
+            __construct_stack_left_rhs(i, stack_left_rhs, right_hand_side, solution)
 
             if i < operator.order - 1:
                 # construct micro system
-                micro_op = construct_micro_matrix_als(i, stack_left_op, stack_right_op, operator, solution)
-                micro_rhs = construct_micro_rhs_als(i, stack_left_rhs, stack_right_rhs, right_hand_side, solution)
+                micro_op = __construct_micro_matrix_als(i, stack_left_op, stack_right_op, operator, solution)
+                micro_rhs = __construct_micro_rhs_als(i, stack_left_rhs, stack_right_rhs, right_hand_side, solution)
 
                 # update solution
-                update_core_als(i, micro_op, micro_rhs, solution, solver, 'forward')
+                __update_core_als(i, micro_op, micro_rhs, solution, solver, 'forward')
 
         # second half sweep
         for i in range(operator.order - 1, -1, -1):
             # update right stacks for the left- and right-hand side
-            construct_stack_right_op(i, stack_right_op, operator, solution)
-            construct_stack_right_rhs(i, stack_right_rhs, right_hand_side, solution)
+            __construct_stack_right_op(i, stack_right_op, operator, solution)
+            __construct_stack_right_rhs(i, stack_right_rhs, right_hand_side, solution)
 
             # construct micro system
-            micro_op = construct_micro_matrix_als(i, stack_left_op, stack_right_op, operator, solution)
-            micro_rhs = construct_micro_rhs_als(i, stack_left_rhs, stack_right_rhs, right_hand_side, solution)
+            micro_op = __construct_micro_matrix_als(i, stack_left_op, stack_right_op, operator, solution)
+            micro_rhs = __construct_micro_rhs_als(i, stack_left_rhs, stack_right_rhs, right_hand_side, solution)
 
             # update solution
-            update_core_als(i, micro_op, micro_rhs, solution, solver, 'backward')
+            __update_core_als(i, micro_op, micro_rhs, solution, solver, 'backward')
 
         # increase iteration number
         current_iteration += 1
@@ -132,8 +132,8 @@ def mals(operator, initial_guess, right_hand_side, repeats=1, solver='solve', th
 
     # construct right stacks for the left- and right-hand side
     for i in range(operator.order - 1, 0, -1):
-        construct_stack_right_op(i, stack_right_op, operator, solution)
-        construct_stack_right_rhs(i, stack_right_rhs, right_hand_side, solution)
+        __construct_stack_right_op(i, stack_right_op, operator, solution)
+        __construct_stack_right_rhs(i, stack_right_rhs, right_hand_side, solution)
 
     # define iteration number
     current_iteration = 1
@@ -145,29 +145,29 @@ def mals(operator, initial_guess, right_hand_side, repeats=1, solver='solve', th
         for i in range(operator.order - 1):
 
             # update left stacks for the left- and right-hand side
-            construct_stack_left_op(i, stack_left_op, operator, solution)
-            construct_stack_left_rhs(i, stack_left_rhs, right_hand_side, solution)
+            __construct_stack_left_op(i, stack_left_op, operator, solution)
+            __construct_stack_left_rhs(i, stack_left_rhs, right_hand_side, solution)
 
             if i < operator.order - 2:
                 # construct micro system
-                micro_op = construct_micro_matrix_mals(i, stack_left_op, stack_right_op, operator, solution)
-                micro_rhs = construct_micro_rhs_mals(i, stack_left_rhs, stack_right_rhs, right_hand_side, solution)
+                micro_op = __construct_micro_matrix_mals(i, stack_left_op, stack_right_op, operator, solution)
+                micro_rhs = __construct_micro_rhs_mals(i, stack_left_rhs, stack_right_rhs, right_hand_side, solution)
 
                 # update solution
-                update_core_mals(i, micro_op, micro_rhs, solution, solver, 'forward', threshold, max_rank)
+                __update_core_mals(i, micro_op, micro_rhs, solution, solver, 'forward', threshold, max_rank)
 
         # second half sweep
         for i in range(operator.order - 2, -1, -1):
             # update right stacks for the left- and right-hand side
-            construct_stack_right_op(i + 1, stack_right_op, operator, solution)
-            construct_stack_right_rhs(i + 1, stack_right_rhs, right_hand_side, solution)
+            __construct_stack_right_op(i + 1, stack_right_op, operator, solution)
+            __construct_stack_right_rhs(i + 1, stack_right_rhs, right_hand_side, solution)
 
             # construct micro system
-            micro_op = construct_micro_matrix_mals(i, stack_left_op, stack_right_op, operator, solution)
-            micro_rhs = construct_micro_rhs_mals(i, stack_left_rhs, stack_right_rhs, right_hand_side, solution)
+            micro_op = __construct_micro_matrix_mals(i, stack_left_op, stack_right_op, operator, solution)
+            micro_rhs = __construct_micro_rhs_mals(i, stack_left_rhs, stack_right_rhs, right_hand_side, solution)
 
             # update solution
-            update_core_mals(i, micro_op, micro_rhs, solution, solver, 'backward', threshold, max_rank)
+            __update_core_mals(i, micro_op, micro_rhs, solution, solver, 'backward', threshold, max_rank)
 
         # increase iteration number
         current_iteration += 1
@@ -175,7 +175,7 @@ def mals(operator, initial_guess, right_hand_side, repeats=1, solver='solve', th
     return solution
 
 
-def construct_stack_left_op(i, stack_left_op, operator, solution):
+def __construct_stack_left_op(i, stack_left_op, operator, solution):
     """Construct left stack for left-hand side
 
     Parameters
@@ -202,7 +202,7 @@ def construct_stack_left_op(i, stack_left_op, operator, solution):
         stack_left_op[i] = np.tensordot(stack_left_op[i], solution.cores[i - 1][:, :, 0, :], axes=([0, 2], [0, 1]))
 
 
-def construct_stack_left_rhs(i, stack_left_rhs, right_hand_side, solution):
+def __construct_stack_left_rhs(i, stack_left_rhs, right_hand_side, solution):
     """Construct left stack for right-hand side
 
     Parameters
@@ -228,7 +228,7 @@ def construct_stack_left_rhs(i, stack_left_rhs, right_hand_side, solution):
         stack_left_rhs[i] = np.tensordot(stack_left_rhs[i], solution.cores[i - 1][:, :, 0, :], axes=([0, 1], [0, 1]))
 
 
-def construct_stack_right_op(i, stack_right_op, operator, solution):
+def __construct_stack_right_op(i, stack_right_op, operator, solution):
     """Construct right stack for left-hand side
 
     Parameters
@@ -256,7 +256,7 @@ def construct_stack_right_op(i, stack_right_op, operator, solution):
         stack_right_op[i] = np.tensordot(solution.cores[i + 1][:, :, 0, :], stack_right_op[i], axes=([1, 2], [1, 3]))
 
 
-def construct_stack_right_rhs(i, stack_right_rhs, right_hand_side, solution):
+def __construct_stack_right_rhs(i, stack_right_rhs, right_hand_side, solution):
     """Construct right stack for right-hand side
 
     Parameters
@@ -284,7 +284,7 @@ def construct_stack_right_rhs(i, stack_right_rhs, right_hand_side, solution):
                                           axes=([1, 2], [1, 2]))
 
 
-def construct_micro_matrix_als(i, stack_left_op, stack_right_op, operator, solution):
+def __construct_micro_matrix_als(i, stack_left_op, stack_right_op, operator, solution):
     """Construct micro matrix for ALS
 
     Parameters
@@ -318,7 +318,7 @@ def construct_micro_matrix_als(i, stack_left_op, stack_right_op, operator, solut
     return micro_op
 
 
-def construct_micro_matrix_mals(i, stack_left_op, stack_right_op, operator, solution):
+def __construct_micro_matrix_mals(i, stack_left_op, stack_right_op, operator, solution):
     """Construct micro matrix for MALS
 
     Parameters
@@ -353,7 +353,7 @@ def construct_micro_matrix_mals(i, stack_left_op, stack_right_op, operator, solu
     return micro_op
 
 
-def construct_micro_rhs_als(i, stack_left_rhs, stack_right_rhs, right_hand_side, solution):
+def __construct_micro_rhs_als(i, stack_left_rhs, stack_right_rhs, right_hand_side, solution):
     """Construct micro right-hand side for ALS
 
     Parameters
@@ -385,7 +385,7 @@ def construct_micro_rhs_als(i, stack_left_rhs, stack_right_rhs, right_hand_side,
     return micro_rhs
 
 
-def construct_micro_rhs_mals(i, stack_left_rhs, stack_right_rhs, right_hand_side, solution):
+def __construct_micro_rhs_mals(i, stack_left_rhs, stack_right_rhs, right_hand_side, solution):
     """Construct micro right-hand side for MALS
 
     Parameters
@@ -419,7 +419,7 @@ def construct_micro_rhs_mals(i, stack_left_rhs, stack_right_rhs, right_hand_side
     return micro_rhs
 
 
-def update_core_als(i, micro_op, micro_rhs, solution, solver, direction):
+def __update_core_als(i, micro_op, micro_rhs, solution, solver, direction):
     """Update TT core for ALS
 
     Parameters
@@ -487,7 +487,7 @@ def update_core_als(i, micro_op, micro_rhs, solution, solver, direction):
                                                           solution.ranks[i + 1])
 
 
-def update_core_mals(i, micro_op, micro_rhs, solution, solver, direction, threshold, max_rank):
+def __update_core_mals(i, micro_op, micro_rhs, solution, solver, direction, threshold, max_rank):
     """Update TT cores for MALS
 
     Parameters
