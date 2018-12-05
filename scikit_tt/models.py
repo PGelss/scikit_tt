@@ -52,10 +52,10 @@ def co_oxidation(order, k_ad_co, cyclic=True):
     # ------------------------------------------------------------------
 
     # define list of reactions
-    single_cell_reactions = [[0, 2, k_ad_co], [2, 0, k_de_co]] 
+    single_cell_reactions = [[0, 2, k_ad_co], [2, 0, k_de_co]]
     two_cell_reactions = [[0, 1, 0, 1, k_ad_o2], [1, 0, 1, 0, k_de_o2], [2, 0, 1, 0, k_de_co2],
-                           [1, 0, 2, 0, k_de_co2], [1, 0, 0, 1, k_diff_o], [0, 1, 1, 0, k_diff_o],
-                           [0, 2, 2, 0, k_diff_co], [2, 0, 0, 2, k_diff_co]] 
+                          [1, 0, 2, 0, k_de_co2], [1, 0, 0, 1, k_diff_o], [0, 1, 1, 0, k_diff_o],
+                          [0, 2, 2, 0, k_diff_co], [2, 0, 0, 2, k_diff_co]]
 
     # define operator
     operator = slim.slim_mme_hom(state_space, single_cell_reactions, two_cell_reactions, cyclic=cyclic)
