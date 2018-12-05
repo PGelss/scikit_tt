@@ -7,7 +7,7 @@ from scikit_tt.tensor_train import TT
 import scikit_tt.utils as utl
 
 
-def slim_mme(state_space, single_cell_reactions, two_cell_reactions, threshold=1e-14):
+def slim_mme(state_space, single_cell_reactions, two_cell_reactions, threshold=0):
     """SLIM decomposition for Markov generators
 
     Construct a tensor-train decomposition of a Markov generator representing a nearest-neighbor interaction system
@@ -137,6 +137,10 @@ def slim_mme(state_space, single_cell_reactions, two_cell_reactions, threshold=1
         l_mat.append(core_left.transpose(2, 0, 1))
         m_mat[0] = core_right.transpose(1, 2, 0)
         ranks.append(rank)
+    else:
+        l_mat.append(0)
+        m_mat[0]=0
+        ranks.append(0)
 
     # construct tensor train operator
     # -------------------------------
@@ -168,7 +172,7 @@ def slim_mme(state_space, single_cell_reactions, two_cell_reactions, threshold=1
     return operator
 
 
-def slim_mme_hom(state_space, single_cell_reactions, two_cell_reactions, cyclic=True, threshold=1e-14):
+def slim_mme_hom(state_space, single_cell_reactions, two_cell_reactions, cyclic=True, threshold=0):
     """Homogeneous SLIM decomposition for Markov generators
 
     Construct a tensor-train decomposition of a Markov generator representing a homogeneous nearest-neighbor interaction
@@ -257,5 +261,4 @@ def __slim_tcr_decomposition(super_core, threshold):
     rank = u.shape[1]
     core_left = (u @ np.diag(s)).reshape(dimension_1, dimension_1, rank)
     core_right = v.reshape(rank, dimension_2, dimension_2)
-
     return core_left, core_right, rank
