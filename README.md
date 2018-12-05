@@ -150,9 +150,9 @@ two_step_destruction . apply QTT and MALS to a two-step destruction process
 Modules containing unit tests are provided in the directory [*tests*](tests/).
 
 ```
-test_tensor_train .... unit tests for tensor_train.py
-test_mandy ........... unit tests for mandy.py
+test_sle ............. unit tests for sle.py
 test_slim ............ unit tests for slim.py
+test_tensor_train .... unit tests for tensor_train.py
 ```
 
 **TODO: _write other tests_**
