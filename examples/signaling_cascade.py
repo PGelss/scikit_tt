@@ -24,7 +24,7 @@ import matplotlib.pyplot as plt
 order = 20
 tt_rank = 4
 qtt_rank = 12
-step_sizes = [1] * 30
+step_sizes = [1] * 300
 qtt_modes = [[2] * 6] * order
 threshold = 1e-14
 
