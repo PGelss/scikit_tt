@@ -377,7 +377,7 @@ class TT(object):
         start_index: int, optional
             start index for orthonormalization, default is 0
         end_index: int, optional
-            end index for orthonormalization, default is the index of the last core
+            end index for orthonormalization, default is the index of the penultimate core
         threshold: float, optional
             threshold for reduced SVD decompositions, default is 0
 
@@ -390,14 +390,14 @@ class TT(object):
         # copy self
         tt_ortho = self.copy()
 
-        # set end_index to the index of the last core if not otherwise defined
+        # set end_index to the index of the penultimate core if not otherwise defined
         if end_index is None:
-            end_index = tt_ortho.order - 1
+            end_index = tt_ortho.order - 2
 
         # left-orthonormalization
         # -----------------------
 
-        for i in range(start_index, end_index):
+        for i in range(start_index, end_index + 1):
 
             # apply SVD to ith TT core
             [u, s, v] = linalg.svd(
@@ -428,15 +428,15 @@ class TT(object):
 
         return tt_ortho
 
-    def ortho_right(self, start_index=None, end_index=0, threshold=0):
+    def ortho_right(self, start_index=None, end_index=1, threshold=0):
         """right-orthonormalization of tensor trains
 
         Parameters
         ----------
         start_index: int, optional
-            start index for orthonormalization, default is order of self minus 1
+            start index for orthonormalization, default is the index of the last core
         end_index: int, optional
-            end index for orthonormalization, default is 0
+            end index for orthonormalization, default is 1
         threshold: float, optional
             threshold for reduced SVD decompositions, default is 0
 
@@ -456,7 +456,7 @@ class TT(object):
         # right-orthonormalization
         # ------------------------
 
-        for i in range(start_index, end_index, -1):
+        for i in range(start_index, end_index-1, -1):
 
             # apply SVD to ith TT core
             [u, s, v] = linalg.svd(
