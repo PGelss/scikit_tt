@@ -108,9 +108,14 @@ slim_mme ............. SLIM decomposition for Markov generators
 slim_mme_hom ......... SLIM decomposition for homogeneous Markov generators
 ```
 
-**TODO: _write routines_**
-
 ## 5. Multidimensional approximation of nonlinear dynamical systems (MANDy)
+
+MANDy combines the data-driven recovery of dynamical systems with tensor decompositions. It can be used for the recovery of unknown governing equations from measurement data only. See [[7](README.md#11-references)] for details.
+
+```
+mandy_cm ............. MANDy using coordinate-major decomposition
+mandy_fm ............. MANDy using function-major decomposition
+```
 
 **TODO: _rewrite and check_**
 
