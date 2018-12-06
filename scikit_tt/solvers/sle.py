@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
-import scipy.linalg as la
+import scipy.linalg as lin
 
 
 def als(operator, initial_guess, right_hand_side, repeats=1, solver='solve'):
@@ -154,7 +154,7 @@ def mals(operator, initial_guess, right_hand_side, repeats=1, solver='solve', th
                 micro_rhs = __construct_micro_rhs_mals(i, stack_left_rhs, stack_right_rhs, right_hand_side, solution)
 
                 # update solution
-                __update_core_mals(i, micro_op, micro_rhs, solution, solver, 'forward', threshold, max_rank)
+                __update_core_mals(i, micro_op, micro_rhs, solution, solver, threshold, max_rank, 'forward')
 
         # second half sweep
         for i in range(operator.order - 2, -1, -1):
@@ -167,7 +167,7 @@ def mals(operator, initial_guess, right_hand_side, repeats=1, solver='solve', th
             micro_rhs = __construct_micro_rhs_mals(i, stack_left_rhs, stack_right_rhs, right_hand_side, solution)
 
             # update solution
-            __update_core_mals(i, micro_op, micro_rhs, solution, solver, 'backward', threshold, max_rank)
+            __update_core_mals(i, micro_op, micro_rhs, solution, solver, threshold, max_rank, 'backward')
 
         # increase iteration number
         current_iteration += 1
@@ -221,6 +221,7 @@ def __construct_stack_left_rhs(i, stack_left_rhs, right_hand_side, solution):
 
         # first stack element is 1
         stack_left_rhs[i] = np.array([1], ndmin=2)
+
     else:
 
         # contract previous stack element with solution and right-hand side cores
@@ -441,14 +442,11 @@ def __update_core_als(i, micro_op, micro_rhs, solution, solver, direction):
     # solve the micro system for the ith TT core
     # ------------------------------------------
 
-    # if solver='solve'
     if solver == 'solve':
         solution.cores[i] = np.linalg.solve(micro_op, micro_rhs)
-
-    # if solver='lu'
     if solver == 'lu':
-        lu = la.lu_factor(micro_op, overwrite_a=True, check_finite=False)
-        solution.cores[i] = la.lu_solve(lu, micro_rhs, trans=0, overwrite_b=True, check_finite=False)
+        lu = lin.lu_factor(micro_op, overwrite_a=True, check_finite=False)
+        solution.cores[i] = lin.lu_solve(lu, micro_rhs, trans=0, overwrite_b=True, check_finite=False)
 
     # reshape solution and orthonormalization
     # ---------------------------------------
@@ -456,8 +454,9 @@ def __update_core_als(i, micro_op, micro_rhs, solution, solver, direction):
     # first half sweep
     if direction == 'forward':
         # decompose solution
-        [q, _] = la.qr(solution.cores[i].reshape(solution.ranks[i] * solution.row_dims[i], solution.ranks[i + 1]),
-                       overwrite_a=True, mode='economic', check_finite=False)
+        [q, _] = lin.qr(
+            solution.cores[i].reshape(solution.ranks[i] * solution.row_dims[i], solution.ranks[i + 1]),
+            overwrite_a=True, mode='economic', check_finite=False)
 
         # set new rank
         solution.ranks[i + 1] = q.shape[1]
@@ -471,8 +470,9 @@ def __update_core_als(i, micro_op, micro_rhs, solution, solver, direction):
         if i > 0:
 
             # decompose solution
-            [_, q] = la.rq(solution.cores[i].reshape(solution.ranks[i], solution.row_dims[i] * solution.ranks[i + 1]),
-                           overwrite_a=True, mode='economic', check_finite=False)
+            [_, q] = lin.rq(
+                solution.cores[i].reshape(solution.ranks[i], solution.row_dims[i] * solution.ranks[i + 1]),
+                overwrite_a=True, mode='economic', check_finite=False)
 
             # set new rank
             solution.ranks[i] = q.shape[0]
@@ -487,7 +487,7 @@ def __update_core_als(i, micro_op, micro_rhs, solution, solver, direction):
                                                           solution.ranks[i + 1])
 
 
-def __update_core_mals(i, micro_op, micro_rhs, solution, solver, direction, threshold, max_rank):
+def __update_core_mals(i, micro_op, micro_rhs, solution, solver, threshold, max_rank, direction):
     """Update TT cores for MALS
 
     Parameters
@@ -515,12 +515,12 @@ def __update_core_mals(i, micro_op, micro_rhs, solution, solver, direction, thre
 
     # if solver='solve'
     if solver == 'solve':
-        solution.cores[i] = la.solve(micro_op, micro_rhs, overwrite_a=True, overwrite_b=True, check_finite=False)
+        solution.cores[i] = lin.solve(micro_op, micro_rhs, overwrite_a=True, overwrite_b=True, check_finite=False)
 
     # if solver='lu'
     if solver == 'lu':
-        lu = la.lu_factor(micro_op, overwrite_a=True, check_finite=False)
-        solution.cores[i] = la.lu_solve(lu, micro_rhs, trans=0, overwrite_b=True, check_finite=False)
+        lu = lin.lu_factor(micro_op, overwrite_a=True, check_finite=False)
+        solution.cores[i] = lin.lu_solve(lu, micro_rhs, trans=0, overwrite_b=True, check_finite=False)
 
     # reshape solution and orthonormalization
     # ---------------------------------------
@@ -529,9 +529,9 @@ def __update_core_mals(i, micro_op, micro_rhs, solution, solver, direction, thre
     if direction == 'forward':
 
         # decompose solution
-        [u, s, _] = la.svd(solution.cores[i].reshape(solution.ranks[i] * solution.row_dims[i],
-                                                     solution.row_dims[i + 1] * solution.ranks[i + 2]),
-                           full_matrices=False, overwrite_a=True, check_finite=False, lapack_driver='gesvd')
+        [u, s, _] = lin.svd(solution.cores[i].reshape(solution.ranks[i] * solution.row_dims[i],
+                                                      solution.row_dims[i + 1] * solution.ranks[i + 2]),
+                            full_matrices=False, overwrite_a=True, check_finite=False, lapack_driver='gesvd')
 
         # rank reduction
         if threshold != 0:
@@ -552,9 +552,9 @@ def __update_core_mals(i, micro_op, micro_rhs, solution, solver, direction, thre
     if direction == 'backward':
 
         # decompose solution
-        [u, s, v] = la.svd(solution.cores[i].reshape(solution.ranks[i] * solution.row_dims[i],
-                                                     solution.row_dims[i + 1] * solution.ranks[i + 2]),
-                           full_matrices=False, overwrite_a=True, check_finite=False, lapack_driver='gesvd')
+        [u, s, v] = lin.svd(solution.cores[i].reshape(solution.ranks[i] * solution.row_dims[i],
+                                                      solution.row_dims[i + 1] * solution.ranks[i + 2]),
+                            full_matrices=False, overwrite_a=True, check_finite=False, lapack_driver='gesvd')
 
         # rank reduction
         if threshold != 0:
