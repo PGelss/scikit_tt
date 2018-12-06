@@ -5,7 +5,7 @@ import numpy as np
 import scipy.linalg as lin
 
 
-def mandy_coordinate_major(x, y, psi, threshold=0):
+def mandy_cm(x, y, psi, threshold=0):
     """Multidimensional Approximation of Nonlinear Dynamics (MANDy)
 
     Coordinate-major approach for construction of the tensor train xi. See [1]_ for details.
