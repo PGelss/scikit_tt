@@ -17,7 +17,6 @@ import scikit_tt.tensor_train as tt
 import scikit_tt.solvers.evp as evp
 import scikit_tt.utils as utl
 import matplotlib.pyplot as plt
-import os
 import scipy.io as io
 
 # parameters
@@ -31,8 +30,7 @@ number_ev = 3
 # --------------------------------------------
 
 utl.progress('\nLoad data', 0, dots=39)
-directory = os.path.dirname(os.path.realpath(__file__))
-transitions = io.loadmat(directory + "/data/TripleWell2D_500.mat")["indices"]  # load data
+transitions = io.loadmat("data/TripleWell2D_500.mat")["indices"]
 utl.progress('Load data', 100, dots=39)
 
 # construct TT operator
