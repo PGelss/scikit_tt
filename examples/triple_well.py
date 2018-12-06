@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 """
@@ -12,6 +11,7 @@ References
 """
 
 import numpy as np
+import scipy.sparse.linalg as splin
 from scikit_tt.tensor_train import TT
 import scikit_tt.tensor_train as tt
 import scikit_tt.solvers.evp as evp
@@ -54,8 +54,7 @@ utl.progress('Approximate eigenfunctions in the TT format', 100, dots=5)
 # --------------------------
 
 utl.progress('Compute exact eigenfunctions in matrix format', 0)
-operator = operator.matricize()
-eigenvalues_pf_exact, eigenfunctions_pf_exact = np.linalg.eig(operator)
+eigenvalues_pf_exact, eigenfunctions_pf_exact = splin.eigs(operator.matricize(), k=number_ev)
 utl.progress('Compute exact eigenfunctions in matrix format', 100)
 
 # convert results to matrices
