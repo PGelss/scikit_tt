@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 from unittest import TestCase
@@ -44,11 +43,15 @@ class TestSLE(TestCase):
         # solve system of linear equations in TT format
         solution_tt = sle.als(self.operator_tt, self.initial_tt, self.rhs_tt, repeats=1)
 
-        # compute relative error
-        rel_err = np.linalg.norm(solution_mat - solution_tt.matricize()) / np.linalg.norm(solution_mat)
+        # compute relative error between exact and approximate solution
+        rel_err_mat = np.linalg.norm(solution_mat - solution_tt.matricize()) / np.linalg.norm(solution_mat)
 
-        # check if relative error is smaller than tolerance
-        self.assertLess(rel_err, self.tol)
+        # compute relative error of the system on linear equations in TT format
+        rel_err_tt = (self.operator_tt@solution_tt-self.rhs_tt).norm()/self.rhs_tt.norm()
+
+        # check if relative errors are smaller than tolerance
+        self.assertLess(rel_err_mat, self.tol)
+        self.assertLess(rel_err_tt, self.tol)
 
     def test_mals(self):
         """test for MALS"""
@@ -59,8 +62,12 @@ class TestSLE(TestCase):
         # solve system of linear equations in TT format
         solution_tt = sle.mals(self.operator_tt, self.initial_tt, self.rhs_tt, repeats=1, threshold=1e-14, max_rank=10)
 
-        # compute relative error
-        rel_err = np.linalg.norm(solution_mat - solution_tt.matricize()) / np.linalg.norm(solution_mat)
+        # compute relative error between exact and approximate solution
+        rel_err_mat = np.linalg.norm(solution_mat - solution_tt.matricize()) / np.linalg.norm(solution_mat)
 
-        # check if relative error is smaller than tolerance
-        self.assertLess(rel_err, self.tol)
+        # compute relative error of the system on linear equations in TT format
+        rel_err_tt = (self.operator_tt@solution_tt-self.rhs_tt).norm()/self.rhs_tt.norm()
+
+        # check if relative errors are smaller than tolerance
+        self.assertLess(rel_err_mat, self.tol)
+        self.assertLess(rel_err_tt, self.tol)
