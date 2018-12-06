@@ -24,7 +24,7 @@ import scipy.io as io
 # ----------
 
 simulations = 500
-n = 50
+n_states = 50
 number_ev = 3
 
 # load data obtained by applying Ulam's method
@@ -43,12 +43,12 @@ cores = []
 # find unique indices for transitions in the first dimension
 ind_unique, ind_inv, ind_counts = np.unique(transitions[[0, 2], :], axis=1, return_inverse=True, return_counts=True)
 rank = ind_unique.shape[1]
-cores.append(np.zeros([1, n, n, rank]))
+cores.append(np.zeros([1, n_states, n_states, rank]))
 for i in range(rank):
     cores[0][0, ind_unique[0, i] - 1, ind_unique[1, i] - 1, i] = 1
 
 # construct core for the second dimension
-cores.append(np.zeros([rank, n, n, 1]))
+cores.append(np.zeros([rank, n_states, n_states, 1]))
 for i in range(transitions.shape[1]):
     utl.progress('Construct operator', 100 * i / (transitions.shape[1] - 1), dots=30)
     cores[1][ind_inv[i], transitions[1, i] - 1, transitions[3, i] - 1, 0] += 1
@@ -82,7 +82,7 @@ eigenfunctions_mat_exact = []
 
 for i in range(number_ev):
     eigenfunctions_mat.append(np.rot90(TT.full(eigenfunctions_pf[i])[:, :, 0, 0]))
-    eigenfunctions_mat_exact.append(np.rot90(np.real(eigenfunctions_pf_exact[:, i]).reshape(n, n)))
+    eigenfunctions_mat_exact.append(np.rot90(np.real(eigenfunctions_pf_exact[:, i]).reshape(n_states, n_states)))
     if i > 0:
         eigenfunctions_mat[i] = eigenfunctions_mat[i] / np.amax(abs(eigenfunctions_mat[i]))
         eigenfunctions_mat_exact[i] = eigenfunctions_mat_exact[i] / np.amax(abs(eigenfunctions_mat_exact[i]))
