@@ -36,23 +36,9 @@ utl.progress('Load data', 100, dots=39)
 # construct TT operator
 # ---------------------
 
-cores = []
-
-# find unique indices for transitions in the first dimension
-ind_unique, ind_inv, ind_counts = np.unique(transitions[[0, 2], :], axis=1, return_inverse=True, return_counts=True)
-rank = ind_unique.shape[1]
-cores.append(np.zeros([1, n_states, n_states, rank]))
-for i in range(rank):
-    cores[0][0, ind_unique[0, i] - 1, ind_unique[1, i] - 1, i] = 1
-
-# construct core for the second dimension
-cores.append(np.zeros([rank, n_states, n_states, 1]))
-for i in range(transitions.shape[1]):
-    utl.progress('Construct operator', 100 * i / (transitions.shape[1] - 1), dots=30)
-    cores[1][ind_inv[i], transitions[1, i] - 1, transitions[3, i] - 1, 0] += 1
-
-# transpose and normalize operator
-operator = (1 / simulations) * TT(cores).transpose()
+utl.progress('Construct operator', 0, dots=30)
+operator = utl.perron_frobenius_2d(transitions, [n_states, n_states], simulations)
+utl.progress('Construct operator', 100, dots=30)
 
 # approximate leading eigenfunctions of the Perron-Frobenius and Koopman operator
 # -------------------------------------------------------------------------------
