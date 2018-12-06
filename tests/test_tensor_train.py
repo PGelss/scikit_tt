@@ -360,15 +360,11 @@ class TestTT(TestCase):
         norm = 10 * np.random.rand()
         t_uni = tt.uniform(self.row_dims, ranks=self.ranks, norm=norm)
 
-        # convert to full array and flatten
-        t_full = t_uni.full().flatten()
-
         # compute norms
         norm_tt = t_uni.norm()
-        norm_full = np.linalg.norm(t_full)
 
         # compute relative error
-        rel_err = (norm_tt - norm_full) / norm_full
+        rel_err = (norm_tt - norm) / norm
 
         # check if relative error is smaller than tolerance
         self.assertLess(rel_err, self.tol)
