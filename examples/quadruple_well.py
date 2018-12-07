@@ -14,6 +14,7 @@ import numpy as np
 import scipy.sparse.linalg as splin
 from scikit_tt.tensor_train import TT
 import scikit_tt.tensor_train as tt
+import scikit_tt.perron_frobenius as pf
 import scikit_tt.solvers.evp as evp
 import scikit_tt.utils as utl
 import matplotlib.pyplot as plt
@@ -39,7 +40,7 @@ utl.progress('Load data', 100, dots=39)
 # ---------------------
 
 utl.progress('Construct operator', 0, dots=30)
-operator = utl.perron_frobenius_3d(transitions, [n_states] * 3, simulations)
+operator = pf.perron_frobenius_3d(transitions, [n_states] * 3, simulations)
 utl.progress('Construct operator', 100, dots=30)
 
 # approximate leading eigenfunctions
