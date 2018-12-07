@@ -456,7 +456,7 @@ class TT(object):
         # right-orthonormalization
         # ------------------------
 
-        for i in range(start_index, end_index-1, -1):
+        for i in range(start_index, end_index - 1, -1):
 
             # apply SVD to ith TT core
             [u, s, v] = linalg.svd(
@@ -520,7 +520,6 @@ class TT(object):
         # --------------
 
         if p == 1:
-
             # sum over row axes
             tt_tensor.cores = [
                 np.sum(tt_tensor.cores[i], axis=1).reshape(tt_tensor.ranks[i], 1, 1, tt_tensor.ranks[i + 1]) for i in
@@ -536,7 +535,6 @@ class TT(object):
         # --------------
 
         if p == 2:
-
             # right-orthonormalize tt_tensor
             tt_tensor = tt_tensor.ortho_right()
 
@@ -684,6 +682,62 @@ class TT(object):
         tt_tensor = TT(tt_cores)
 
         return tt_tensor
+
+    def pinv(self, index, threshold=0):
+        """Computation of the pseudoinverse of a tensor train
+
+        Construct the pseudoinverse of a (non-operator) tensor train by a global SVD. See [1]_, [2]_ and [3]_ for
+        details.
+
+        Parameters
+        ----------
+        index: int
+            the cores 0 to index-1 represent the row dimensions and index to order-1 the column dimensions of the
+            unfolded version of self
+        threshold: float, optional
+            threshold for reduced SVD decompositions, default is 0
+
+        References
+        ----------
+        .. [1] P. Gelß. "The Tensor-Train Format and Its Applications: Modeling and Analysis of Chemical Reaction
+               Networks, Catalytic Processes, Fluid Flows, and Brownian Dynamics", Freie Universität Berlin, 2017
+        .. [2] S. Klus, P. Gelß, S. Peitz, C. Schütte, "Tensor-based Dynamic Mode Decomposition", Nonlinearity 31 (7),
+               2018
+        .. [3] P. Gelß, S. Klus, J. Eisert, C. Schütte, "Multidimensional Approximation of Nonlinear Dynamical Systems",
+               arXiv:1809.02448, 2018
+        """
+
+        # copy self
+        p_inv = self.copy()
+
+        # left-orthonormalize cores 0 to index-2
+        p_inv = p_inv.ortho_left(end_index=index - 2, threshold=threshold)
+
+        # right-orthonormalize cores index to order -1
+        p_inv = p_inv.ortho_right(end_index=index, threshold=threshold)
+
+        # decompose (index-1)th core
+        [u, s, v] = linalg.svd(
+            p_inv.cores[index - 1].reshape(p_inv.ranks[index - 1] * p_inv.row_dims[index - 1], p_inv.ranks[index]),
+            full_matrices=False, overwrite_a=True, check_finite=False, lapack_driver='gesvd')
+
+        # rank reduction
+        if threshold != 0:
+            indices = np.where(s / s[0] > threshold)[0]
+            u = u[:, indices]
+            s = s[indices]
+            v = v[indices, :]
+
+        # set new rank
+        p_inv.ranks[index] = u.shape[1]
+
+        # update (index-1)th core
+        p_inv.cores[index - 1] = u.reshape(p_inv.ranks[index - 1], p_inv.row_dims[index - 1], 1, p_inv.ranks[index])
+
+        # update (index)th core
+        p_inv.cores[index] = np.tensordot(np.diag(np.reciprocal(s)) @ v, p_inv.cores[index], axes=(1, 0))
+
+        return p_inv
 
 
 # construction of specific tensor-train decompositions
