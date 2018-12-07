@@ -54,6 +54,7 @@ ortho_right .......... right-orthonormalize a tensor train
 norm ................. compute the norm of a tensor train
 tt2qtt ............... convert from TT to QTT format
 qtt2tt ............... convert from QTT to TT format
+pinv ................. compute pseudoinverses of tensor trains
 ```
 
 Further functions defined in [*tensor-train.py*](scikit_tt/tensor_train.py) are:
