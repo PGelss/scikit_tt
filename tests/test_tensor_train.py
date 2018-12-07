@@ -311,6 +311,32 @@ class TestTT(TestCase):
         self.assertLess(rel_err_tt, self.tol)
         self.assertLess(rel_err_qtt, self.tol)
 
+    def test_pinv(self):
+        """test pinv"""
+
+        # construct non-operator tensor train
+        cores = [self.cores[i][:, :, 0:1, :] for i in range(self.order)]
+        t = TT(cores)
+
+        # compute pseudoinverse
+        t_pinv = TT.pinv(t, self.order - 1)
+
+        # matricize tensor trains
+        t = t.full().reshape([np.prod(self.row_dims[:-1]), self.row_dims[-1]])
+        t_pinv = t_pinv.full().reshape([np.prod(self.row_dims[:-1]), self.row_dims[-1]]).transpose()
+
+        # compute relative errors
+        rel_err_1 = np.linalg.norm(t @ t_pinv @ t - t) / np.linalg.norm(t)
+        rel_err_2 = np.linalg.norm(t_pinv @ t @ t_pinv - t_pinv) / np.linalg.norm(t_pinv)
+        rel_err_3 = np.linalg.norm((t @ t_pinv).transpose() - t @ t_pinv) / np.linalg.norm(t @ t_pinv)
+        rel_err_4 = np.linalg.norm((t_pinv @ t).transpose() - t_pinv @ t) / np.linalg.norm(t_pinv @ t)
+
+        # check if relative errors are smaller than tolerance
+        self.assertLess(rel_err_1, self.tol)
+        self.assertLess(rel_err_2, self.tol)
+        self.assertLess(rel_err_3, self.tol)
+        self.assertLess(rel_err_4, self.tol)
+
     def test_zeros(self):
         """test tensor train of all zeros"""
 
