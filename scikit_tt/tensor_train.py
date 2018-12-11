@@ -683,7 +683,7 @@ class TT(object):
 
         return tt_tensor
 
-    def pinv(self, index, threshold=0):
+    def pinv(self, index, threshold=0, ortho_l=True, ortho_r=True):
         """Computation of the pseudoinverse of a tensor train
 
         Construct the pseudoinverse of a (non-operator) tensor train by a global SVD. See [1]_, [2]_ and [3]_ for
@@ -696,6 +696,10 @@ class TT(object):
             unfolded version of self
         threshold: float, optional
             threshold for reduced SVD decompositions, default is 0
+        ortho_l: bool, optional
+            whether to apply left-orthonormalization or not, default is True
+        ortho_r: bool, optional
+            whether to apply right-orthonormalization or not, default is True
 
         References
         ----------
@@ -711,10 +715,12 @@ class TT(object):
         p_inv = self.copy()
 
         # left-orthonormalize cores 0 to index-2
-        p_inv = p_inv.ortho_left(end_index=index - 2, threshold=threshold)
+        if ortho_l is True:
+            p_inv = p_inv.ortho_left(end_index=index - 2, threshold=threshold)
 
         # right-orthonormalize cores index to order -1
-        p_inv = p_inv.ortho_right(end_index=index, threshold=threshold)
+        if ortho_r is True:
+            p_inv = p_inv.ortho_right(end_index=index, threshold=threshold)
 
         # decompose (index-1)th core
         [u, s, v] = linalg.svd(
