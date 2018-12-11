@@ -8,6 +8,27 @@ from scikit_tt.tensor_train import TT
 import scikit_tt.tensor_train as tt
 import matplotlib.pyplot as plt
 
+def header(title=None):
+    """Print scikit_tt header
+
+    Parameters
+    ----------
+    title: string
+        title or name of the procedure
+    """
+
+    print('                                                         ')
+    print('o ------ o ------ o ------ o ------ o ------ o --- - -  -')
+    print('|  __   __           ___   ___ ___  |        |           ')
+    print('| /__` /  ` | |__/ |  |     |   |   |                    ')
+    print('| .__/ \__, | |  \ |  |     |   |   |                    ')
+    print('|                                   |                    ')
+    print('o ------ o ------ o ------ o ------ o --- - -  -         ')
+    if title is not None:
+        print('| ' + title)
+        print('o ------ o ------ o ------ o --- - -  -')
+    print(' ')
+
 
 class Timer(object):
     """Measure CPU time
