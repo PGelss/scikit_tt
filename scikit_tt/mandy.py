@@ -2,7 +2,6 @@
 
 from scikit_tt.tensor_train import TT
 import numpy as np
-import scipy.linalg as lin
 
 
 def mandy_cm(x, y, psi, threshold=0):
@@ -38,7 +37,7 @@ def mandy_cm(x, y, psi, threshold=0):
     p = len(psi)
 
     # define cores as empty arrays
-    cores = [np.zeros([1, p, 1, x.shape[1]])] + [np.zeros([m, p, 1, m])]*(d-1)
+    cores = [np.zeros([1, p, 1, m])] + [np.zeros([m, p, 1, m]) for _ in range(1, d)]
 
     # insert elements of first core
     for j in range(m):
@@ -55,89 +54,43 @@ def mandy_cm(x, y, psi, threshold=0):
     # construct tensor train
     xi = TT(cores)
 
-    # left-orthonormalize first d-1 cores
-    xi = xi.ortho_left(end_index=d - 2, threshold=threshold)
+    # compute pseudoinverse of xi
+    xi = xi.pinv(d, threshold=threshold, ortho_r=False)
 
-    # decompose dth core
-    [u, s, v] = lin.svd(xi.cores[d-1].reshape(xi.ranks[d-1] * xi.row_dims[d-1], xi.ranks[d]),
-                        full_matrices=False, overwrite_a=True, check_finite=False, lapack_driver='gesvd')
-
-    # rank reduction
-    if threshold != 0:
-        indices = np.where(s / s[0] > threshold)[0]
-        u = u[:, indices]
-        s = s[indices]
-        v = v[indices, :]
-
-    # set new rank
-    xi.ranks[d] = u.shape[1]
-
-    # update dth core
-    xi.cores[d-1] = u.reshape(xi.ranks[d-1], xi.row_dims[d-1], 1, xi.ranks[d])
-
-    # replace last core
-    xi.cores[d] = (np.diag(np.reciprocal(s)) @ v @ y.transpose()).reshape(xi.ranks[d], d, 1, 1)
+    # multiply last core with y
+    xi.cores[d] = (xi.cores[d].reshape([xi.ranks[d], m]) @ y.transpose()).reshape(xi.ranks[d], d, 1, 1)
 
     # set new row dimension
     xi.row_dims[d] = d
 
+    # # left-orthonormalize first d-1 cores
+    # xi = xi.ortho_left(end_index=d - 2, threshold=threshold)
+    #
+    # # decompose dth core
+    # [u, s, v] = lin.svd(xi.cores[d - 1].reshape(xi.ranks[d - 1] * xi.row_dims[d - 1], xi.ranks[d]),
+    #                     full_matrices=False, overwrite_a=True, check_finite=False, lapack_driver='gesvd')
+    #
+    # # rank reduction
+    # if threshold != 0:
+    #     indices = np.where(s / s[0] > threshold)[0]
+    #     u = u[:, indices]
+    #     s = s[indices]
+    #     v = v[indices, :]
+    #
+    # # set new rank
+    # xi.ranks[d] = u.shape[1]
+    #
+    # # update dth core
+    # xi.cores[d - 1] = u.reshape(xi.ranks[d - 1], xi.row_dims[d - 1], 1, xi.ranks[d])
+    #
+    # # replace last core
+    # xi.cores[d] = (np.diag(np.reciprocal(s)) @ v @ y.transpose()).reshape(xi.ranks[d], d, 1, 1)
+    #
+    # # set new row dimension
+    # xi.row_dims[d] = d
+
     return xi
 
-
-# def mandy_coordinate_major_matrix(X, Y, psi, threshold=0, cpu_time=False):
-#     """Multidimensional Approximation of Nonlinear Dynamics (MANDy)
-#
-#     Coordinate-major approach for the construction of the matrix Xi.
-#
-#     Matrix-based counterpart to MANDy method. This routine can be used for comparing CPU times of the tensor- and
-#     matrix-based approximation of nonlinear dynamics. Here, we only solve the least-squares problem without iterating
-#     as done in the SINDy algorithm, cf. ...
-#
-#     References
-#     ----------
-#     ...
-#
-#     Arguments
-#     ---------
-#     X: ndarray
-#         snapshot matrix of size d x m (e.g., coordinates)
-#     Y: ndarray
-#         corresponding snapshot matrix of size d x m (e.g., derivatives)
-#     psi: list of lambda functions
-#         list of basis functions
-#     threshold: float, optional
-#         threshold for SVD
-#     cpu_time: bool, optional
-#         Whether or not to measure CPU time. False by default.
-#
-#     Returns
-#     -------
-#     Xi: ndarray
-#         matrix of coefficients for chosen basis functions
-#     time: float
-#         CPU time needed for computations. The construction of the basis matrix Psi is excluded. Only returned when
-#         `cpu_time` is True.
-#     """
-#     Psi = np.zeros([len(psi) ** X.shape[0], X.shape[1]])
-#     for j in range(X.shape[1]):
-#         P = [psi[k](X[0, j]) for k in range(len(psi))]
-#         for i in range(1, X.shape[0]):
-#             P = np.kron([psi[k](X[i, j]) for k in range(len(psi))], P)
-#         Psi[:, j] = P
-#     with tools.Timer() as time:
-#         U, S, V = scipy.linalg.svd(Psi, full_matrices=False, overwrite_a=True)
-#         if threshold != 0:
-#             indices = np.where(S / S[0] > threshold)[0]
-#             U = U[:, indices]
-#             S = S[indices]
-#             V = V[indices, :]
-#         Xi = Y @ V.transpose() @ np.diag(np.reciprocal(S)) @ U.transpose()  # solve least-squares problem
-#     if cpu_time:
-#         return Xi, time
-#     else:
-#         return Xi
-#
-#
 # def mandy_function_major(X, Y, psi, threshold=0, add_one=False, cpu_time=False):
 #     """Multidimensional Approximation of Nonlinear Dynamics (MANDy)
 #
