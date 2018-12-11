@@ -28,6 +28,7 @@ def header(title=None):
         print('| ' + title)
         print('o ------ o ------ o ------ o --- - -  -')
     print(' ')
+    print(' ')
 
 
 class Timer(object):
