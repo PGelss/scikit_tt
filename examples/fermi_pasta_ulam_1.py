@@ -25,7 +25,7 @@ p = len(psi)
 
 # construct exact solution in TT and matrix format
 utl.progress('Construct exact solution in TT format', 0, dots=7)
-xi_exact = mdl.fermi_pasta_ulam_solution(d)
+xi_exact = mdl.fermi_pasta_ulam_coefficient_tensor(d)
 utl.progress('Construct exact solution in TT format', 100, dots=7)
 utl.progress('Construct exact solution in matrix format', 0)
 xi_exact_mat = xi_exact.full().reshape([p ** d, d])
