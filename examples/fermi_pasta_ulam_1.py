@@ -16,7 +16,7 @@ import scikit_tt.models as mdl
 import scikit_tt.utils as utl
 import matplotlib.pyplot as plt
 
-utl.header('MANDy - Fermi-Pasta-Ulam problem - Example 1')
+utl.header(title='MANDy - Fermi-Pasta-Ulam problem', subtitle='Example 1')
 
 # model parameters
 d = 10
@@ -31,15 +31,23 @@ utl.progress('Construct exact solution in matrix format', 0)
 xi_exact_mat = xi_exact.full().reshape([p ** d, d])
 utl.progress('Construct exact solution in matrix format', 100)
 
-# loop parameters
-snapshots_min = 4000
+# snapshot parameters
+snapshots_min = 1000
 snapshots_max = 6000
 snapshots_step = 500
+
+# maximum number of snapshots for matrix approach
 snapshots_mat = 5000
 
 # define arrays for CPU times and relative errors
 cpu_times = np.zeros([6, int((snapshots_max - snapshots_min) / snapshots_step) + 1])
 rel_errors = np.zeros([6, int((snapshots_max - snapshots_min) / snapshots_step) + 1])
+
+# find maximum index for matrix computations (used for plotting)
+if snapshots_max > snapshots_mat:
+    index_mat = int(np.ceil((snapshots_mat - snapshots_min) / snapshots_step + 1e-10))
+else:
+    index_mat = int((snapshots_max - snapshots_min) / snapshots_step) + 1
 
 # compare CPU times of tensor-based and matrix-based approaches
 for i in range(snapshots_min, snapshots_max + snapshots_step, snapshots_step):
@@ -56,7 +64,7 @@ for i in range(snapshots_min, snapshots_max + snapshots_step, snapshots_step):
     utl.progress('Generate test data', 100, dots=13)
 
     # computation in matrix format
-    if i < snapshots_mat:
+    if i <= snapshots_mat:
         utl.progress('Running matrix-based MANDy', 0, dots=5)
 
         # construct psi_x in matrix format
@@ -82,6 +90,8 @@ for i in range(snapshots_min, snapshots_max + snapshots_step, snapshots_step):
         print('   relative error: ' + str("%.2e" % rel_errors[0, ind]))
 
     else:
+
+        # extrapolate cpu times of matrix approach
         cpu_times[0, ind] = 2 * cpu_times[0, ind - 1] - cpu_times[0, ind - 2]
 
     # exact computation in TT format
@@ -115,17 +125,15 @@ utl.plot_parameters()
 # CPU times
 plt.figure(dpi=300)
 x_values = np.arange(snapshots_min, snapshots_max + 1, snapshots_step)
-plt.plot(x_values[:-2], cpu_times[0, :-2], label=r"Matrix repr.")
-plt.plot(x_values[-3:], cpu_times[0, -3:], 'C0--')
+plt.plot(x_values[:index_mat], cpu_times[0, :index_mat], label=r"Matrix repr.")
+plt.plot(x_values[index_mat-1:], cpu_times[0, index_mat-1:], 'C0--')
 plt.plot(x_values, cpu_times[1, :], label=r"TT - exact")
 plt.plot(x_values, cpu_times[2, :], label=r"TT - $\varepsilon=10^{-10}$")
 plt.plot(x_values, cpu_times[3, :], label=r"TT - $\varepsilon=10^{-9}$")
 plt.plot(x_values, cpu_times[4, :], label=r"TT - $\varepsilon=10^{-8}$")
 plt.plot(x_values, cpu_times[5, :], label=r"TT - $\varepsilon=10^{-7}$")
 plt.gca().set_xlim([snapshots_min, snapshots_max])
-plt.xticks(np.arange(snapshots_min, snapshots_max + 1, 2 * snapshots_step))
-plt.gca().set_ylim([0, 1500])
-plt.yticks(np.arange(0, 1750, 250))
+plt.gca().set_ylim(bottom=0)
 plt.title(r'CPU times for $d = 10$', y=1.03)
 plt.xlabel(r'$m$')
 plt.ylabel(r'$T / s$')
@@ -135,21 +143,18 @@ plt.show()
 # relative errors
 plt.figure(dpi=300)
 x_values = np.arange(snapshots_min, snapshots_max + 1, snapshots_step)
-plt.semilogy(x_values, rel_errors[0, :], label="Matrix - exact")
+plt.semilogy(x_values[:index_mat], rel_errors[0, :index_mat], label="Matrix - exact")
 for j in range(5):
     exp = -11 + j
     if exp == -11:
-        plt.semilogy(x_values, rel_errors[1, :], label=r'TT - exact')
+        plt.semilogy(x_values[:index_mat], rel_errors[1, :index_mat], label=r'TT - exact')
     else:
-        plt.semilogy(x_values, rel_errors[1 + j, :], label=r'TT - $\varepsilon = 10^{' + str(exp) + '}$')
-plt.gca().set_ylim([10 ** -4, 10 ** -1])
+        plt.semilogy(x_values[:index_mat], rel_errors[1 + j, :index_mat], label=r'TT - $\varepsilon = 10^{' + str(exp) + '}$')
 plt.grid(which='major')
 plt.grid(which='minor')
-plt.xticks(np.arange(snapshots_min, snapshots_max + 1, 2 * snapshots_step))
-plt.yticks([10 ** -4, 10 ** -3, 10 ** -2, 10 ** -1])
 plt.title(r'Relative errors for $d = 10$', y=1.03)
 plt.xlabel(r'$m$')
 plt.ylabel(r'$|| \Xi_{\textrm{exact}} - \Xi ||~/~|| \Xi_{\textrm{exact}} ||$')
-plt.gca().set_xlim([snapshots_min, snapshots_max - 2 * snapshots_step])
+plt.gca().set_xlim([x_values[0], x_values[index_mat-1]])
 plt.legend(loc=1, fontsize=12).get_frame().set_alpha(1)
 plt.show()
