@@ -21,6 +21,8 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import scipy.io as io
 
+utl.header(title='Quadruple-well potential')
+
 # parameters
 # ----------
 
@@ -32,7 +34,7 @@ number_ev = 3
 # --------------------------------------------
 
 
-utl.progress('\nLoad data', 0, dots=39)
+utl.progress('Load data', 0, dots=39)
 transitions = io.loadmat("data/QuadrupleWell3D_25x25x25_100.mat")["indices"]  # load data
 utl.progress('Load data', 100, dots=39)
 
