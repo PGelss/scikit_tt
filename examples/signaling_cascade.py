@@ -18,6 +18,8 @@ import scikit_tt.utils as utl
 import numpy as np
 import matplotlib.pyplot as plt
 
+utl.header(title='Signaling cascade')
+
 # parameters
 # ----------
 
@@ -48,7 +50,7 @@ initial_guess = tt.ones(operator.col_dims, [1] * order, ranks=tt_rank).ortho_rig
 # solve Markovian master equation in TT format
 # --------------------------------------------
 
-print('\nTT approach')
+print('TT approach')
 print('-----------\n')
 with utl.Timer() as time:
     solution = ode.trapezoidal_rule(operator, initial_distribution, initial_guess, step_sizes)
