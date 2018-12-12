@@ -19,6 +19,8 @@ import scikit_tt.utils as utl
 import numpy as np
 import matplotlib.pyplot as plt
 
+utl.header(title='Two-step destruction')
+
 # parameters
 # ----------
 
@@ -53,8 +55,6 @@ initial_guess = tt.uniform([2] * (4 * m + 1), ranks=qtt_rank).ortho_right()
 # solve Markovian master equation in QTT format
 # ---------------------------------------------
 
-print('\nQTT approach')
-print('------------\n')
 with utl.Timer() as time:
     solution = ode.implicit_euler(operator, initial_distribution, initial_guess, step_sizes, tt_solver='mals',
                                   threshold=1e-7, max_rank=max_rank)
