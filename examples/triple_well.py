@@ -20,6 +20,8 @@ import scikit_tt.utils as utl
 import matplotlib.pyplot as plt
 import scipy.io as io
 
+utl.header(title='Triple-well potential')
+
 # parameters
 # ----------
 
@@ -30,7 +32,7 @@ number_ev = 3
 # load data obtained by applying Ulam's method
 # --------------------------------------------
 
-utl.progress('\nLoad data', 0, dots=39)
+utl.progress('Load data', 0, dots=39)
 transitions = io.loadmat("data/TripleWell2D_500.mat")["indices"]
 utl.progress('Load data', 100, dots=39)
 
