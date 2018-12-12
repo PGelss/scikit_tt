@@ -8,25 +8,28 @@ from scikit_tt.tensor_train import TT
 import scikit_tt.tensor_train as tt
 import matplotlib.pyplot as plt
 
-def header(title=None):
+
+def header(title=None, subtitle=None):
     """Print scikit_tt header
 
     Parameters
     ----------
     title: string
         title or name of the procedure
+    subtitle: string
+        subtitle of the procedure
     """
 
-    print('                                                         ')
-    print('o ------ o ------ o ------ o ------ o ------ o --- - -  -')
-    print('|  __   __           ___   ___ ___  |        |           ')
-    print('| /__` /  ` | |__/ |  |     |   |   |                    ')
-    print('| .__/ \__, | |  \ |  |     |   |   |                    ')
-    print('|                                   |                    ')
-    print('o ------ o ------ o ------ o ------ o --- - -  -         ')
+    print('                                              ')
+    print('.  __    __               ___    ___ ___      ')
+    print('. /__`  /  `  |  |__/  |   |      |   |       ')
+    print('| .__/  \__,  |  |  \  |   |      |   |       ')
+    print('o ─────────── o ────── o ─ o ──── o ─ o── ─  ─')
     if title is not None:
-        print('| ' + title)
-        print('o ------ o ------ o ------ o --- - -  -')
+        print('|')
+        print('o ─ ' + title)
+    if subtitle is not None:
+        print('    ' + subtitle)
     print(' ')
     print(' ')
 
