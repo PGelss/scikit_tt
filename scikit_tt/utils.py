@@ -20,11 +20,11 @@ def header(title=None, subtitle=None):
         subtitle of the procedure
     """
 
-    print('                                              ')
-    print('.  __    __               ___    ___ ___      ')
-    print('. /__`  /  `  |  |__/  |   |      |   |       ')
-    print('| .__/  \__,  |  |  \  |   |      |   |       ')
-    print('o ─────────── o ────── o ─ o ──── o ─ o── ─  ─')
+    print('                                               ')
+    print('.  __    __               ___    ___ ___       ')
+    print('. /__`  /  `  |  |__/  |   |      |   |        ')
+    print('| .__/  \__,  |  |  \  |   |      |   |        ')
+    print('o ─────────── o ────── o ─ o ──── o ─ o ── ─  ─')
     if title is not None:
         print('|')
         print('o ─ ' + title)
