@@ -63,32 +63,6 @@ def mandy_cm(x, y, psi, threshold=0):
     # set new row dimension
     xi.row_dims[d] = d
 
-    # # left-orthonormalize first d-1 cores
-    # xi = xi.ortho_left(end_index=d - 2, threshold=threshold)
-    #
-    # # decompose dth core
-    # [u, s, v] = lin.svd(xi.cores[d - 1].reshape(xi.ranks[d - 1] * xi.row_dims[d - 1], xi.ranks[d]),
-    #                     full_matrices=False, overwrite_a=True, check_finite=False, lapack_driver='gesvd')
-    #
-    # # rank reduction
-    # if threshold != 0:
-    #     indices = np.where(s / s[0] > threshold)[0]
-    #     u = u[:, indices]
-    #     s = s[indices]
-    #     v = v[indices, :]
-    #
-    # # set new rank
-    # xi.ranks[d] = u.shape[1]
-    #
-    # # update dth core
-    # xi.cores[d - 1] = u.reshape(xi.ranks[d - 1], xi.row_dims[d - 1], 1, xi.ranks[d])
-    #
-    # # replace last core
-    # xi.cores[d] = (np.diag(np.reciprocal(s)) @ v @ y.transpose()).reshape(xi.ranks[d], d, 1, 1)
-    #
-    # # set new row dimension
-    # xi.row_dims[d] = d
-
     return xi
 
 # def mandy_function_major(X, Y, psi, threshold=0, add_one=False, cpu_time=False):
