@@ -167,11 +167,14 @@ test_tensor_train .... unit tests for tensor_train.py
 In [*utils.py*](scikit_tt/utils.py) we collect algorithms and tools which are employed at several points in **scikit_tt** and/or helpful for data analysis, comparisons, and visualization.
 
 ```
-mean_concentration ... mean concentrations of TT series
+errors_impl_euler .... compute approximation errors of the implicit Euler method
+errors_trapezoidal ... compute approximation errors of the trapezoidal rule
+header ............... ASCII header for scikit_tt
+mean_concentrations .. mean concentrations of TT series
+plot_parameters ...... customized plot parameters
 progress ............. show progress in percent
 sindy ................ SINDy for the analysis of nonlinear dynamical systems
 timer ................ measure CPU time
-turn_over_frequency .. turn-over frequency of probabilty distributions for catalytic reactions
 unit_vector .......... canonical unit vector
 ```
 
