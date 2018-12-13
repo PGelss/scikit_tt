@@ -387,12 +387,9 @@ class TT(object):
             copy of self with left-orthonormalized cores
         """
 
-        # copy self
-        tt_ortho = self.copy()
-
         # set end_index to the index of the penultimate core if not otherwise defined
         if end_index is None:
-            end_index = tt_ortho.order - 2
+            end_index = self.order - 2
 
         # left-orthonormalization
         # -----------------------
@@ -401,8 +398,7 @@ class TT(object):
 
             # apply SVD to ith TT core
             [u, s, v] = linalg.svd(
-                tt_ortho.cores[i].reshape(tt_ortho.ranks[i] * tt_ortho.row_dims[i] * tt_ortho.col_dims[i],
-                                          tt_ortho.ranks[i + 1]),
+                self.cores[i].reshape(self.ranks[i] * self.row_dims[i] * self.col_dims[i], self.ranks[i + 1]),
                 full_matrices=False, overwrite_a=True, check_finite=False, lapack_driver='gesvd')
 
             # rank reduction
@@ -413,20 +409,19 @@ class TT(object):
                 v = v[indices, :]
 
             # define updated rank and core
-            tt_ortho.ranks[i + 1] = u.shape[1]
-            tt_ortho.cores[i] = u.reshape(tt_ortho.ranks[i], tt_ortho.row_dims[i], tt_ortho.col_dims[i],
-                                          tt_ortho.ranks[i + 1])
+            self.ranks[i + 1] = u.shape[1]
+            self.cores[i] = u.reshape(self.ranks[i], self.row_dims[i], self.col_dims[i], self.ranks[i + 1])
 
             # shift non-orthonormal part to next core
-            tt_ortho.cores[i + 1] = np.diag(s) @ v @ tt_ortho.cores[i + 1].reshape(tt_ortho.cores[i + 1].shape[0],
-                                                                                   tt_ortho.row_dims[i + 1] *
-                                                                                   tt_ortho.col_dims[i + 1] *
-                                                                                   tt_ortho.ranks[i + 2])
-            tt_ortho.cores[i + 1] = tt_ortho.cores[i + 1].reshape(tt_ortho.ranks[i + 1], tt_ortho.row_dims[i + 1],
-                                                                  tt_ortho.col_dims[i + 1],
-                                                                  tt_ortho.ranks[i + 2])
+            self.cores[i + 1] = np.diag(s) @ v @ self.cores[i + 1].reshape(self.cores[i + 1].shape[0],
+                                                                           self.row_dims[i + 1] *
+                                                                           self.col_dims[i + 1] *
+                                                                           self.ranks[i + 2])
+            self.cores[i + 1] = self.cores[i + 1].reshape(self.ranks[i + 1], self.row_dims[i + 1],
+                                                          self.col_dims[i + 1],
+                                                          self.ranks[i + 2])
 
-        return tt_ortho
+        return self
 
     def ortho_right(self, start_index=None, end_index=1, threshold=0):
         """right-orthonormalization of tensor trains
@@ -446,12 +441,9 @@ class TT(object):
             copy of self with right-orthonormalized cores
         """
 
-        # copy self
-        tt_ortho = self.copy()
-
         # set start_index to the index of the last core if not otherwise defined
         if start_index is None:
-            start_index = tt_ortho.order - 1
+            start_index = self.order - 1
 
         # right-orthonormalization
         # ------------------------
@@ -460,8 +452,7 @@ class TT(object):
 
             # apply SVD to ith TT core
             [u, s, v] = linalg.svd(
-                tt_ortho.cores[i].reshape(tt_ortho.ranks[i],
-                                          tt_ortho.row_dims[i] * tt_ortho.col_dims[i] * tt_ortho.ranks[i + 1]),
+                self.cores[i].reshape(self.ranks[i], self.row_dims[i] * self.col_dims[i] * self.ranks[i + 1]),
                 full_matrices=False, overwrite_a=True, check_finite=False, lapack_driver='gesvd')
 
             # rank reduction
@@ -472,18 +463,17 @@ class TT(object):
                 v = v[indices, :]
 
             # define updated rank and core
-            tt_ortho.ranks[i] = v.shape[0]
-            tt_ortho.cores[i] = v.reshape(tt_ortho.ranks[i], tt_ortho.row_dims[i], tt_ortho.col_dims[i],
-                                          tt_ortho.ranks[i + 1])
+            self.ranks[i] = v.shape[0]
+            self.cores[i] = v.reshape(self.ranks[i], self.row_dims[i], self.col_dims[i], self.ranks[i + 1])
 
             # shift non-orthonormal part to previous core
-            tt_ortho.cores[i - 1] = tt_ortho.cores[i - 1].reshape(
-                tt_ortho.ranks[i - 1] * tt_ortho.row_dims[i - 1] * tt_ortho.col_dims[i - 1],
-                tt_ortho.cores[i - 1].shape[3]) @ u @ np.diag(s)
-            tt_ortho.cores[i - 1] = tt_ortho.cores[i - 1].reshape(tt_ortho.ranks[i - 1], tt_ortho.row_dims[i - 1],
-                                                                  tt_ortho.col_dims[i - 1], tt_ortho.ranks[i])
+            self.cores[i - 1] = self.cores[i - 1].reshape(
+                self.ranks[i - 1] * self.row_dims[i - 1] * self.col_dims[i - 1],
+                self.cores[i - 1].shape[3]) @ u @ np.diag(s)
+            self.cores[i - 1] = self.cores[i - 1].reshape(self.ranks[i - 1], self.row_dims[i - 1],
+                                                          self.col_dims[i - 1], self.ranks[i])
 
-        return tt_ortho
+        return self
 
     def norm(self, p=2):
         """norm of tensor trains
