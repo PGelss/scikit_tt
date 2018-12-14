@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from unittest import TestCase
-import scikit_tt.utils as utl
+import scikit_tt.perron_frobenius as pf
 import scikit_tt.tensor_train as tt
 import scikit_tt.solvers.evp as evp
 import numpy as np
@@ -27,7 +27,7 @@ class TestEVP(TestCase):
         # generate operator in TT format
         directory = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
         transitions = io.loadmat(directory + '/examples/data/TripleWell2D_500.mat')["indices"]
-        self.operator_tt = utl.perron_frobenius_2d(transitions, [50, 50], 500)
+        self.operator_tt = pf.perron_frobenius_2d(transitions, [50, 50], 500)
 
         # matricize TT operator
         self.operator_mat = self.operator_tt.matricize()
