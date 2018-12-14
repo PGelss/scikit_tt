@@ -16,7 +16,6 @@ import scikit_tt.utils as utl
 import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm
 
-
 utl.header(title='MANDy - Fermi-Pasta-Ulam problem', subtitle='Example 2')
 
 # model parameters
@@ -56,13 +55,14 @@ for i in range(d_min, d_max + 1):
         ind_1 = rel_errors.shape[0] - 1 - int((j - snapshots_min) / snapshots_step)
         ind_2 = int((i - d_min))
 
+        utl.progress('Running MANDy', 100 * (rel_errors.shape[0] - ind_1 - 1) / rel_errors.shape[0], dots=27)
+
         # approximate coefficient tensor
-        utl.progress('Running MANDy (m=' + str(j) + ')', 0, dots=22 - len(str(j)))
         xi = mandy.mandy_cm(x[:, :j], y[:, :j], psi, threshold=1e-10)
-        utl.progress('Running MANDy (m=' + str(j) + ')', 100, dots=22 - len(str(j)))
         rel_errors[ind_1, ind_2] = (xi - xi_exact).norm() / xi_exact.norm()
         del xi
 
+    utl.progress('Running MANDy', 100, dots=27)
     print(' ')
 
 # plot results
