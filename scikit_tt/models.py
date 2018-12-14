@@ -181,12 +181,12 @@ def fpu_coefficients(d):
     return coefficient_tensor
 
 
-def kuramoto(theta_init, frequencies, coupling_strength, external_forcing, time, number_of_snapshots):
+def kuramoto(theta_init, frequencies, time, number_of_snapshots):
     """Kuramoto model
 
     Generate data for the Kuramoto model represented by the differential equation
 
-        d/dt x_i = w_i + (K/d) * (sin(x_1 - x_i) + ... + sin(x_d - x_i)) + h sin(x_i).
+        d/dt x_i = w_i + (2/d) * (sin(x_1 - x_i) + ... + sin(x_d - x_i)) + 0.2 * sin(x_i).
 
     See [1]_ and [2]_ for details.
 
@@ -196,10 +196,6 @@ def kuramoto(theta_init, frequencies, coupling_strength, external_forcing, time,
         initial distribution of the oscillators
     frequencies: ndarray
         natural frequencies of the oscillators
-    coupling_strength: float
-        coupling strength between the oscillators
-    external_forcing: float
-        external forcing parameter
     time: float
         integration time for BDF method
     number_of_snapshots: int
@@ -224,8 +220,7 @@ def kuramoto(theta_init, frequencies, coupling_strength, external_forcing, time,
 
     def kuramoto_ode(_, theta):
         [theta_i, theta_j] = np.meshgrid(theta, theta)
-        return frequencies + coupling_strength / number_of_oscillators * np.sin(theta_j - theta_i).sum(
-            0) + external_forcing * np.sin(theta)
+        return frequencies + 2 / number_of_oscillators * np.sin(theta_j - theta_i).sum(0) + 0.2 * np.sin(theta)
 
     sol = spint.solve_ivp(kuramoto_ode, [0, time], theta_init, method='BDF',
                           t_eval=np.linspace(0, time, number_of_snapshots))
@@ -236,7 +231,7 @@ def kuramoto(theta_init, frequencies, coupling_strength, external_forcing, time,
     return snapshots, derivatives
 
 
-def kuramoto_coefficients(d, w, k, h):
+def kuramoto_coefficients(d, w):
     """Construction of the exact coefficient tensor for the application of MANDy to the Kuramoto model using the basis
     set {1, x, x^2, x^3}. See [1]_ for details.
 
@@ -246,10 +241,6 @@ def kuramoto_coefficients(d, w, k, h):
         number of oscillators
     w: ndarray
         natural frequencies
-    k: float
-        coupling strength
-    h: float
-        external forcing
 
     Returns
     -------
@@ -268,13 +259,13 @@ def kuramoto_coefficients(d, w, k, h):
     cores[1][0, 0, 0, 0] = 1
     cores[2][0, :, 0, 0] = w
     for q in range(d):
-        cores[0][0, 1:, 0, 2 * q + 1] = (k / d) * np.ones([d])
+        cores[0][0, 1:, 0, 2 * q + 1] = (2 / d) * np.ones([d])
         cores[0][0, q + 1, 0, 2 * q + 1] = 0
         cores[1][2 * q + 1, q + 1, 0, 2 * q + 1] = 1
         cores[2][2 * q + 1, q, 0, 0] = 1
         cores[0][0, q + 1, 0, 2 * q + 2] = 1
-        cores[1][2 * q + 2, 0, 0, 2 * q + 2] = h
-        cores[1][2 * q + 2, 1:, 0, 2 * q + 2] = -(k / d) * np.ones([d])
+        cores[1][2 * q + 2, 0, 0, 2 * q + 2] = 0.2
+        cores[1][2 * q + 2, 1:, 0, 2 * q + 2] = -(2 / d) * np.ones([d])
         cores[1][2 * q + 2, q + 1, 0, 2 * q + 2] = 0
         cores[2][2 * q + 2, q, 0, 0] = 1
     coefficient_tensor = TT(cores)
