@@ -5,68 +5,7 @@ import numpy as np
 import time as _time
 import sys
 from scikit_tt.tensor_train import TT
-import scikit_tt.tensor_train as tt
 import matplotlib.pyplot as plt
-
-
-def errors_impl_euler(operator, solution, step_sizes):
-    """Compute approximation errors of the implicit Euler method
-
-    Parameters
-    ----------
-    operator: instance of TT class
-        TT operator of the differential equation
-    solution: list of instances of TT class
-        approximate solution of the linear differential equation
-    step_sizes: list of floats
-        step sizes for the application of the implicit Euler method
-
-    Returns
-    -------
-    errors: list of floats
-        approximation errors
-    """
-
-    # define errors
-    errors = []
-
-    # compute relative approximation errors
-    for i in range(len(solution) - 1):
-        errors.append(
-            ((tt.eye(operator.row_dims) - step_sizes[i] * operator) @ solution[i + 1] - solution[i]).norm() /
-            solution[i].norm())
-
-    return errors
-
-
-def errors_trapezoidal(operator, solution, step_sizes):
-    """Compute approximation errors of the trapezoidal rule
-
-    Parameters
-    ----------
-    operator: instance of TT class
-        TT operator of the differential equation
-    solution: list of instances of TT class
-        approximate solution of the linear differential equation
-    step_sizes: list of floats
-        step sizes for the application of the implicit Euler method
-
-    Returns
-    -------
-    errors: list of floats
-        approximation errors
-    """
-
-    # define errors
-    errors = []
-
-    # compute relative approximation errors
-    for i in range(len(solution) - 1):
-        errors.append(((tt.eye(operator.row_dims) - 0.5 * step_sizes[i] * operator) @ solution[i + 1] -
-                       (tt.eye(operator.row_dims) + 0.5 * step_sizes[i] * operator) @ solution[i]).norm() /
-                      (tt.eye(operator.row_dims) + 0.5 * step_sizes[i] * operator) @ solution[i].norm())
-
-    return errors
 
 
 def header(title=None, subtitle=None):
