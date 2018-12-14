@@ -72,6 +72,36 @@ def implicit_euler(operator, initial_value, initial_guess, step_sizes, repeats=1
     return solution
 
 
+def errors_impl_euler(operator, solution, step_sizes):
+    """Compute approximation errors of the implicit Euler method
+
+    Parameters
+    ----------
+    operator: instance of TT class
+        TT operator of the differential equation
+    solution: list of instances of TT class
+        approximate solution of the linear differential equation
+    step_sizes: list of floats
+        step sizes for the application of the implicit Euler method
+
+    Returns
+    -------
+    errors: list of floats
+        approximation errors
+    """
+
+    # define errors
+    errors = []
+
+    # compute relative approximation errors
+    for i in range(len(solution) - 1):
+        errors.append(
+            ((tt.eye(operator.row_dims) - step_sizes[i] * operator) @ solution[i + 1] - solution[i]).norm() /
+            solution[i].norm())
+
+    return errors
+
+
 def trapezoidal_rule(operator, initial_value, initial_guess, step_sizes, repeats=1, tt_solver='als', threshold=1e-12,
                      max_rank=np.infty, micro_solver='solve', progress=True):
     """Trapezoidal rule for linear differential equations in the TT format
@@ -137,6 +167,36 @@ def trapezoidal_rule(operator, initial_value, initial_guess, step_sizes, repeats
             utl.progress('Running trapezoidal rule', 100 * i / (len(step_sizes) - 1))
 
     return solution
+
+
+def errors_trapezoidal(operator, solution, step_sizes):
+    """Compute approximation errors of the trapezoidal rule
+
+    Parameters
+    ----------
+    operator: instance of TT class
+        TT operator of the differential equation
+    solution: list of instances of TT class
+        approximate solution of the linear differential equation
+    step_sizes: list of floats
+        step sizes for the application of the implicit Euler method
+
+    Returns
+    -------
+    errors: list of floats
+        approximation errors
+    """
+
+    # define errors
+    errors = []
+
+    # compute relative approximation errors
+    for i in range(len(solution) - 1):
+        errors.append(((tt.eye(operator.row_dims) - 0.5 * step_sizes[i] * operator) @ solution[i + 1] -
+                       (tt.eye(operator.row_dims) + 0.5 * step_sizes[i] * operator) @ solution[i]).norm() /
+                      (tt.eye(operator.row_dims) + 0.5 * step_sizes[i] * operator) @ solution[i].norm())
+
+    return errors
 
 # TODO:
 #
