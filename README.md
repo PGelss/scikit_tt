@@ -94,7 +94,9 @@ In order to compute time-dependent or stationary distributions of linear differe
 
 ```
 implicit_euler ....... implicit Euler method for linear differential equations in the TT format
+errors_impl_euler .... compute approximation errors of the implicit Euler method
 trapezoidal_rule ..... trapezoidal rule for linear differential equations in the TT format
+errors_trapezoidal ... compute approximation errors of the trapezoidal rule
 adaptive_step_size ... adaptive step size method for linear differential equations in the TT format
 ```
 
@@ -118,8 +120,6 @@ mandy_cm ............. MANDy using coordinate-major decompositions
 mandy_fm ............. MANDy using function-major decompositions
 ```
 
-**TODO: _rewrite and check_**
-
 ## 6. Models
 
 The construction of several models from various fields is included in [*models.py*](scikit_tt/models.py). 
@@ -127,7 +127,9 @@ The construction of several models from various fields is included in [*models.p
 ```
 co_oxidation .......... CO oxidation on a RuO2 surface
 fermi_pasta_ulam ...... time-series data for the Fermi-Pasta-Ulam problem
+fpu_coefficients ...... coefficient tensor for the Fermi-Pasta_ulam problem
 kuramoto .............. time-series data for the kuramoto model
+kuramoto_coefficients . coefficient tensor for the kuramoto model
 signaling_cascade ..... cascading process on a genetic network consisting of genes of different species
 two_step_destruction .. two-step mechanism for the destruction of molecules
 ```
@@ -164,8 +166,6 @@ test_tensor_train .... unit tests for tensor_train.py
 In [*utils.py*](scikit_tt/utils.py) we collect algorithms and tools which are employed at several points in **scikit_tt** and/or helpful for data analysis, comparisons, and visualization.
 
 ```
-errors_impl_euler .... compute approximation errors of the implicit Euler method
-errors_trapezoidal ... compute approximation errors of the trapezoidal rule
 header ............... ASCII header for scikit_tt
 mean_concentrations .. mean concentrations of TT series
 plot_parameters ...... customized plot parameters
