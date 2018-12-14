@@ -125,9 +125,11 @@ mandy_fm ............. MANDy using function-major decomposition
 The construction of several models from various fields is included in [*models.py*](scikit_tt/models.py). 
 
 ```
-co_oxidation ......... CO oxidation on a RuO2 surface
-signaling_cascade .... cascading process on a genetic network consisting of genes of different species
-two_step_destruction . two-step mechanism for the destruction of molecules
+co_oxidation .......... CO oxidation on a RuO2 surface
+fermi_pasta_ulam ...... time-series data for the Fermi-Pasta-Ulam problem
+kuramoto .............. time-series data for the kuramoto model
+signaling_cascade ..... cascading process on a genetic network consisting of genes of different species
+two_step_destruction .. two-step mechanism for the destruction of molecules
 ```
 
 **TODO: _include other models_**
