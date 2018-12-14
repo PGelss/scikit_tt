@@ -1,37 +1,63 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import scipy.io
-import mandy
-import numpy as np
-
 from unittest import TestCase
+import numpy as np
+import scikit_tt.models as mdl
+import scikit_tt.mandy as mandy
 
 
 class TestMANDy(TestCase):
 
     def setUp(self):
-        """load snapshot matrices"""
-        self.tol = 0.05  # set tolerance for relative errors
-        D = scipy.io.loadmat("../examples/data/FPU_d2_m6000.mat")  # load data
-        X = D["X"]
-        Y = D["Y"]
-        Xi = D["Xi"]
-        m = 1000  # numer of snapshots
-        self.X = X[:, :m]  # snapshot matrix X
-        self.Y = Y[:, :m]  # snapshot matrix Y
-        self.Xi = Xi  # exact solution
-        self.psi = [lambda x: 1, lambda x: x, lambda x: x ** 2, lambda x: x ** 3]  # basis functions
-        self.threshold = 10 ** -12  # threshold for SVDs
+        """Consider the Fermi-Pasta-Ulam problem and Kuramoto model for testing the routines in sle.py"""
 
-    def test_mandy_basis_major(self):
-        """test MANDy using basis-major order"""
-        Xi_tt = mandy.mandy_basis_major(self.X, self.Y, self.psi, threshold=self.threshold)
-        Xi_tt = Xi_tt.full().reshape(np.prod(Xi_tt.row_dims[:-1]), Xi_tt.row_dims[-1], order='F')
-        self.assertLess(np.linalg.norm(self.Xi - Xi_tt) / np.linalg.norm(self.Xi), self.tol)
+        # set tolerance
+        self.tol = 1e-5
 
-    def test_mandy_basis_major_matrix(self):
-        """test matrix-based MANDy using basis-major order"""
-        Xi_mat = mandy.mandy_basis_major_matrix(self.X, self.Y, self.psi)
-        self.assertLess(np.linalg.norm(self.Xi - Xi_mat.transpose()) / np.linalg.norm(self.Xi), self.tol)
+        # number of oscillators
+        self.fpu_d = 3
+        self.kuramoto_d = 10
 
+        # parameters for the Fermi-Pasta_ulam problem
+        self.fpu_m = 2000
+        self.fpu_psi = [lambda t: 1, lambda t: t, lambda t: t ** 2, lambda t: t ** 3]
+
+        # parameters for the Kuramoto model
+        self.kuramoto_x_0 = 2 * np.pi * np.random.rand(self.kuramoto_d) - np.pi
+        self.kuramoto_w = np.linspace(-5, 5, self.kuramoto_d)
+        self.kuramoto_t = 100
+        self.kuramoto_m = 1000
+        self.kuramoto_psi = [lambda t: np.sin(t), lambda t: np.cos(t)]
+
+        # exact coefficient tensors
+        self.fpu_xi_exact = mdl.fpu_coefficients(self.fpu_d)
+        self.kuramoto_xi_exact = mdl.kuramoto_coefficients(self.kuramoto_d, self.kuramoto_w)
+
+        # generate test data
+        [self.fpu_x, self.fpu_y] = mdl.fermi_pasta_ulam(self.fpu_d, self.fpu_m)
+        [self.kuramoto_x, self.kuramoto_y] = mdl.kuramoto(self.kuramoto_x_0, self.kuramoto_w, self.kuramoto_t,
+                                                          self.kuramoto_m)
+
+    def test_mandy_cm(self):
+        """test coordinate-major approach"""
+
+        # apply MANDy
+        xi = mandy.mandy_cm(self.fpu_x, self.fpu_y, self.fpu_psi, threshold=1e-10)
+
+        # compute relative error
+        rel_err = (xi - self.fpu_xi_exact).norm() / self.fpu_xi_exact.norm()
+
+        # check if relative error is smaller than tolerance
+        self.assertLess(rel_err, self.tol)
+
+    def test_mandy_fm(self):
+        """test function-major approach"""
+
+        # apply MANDy
+        xi = mandy.mandy_fm(self.kuramoto_x, self.kuramoto_y, self.kuramoto_psi)
+
+        # compute relative error
+        rel_err = (xi - self.kuramoto_xi_exact).norm() / self.kuramoto_xi_exact.norm()
+
+        # check if relative error is smaller than tolerance
+        self.assertLess(rel_err, self.tol)
