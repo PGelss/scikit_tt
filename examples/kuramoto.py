@@ -56,12 +56,6 @@ x_0 = 2 * np.pi * np.random.rand(d) - np.pi
 # natural frequencies
 w = np.linspace(-5, 5, d)
 
-# coupling strength
-k = 2
-
-# external forcing
-h = 0.2
-
 # basis functions
 psi = [lambda t: np.sin(t), lambda t: np.cos(t)]
 p = len(psi)
@@ -81,12 +75,12 @@ print('-' * 50)
 
 # construct exact solution in TT and matrix format
 utl.progress('Construct exact solution in TT format', 0)
-xi_exact = mdl.kuramoto_coefficients(d, w, k, h)
+xi_exact = mdl.kuramoto_coefficients(d, w)
 utl.progress('Construct exact solution in TT format', 100)
 
 # generate data
 utl.progress('Generate test data', 0, dots=22)
-[x, y] = mdl.kuramoto(x_0, w, k, h, time, m)
+[x, y] = mdl.kuramoto(x_0, w, time, m)
 utl.progress('Generate test data', 100, dots=22)
 
 # apply MANDy (function-major)
@@ -115,7 +109,7 @@ m = 6
 
 # generate new data
 utl.progress('\Generate test data', 0, dots=22)
-[x, _] = mdl.kuramoto(x_0, w, k, h, time, m)
+[x, _] = mdl.kuramoto(x_0, w, time, m)
 utl.progress('Generate test data', 100, dots=22)
 
 # reconstruct data
