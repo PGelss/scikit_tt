@@ -61,7 +61,7 @@ with utl.Timer() as time:
 print('CPU time ' + '.' * 24 + ' ' + str("%.2f" % time.elapsed) + 's')
 
 # compute approximation errors
-errors = utl.errors_implicit_euler(operator, solution, step_sizes)
+errors = ode.errors_impl_euler(operator, solution, step_sizes)
 print('Maximum error ' + '.' * 19 + ' ' + str("%.2e" % np.amax(errors)))
 
 # convert to TT and compute mean concentrations
