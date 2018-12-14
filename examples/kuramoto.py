@@ -19,28 +19,6 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as pat
 
 
-def kuramoto_coefficient_tensor():
-    """Construction of the exact solution of the Kuramoto model in TT format"""
-
-    cores = [np.zeros([1, d + 1, 1, 2 * d + 1]), np.zeros([2 * d + 1, d + 1, 1, 2 * d + 1]),
-             np.zeros([2 * d + 1, d, 1, 1])]
-    cores[0][0, 0, 0, 0] = 1
-    cores[1][0, 0, 0, 0] = 1
-    cores[2][0, :, 0, 0] = w
-    for q in range(d):
-        cores[0][0, 1:, 0, 2 * q + 1] = (k / d) * np.ones([d])
-        cores[0][0, q + 1, 0, 2 * q + 1] = 0
-        cores[1][2 * q + 1, q + 1, 0, 2 * q + 1] = 1
-        cores[2][2 * q + 1, q, 0, 0] = 1
-        cores[0][0, q + 1, 0, 2 * q + 2] = 1
-        cores[1][2 * q + 2, 0, 0, 2 * q + 2] = h
-        cores[1][2 * q + 2, 1:, 0, 2 * q + 2] = -(k / d) * np.ones([d])
-        cores[1][2 * q + 2, q + 1, 0, 2 * q + 2] = 0
-        cores[2][2 * q + 2, q, 0, 0] = 1
-    coefficient_tensor = TT(cores)
-    return coefficient_tensor
-
-
 def reconstruction():
     """Reconstruction of the dynamics of the Kuramoto model"""
 
@@ -103,7 +81,7 @@ print('-' * 50)
 
 # construct exact solution in TT and matrix format
 utl.progress('Construct exact solution in TT format', 0)
-xi_exact = kuramoto_coefficient_tensor()
+xi_exact = mdl.kuramoto_coefficients(d, w, k, h)
 utl.progress('Construct exact solution in TT format', 100)
 
 # generate data
