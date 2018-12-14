@@ -111,11 +111,11 @@ slim_mme_hom ......... SLIM decomposition for homogeneous Markov generators
 
 ## 5. Multidimensional approximation of nonlinear dynamical systems (MANDy)
 
-MANDy combines the data-driven recovery of dynamical systems with tensor decompositions. It can be used for the recovery of unknown governing equations from measurement data only. See [[7](README.md#11-references)] for details.
+MANDy combines the data-driven recovery of dynamical systems with tensor decompositions. The methods implemented in [*mandy.py*](scikit_tt/mandy.py) can be used for the recovery of unknown governing equations from measurement data only. See [[7](README.md#11-references)] for details.
 
 ```
-mandy_cm ............. MANDy using coordinate-major decomposition
-mandy_fm ............. MANDy using function-major decomposition
+mandy_cm ............. MANDy using coordinate-major decompositions
+mandy_fm ............. MANDy using function-major decompositions
 ```
 
 **TODO: _rewrite and check_**
@@ -132,17 +132,14 @@ signaling_cascade ..... cascading process on a genetic network consisting of gen
 two_step_destruction .. two-step mechanism for the destruction of molecules
 ```
 
-**TODO: _include other models_**
-
 ## 7. Examples
 
 Numerical experiments from different application areas are included in **scikit_tt**. For instance, the application of the TT format to chemical master equations, heterogeneous catalytic processes [[5](README.md#11-references)], fluid dynamics, and molecular dynamics can be found in the directory [*examples*](examples/).
 
 ```
-chua_circuit ......... apply MANDy to Chua's circuit
 co_oxidation ......... compute stationary distributions of a catalytic process
-fermi_pasta_ulam ..... apply MANDy to the Fermi-Pasta-Ulam problem
-fractals ............. create self-similar patterns using tensors
+fermi_pasta_ulam_1 ... apply MANDy to the Fermi-Pasta-Ulam problem
+fermi_pasta_ulam_2 ... apply MANDy to the Fermi-Pasta-Ulam problem
 kuramoto ............. apply MANDy to the Kuramoto model
 quadruple_well ....... approximate eigenfunctions of the Perron-Frobenius operator in 3D
 signaling_cascade .... compute mean concentrations of a 20-dimensional signaling cascade
@@ -150,19 +147,17 @@ triple_well .......... approximate eigenfunctions of the Perron-Frobenius operat
 two_step_destruction . apply QTT and MALS to a two-step destruction process
 ```
 
-**TODO: _revise code_**
-
 ## 8. Tests
 
 Modules containing unit tests are provided in the directory [*tests*](tests/).
 
 ```
+test_evp ............. unit tests for evp.py
+test_mandy ........... unit tests for mandy.py
 test_sle ............. unit tests for sle.py
 test_slim ............ unit tests for slim.py
 test_tensor_train .... unit tests for tensor_train.py
 ```
-
-**TODO: _write other tests_**
 
 ## 9. Subfunctions and tools
 
@@ -175,12 +170,9 @@ header ............... ASCII header for scikit_tt
 mean_concentrations .. mean concentrations of TT series
 plot_parameters ...... customized plot parameters
 progress ............. show progress in percent
-sindy ................ SINDy for the analysis of nonlinear dynamical systems
 timer ................ measure CPU time
 unit_vector .......... canonical unit vector
 ```
-
-**TODO: _write routines_**
 
 ## 10. Additional information
 
