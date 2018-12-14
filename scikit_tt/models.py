@@ -110,6 +110,77 @@ def fermi_pasta_ulam(number_of_oscillators, number_of_snapshots):
     return snapshots, derivatives
 
 
+def fpu_coefficients(d):
+    """Construction of the exact coefficient tensor for the application of MANDy to the Fermi-Pasta-Ulam problem using
+    the basis set {1, x, x^2, x^3}. See [1]_ for details.
+
+    Parameters
+    ----------
+    d: int
+        number of oscillators
+
+    Returns
+    -------
+    coefficient_tensor: instance of TT class
+        exact coefficient tensor
+
+    References
+    ----------
+    .. [1] P. Gelß, S. Klus, J. Eisert, C. Schütte, "Multidimensional Approximation of Nonlinear Dynamical Systems",
+           arXiv:1809.02448, 2018
+    """
+
+    # define core types
+    core_type_1 = np.zeros([1, 4, 1, 1])  # define core types
+    core_type_1[0, 0, 0, 0] = 1
+    core_type_2 = np.eye(4).reshape([1, 4, 1, 4])
+    core_type_3 = np.zeros([4, 4, 1, 4])
+    core_type_3[0, 1, 0, 0] = -2
+    core_type_3[0, 3, 0, 0] = -1.4
+    core_type_3[0, 0, 0, 1] = 1
+    core_type_3[0, 2, 0, 1] = 2.1
+    core_type_3[0, 1, 0, 2] = -2.1
+    core_type_3[0, 0, 0, 3] = 0.7
+    core_type_3[1, 0, 0, 0] = 1
+    core_type_3[1, 2, 0, 0] = 2.1
+    core_type_3[2, 1, 0, 0] = -2.1
+    core_type_3[3, 0, 0, 0] = 0.7
+    core_type_4 = np.eye(4).reshape([4, 4, 1, 1])
+
+    # construct cores
+    cores = [np.zeros([1, 4, 1, 4])]
+    cores[0][0, :, :, :] = core_type_3[0, :, :, :]
+    cores.append(core_type_4)
+    for _ in range(2, d):
+        cores.append(core_type_1)
+    cores.append(np.zeros([1, d, 1, 1]))
+    cores[d][0, 0, 0, 0] = 1
+    coefficient_tensor = TT(cores)
+    for q in range(1, d - 1):
+        cores = []
+        for _ in range(q - 1):
+            cores.append(core_type_1)
+        cores.append(core_type_2)
+        cores.append(core_type_3)
+        cores.append(core_type_4)
+        for _ in range(q + 2, d):
+            cores.append(core_type_1)
+        cores.append(np.zeros([1, d, 1, 1]))
+        cores[d][0, q, 0, 0] = 1
+        coefficient_tensor = coefficient_tensor + TT(cores)
+    cores = []
+    for _ in range(d - 2):
+        cores.append(core_type_1)
+    cores.append(core_type_2)
+    cores.append(np.zeros([4, 4, 1, 1]))
+    cores[d - 1][:, :, :, 0] = core_type_3[:, :, :, 0]
+    cores.append(np.zeros([1, d, 1, 1]))
+    cores[d][0, d - 1, 0, 0] = 1
+    coefficient_tensor = coefficient_tensor + TT(cores)
+
+    return coefficient_tensor
+
+
 def kuramoto(theta_init, frequencies, coupling_strength, external_forcing, time, number_of_snapshots):
     """Kuramoto model
 
@@ -163,6 +234,51 @@ def kuramoto(theta_init, frequencies, coupling_strength, external_forcing, time,
     for i in range(number_of_snapshots):
         derivatives[:, i] = kuramoto_ode(0, snapshots[:, i])
     return snapshots, derivatives
+
+
+def kuramoto_coefficients(d, w, k, h):
+    """Construction of the exact coefficient tensor for the application of MANDy to the Kuramoto model using the basis
+    set {1, x, x^2, x^3}. See [1]_ for details.
+
+    Parameters
+    ----------
+    d: int
+        number of oscillators
+    w: ndarray
+        natural frequencies
+    k: float
+        coupling strength
+    h: float
+        external forcing
+
+    Returns
+    -------
+    coefficient_tensor: instance of TT class
+        exact coefficient tensor
+
+    References
+    ----------
+    .. [1] P. Gelß, S. Klus, J. Eisert, C. Schütte, "Multidimensional Approximation of Nonlinear Dynamical Systems",
+           arXiv:1809.02448, 2018
+    """
+
+    cores = [np.zeros([1, d + 1, 1, 2 * d + 1]), np.zeros([2 * d + 1, d + 1, 1, 2 * d + 1]),
+             np.zeros([2 * d + 1, d, 1, 1])]
+    cores[0][0, 0, 0, 0] = 1
+    cores[1][0, 0, 0, 0] = 1
+    cores[2][0, :, 0, 0] = w
+    for q in range(d):
+        cores[0][0, 1:, 0, 2 * q + 1] = (k / d) * np.ones([d])
+        cores[0][0, q + 1, 0, 2 * q + 1] = 0
+        cores[1][2 * q + 1, q + 1, 0, 2 * q + 1] = 1
+        cores[2][2 * q + 1, q, 0, 0] = 1
+        cores[0][0, q + 1, 0, 2 * q + 2] = 1
+        cores[1][2 * q + 2, 0, 0, 2 * q + 2] = h
+        cores[1][2 * q + 2, 1:, 0, 2 * q + 2] = -(k / d) * np.ones([d])
+        cores[1][2 * q + 2, q + 1, 0, 2 * q + 2] = 0
+        cores[2][2 * q + 2, q, 0, 0] = 1
+    coefficient_tensor = TT(cores)
+    return coefficient_tensor
 
 
 def signaling_cascade(d):
