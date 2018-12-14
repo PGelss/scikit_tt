@@ -11,30 +11,102 @@ References
 
 import numpy as np
 import scipy.linalg as splin
+from scikit_tt.tensor_train import TT
 import scikit_tt.mandy as mandy
 import scikit_tt.models as mdl
 import scikit_tt.utils as utl
 import matplotlib.pyplot as plt
 
+
+def fpu_coefficient_tensor(d):
+    """Construction of the exact solution of the Fermi-Pasta-Ulam model in TT format. See [1]_ for details.
+
+    Parameters
+    ----------
+    d: int
+        number of oscillators
+
+    Returns
+    -------
+    coefficient_tensor: instance of TT class
+        exact coefficient tensor
+
+    References
+    ----------
+    .. [1] P. Gelß, S. Klus, J. Eisert, C. Schütte, "Multidimensional Approximation of Nonlinear Dynamical Systems",
+           arXiv:1809.02448, 2018
+    """
+
+    # define core types
+    core_type_1 = np.zeros([1, 4, 1, 1])  # define core types
+    core_type_1[0, 0, 0, 0] = 1
+    core_type_2 = np.eye(4).reshape([1, 4, 1, 4])
+    core_type_3 = np.zeros([4, 4, 1, 4])
+    core_type_3[0, 1, 0, 0] = -2
+    core_type_3[0, 3, 0, 0] = -1.4
+    core_type_3[0, 0, 0, 1] = 1
+    core_type_3[0, 2, 0, 1] = 2.1
+    core_type_3[0, 1, 0, 2] = -2.1
+    core_type_3[0, 0, 0, 3] = 0.7
+    core_type_3[1, 0, 0, 0] = 1
+    core_type_3[1, 2, 0, 0] = 2.1
+    core_type_3[2, 1, 0, 0] = -2.1
+    core_type_3[3, 0, 0, 0] = 0.7
+    core_type_4 = np.eye(4).reshape([4, 4, 1, 1])
+
+    # construct cores
+    cores = [np.zeros([1, 4, 1, 4])]
+    cores[0][0, :, :, :] = core_type_3[0, :, :, :]
+    cores.append(core_type_4)
+    for _ in range(2, d):
+        cores.append(core_type_1)
+    cores.append(np.zeros([1, d, 1, 1]))
+    cores[d][0, 0, 0, 0] = 1
+    coefficient_tensor = TT(cores)
+    for q in range(1, d - 1):
+        cores = []
+        for _ in range(q - 1):
+            cores.append(core_type_1)
+        cores.append(core_type_2)
+        cores.append(core_type_3)
+        cores.append(core_type_4)
+        for _ in range(q + 2, d):
+            cores.append(core_type_1)
+        cores.append(np.zeros([1, d, 1, 1]))
+        cores[d][0, q, 0, 0] = 1
+        coefficient_tensor = coefficient_tensor + TT(cores)
+    cores = []
+    for _ in range(d - 2):
+        cores.append(core_type_1)
+    cores.append(core_type_2)
+    cores.append(np.zeros([4, 4, 1, 1]))
+    cores[d - 1][:, :, :, 0] = core_type_3[:, :, :, 0]
+    cores.append(np.zeros([1, d, 1, 1]))
+    cores[d][0, d - 1, 0, 0] = 1
+    coefficient_tensor = coefficient_tensor + TT(cores)
+
+    return coefficient_tensor
+
+
 utl.header(title='MANDy - Fermi-Pasta-Ulam problem', subtitle='Example 1')
 
 # model parameters
-d = 10
-psi = [lambda x: 1, lambda x: x, lambda x: x ** 2, lambda x: x ** 3]
+number_of_oscillators = 10
+psi = [lambda t: 1, lambda t: t, lambda t: t ** 2, lambda t: t ** 3]
 p = len(psi)
 
 # construct exact solution in TT and matrix format
 utl.progress('Construct exact solution in TT format', 0, dots=7)
-xi_exact = mdl.fermi_pasta_ulam_coefficient_tensor(d)
+xi_exact = fpu_coefficient_tensor(number_of_oscillators)
 utl.progress('Construct exact solution in TT format', 100, dots=7)
 utl.progress('Construct exact solution in matrix format', 0)
-xi_exact_mat = xi_exact.full().reshape([p ** d, d])
+xi_exact_mat = xi_exact.full().reshape([p ** number_of_oscillators, number_of_oscillators])
 utl.progress('Construct exact solution in matrix format', 100)
 
 # snapshot parameters
-snapshots_min = 1000
-snapshots_max = 6000
-snapshots_step = 500
+snapshots_min = 100
+snapshots_max = 600
+snapshots_step = 50
 
 # maximum number of snapshots for matrix approach
 snapshots_mat = 5000
@@ -60,7 +132,7 @@ for i in range(snapshots_min, snapshots_max + snapshots_step, snapshots_step):
 
     # generate data
     utl.progress('Generate test data', 0, dots=13)
-    [x, y] = mdl.fermi_pasta_ulam_data(d, i)
+    [x, y] = mdl.fermi_pasta_ulam(number_of_oscillators, i)
     utl.progress('Generate test data', 100, dots=13)
 
     # computation in matrix format
@@ -68,10 +140,10 @@ for i in range(snapshots_min, snapshots_max + snapshots_step, snapshots_step):
         utl.progress('Running matrix-based MANDy', 0, dots=5)
 
         # construct psi_x in matrix format
-        psi_x = np.zeros([p ** d, i])
+        psi_x = np.zeros([p ** number_of_oscillators, i])
         for j in range(i):
             c = [psi[l](x[0, j]) for l in range(p)]
-            for k in range(1, d):
+            for k in range(1, number_of_oscillators):
                 c = np.tensordot(c, [psi[l](x[k, j]) for l in range(p)], axes=0)
             psi_x[:, j] = c.reshape(psi_x.shape[0])
 
