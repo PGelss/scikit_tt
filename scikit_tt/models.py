@@ -64,7 +64,7 @@ def co_oxidation(order, k_ad_co, cyclic=True):
     return operator
 
 
-def fermi_pasta_ulam_data(number_of_oscillators, number_of_snapshots):
+def fermi_pasta_ulam(number_of_oscillators, number_of_snapshots):
     """Fermi–Pasta–Ulam problem.
 
     Generate data for the Fermi–Pasta–Ulam problem represented by the differential equation
@@ -110,77 +110,7 @@ def fermi_pasta_ulam_data(number_of_oscillators, number_of_snapshots):
     return snapshots, derivatives
 
 
-def fermi_pasta_ulam_coefficient_tensor(d):
-    """Construction of the exact solution of the Fermi-Pasta-Ulam model in TT format. See [1]_ for details.
-
-    Parameters
-    ----------
-    d: int
-        number of oscillators
-
-    Returns
-    -------
-    xi_exact: instance of TT class
-        exact coefficient tensor
-
-    References
-    ----------
-    .. [1] P. Gelß, S. Klus, J. Eisert, C. Schütte, "Multidimensional Approximation of Nonlinear Dynamical Systems",
-           arXiv:1809.02448, 2018
-    """
-
-    # define core types
-    core_type_1 = np.zeros([1, 4, 1, 1])  # define core types
-    core_type_1[0, 0, 0, 0] = 1
-    core_type_2 = np.eye(4).reshape([1, 4, 1, 4])
-    core_type_3 = np.zeros([4, 4, 1, 4])
-    core_type_3[0, 1, 0, 0] = -2
-    core_type_3[0, 3, 0, 0] = -1.4
-    core_type_3[0, 0, 0, 1] = 1
-    core_type_3[0, 2, 0, 1] = 2.1
-    core_type_3[0, 1, 0, 2] = -2.1
-    core_type_3[0, 0, 0, 3] = 0.7
-    core_type_3[1, 0, 0, 0] = 1
-    core_type_3[1, 2, 0, 0] = 2.1
-    core_type_3[2, 1, 0, 0] = -2.1
-    core_type_3[3, 0, 0, 0] = 0.7
-    core_type_4 = np.eye(4).reshape([4, 4, 1, 1])
-
-    # construct cores
-    cores = [np.zeros([1, 4, 1, 4])]
-    cores[0][0, :, :, :] = core_type_3[0, :, :, :]
-    cores.append(core_type_4)
-    for i in range(2, d):
-        cores.append(core_type_1)
-    cores.append(np.zeros([1, d, 1, 1]))
-    cores[d][0, 0, 0, 0] = 1
-    xi_exact = TT(cores)
-    for k in range(1, d - 1):
-        cores = []
-        for i in range(k - 1):
-            cores.append(core_type_1)
-        cores.append(core_type_2)
-        cores.append(core_type_3)
-        cores.append(core_type_4)
-        for i in range(k + 2, d):
-            cores.append(core_type_1)
-        cores.append(np.zeros([1, d, 1, 1]))
-        cores[d][0, k, 0, 0] = 1
-        xi_exact = xi_exact + TT(cores)
-    cores = []
-    for i in range(d - 2):
-        cores.append(core_type_1)
-    cores.append(core_type_2)
-    cores.append(np.zeros([4, 4, 1, 1]))
-    cores[d - 1][:, :, :, 0] = core_type_3[:, :, :, 0]
-    cores.append(np.zeros([1, d, 1, 1]))
-    cores[d][0, d - 1, 0, 0] = 1
-    xi_exact = xi_exact + TT(cores)
-
-    return xi_exact
-
-
-def kuramoto_data(theta_init, frequencies, coupling_strength, external_forcing, time, number_of_snapshots):
+def kuramoto(theta_init, frequencies, coupling_strength, external_forcing, time, number_of_snapshots):
     """Kuramoto model
 
     Generate data for the Kuramoto model represented by the differential equation
@@ -233,49 +163,6 @@ def kuramoto_data(theta_init, frequencies, coupling_strength, external_forcing, 
     for i in range(number_of_snapshots):
         derivatives[:, i] = kuramoto_ode(0, snapshots[:, i])
     return snapshots, derivatives
-
-
-def kuramoto_coefficient_tensor(d, w, k, h):
-    """Construction of the exact solution of the Kuramoto model in TT format. See [1]_ for details.
-
-    Parameters
-    ----------
-    d: int
-        number of oscillators
-    w: ndarray
-        natural frequencies of the oscillators
-    k: float
-        coupling strength between the oscillators
-    h: float
-        external forcing parameter
-
-    Returns
-    -------
-    xi_exact: instance of TT class
-        exact coefficient tensor
-
-    References
-    ----------
-    .. [1] P. Gelß, S. Klus, J. Eisert, C. Schütte, "Multidimensional Approximation of Nonlinear Dynamical Systems",
-           arXiv:1809.02448, 2018
-    """
-    cores = [np.zeros([1, d + 1, 1, 2 * d + 1]), np.zeros([2 * d + 1, d + 1, 1, 2 * d + 1]),
-             np.zeros([2 * d + 1, d, 1, 1])]
-    cores[0][0, 0, 0, 0] = 1
-    cores[1][0, 0, 0, 0] = 1
-    cores[2][0, :, 0, 0] = w
-    for i in range(d):
-        cores[0][0, 1:, 0, 2 * i + 1] = (k / d) * np.ones([d])
-        cores[0][0, i + 1, 0, 2 * i + 1] = 0
-        cores[1][2 * i + 1, i + 1, 0, 2 * i + 1] = 1
-        cores[2][2 * i + 1, i, 0, 0] = 1
-        cores[0][0, i + 1, 0, 2 * i + 2] = 1
-        cores[1][2 * i + 2, 0, 0, 2 * i + 2] = h
-        cores[1][2 * i + 2, 1:, 0, 2 * i + 2] = -(k / d) * np.ones([d])
-        cores[1][2 * i + 2, i + 1, 0, 2 * i + 2] = 0
-        cores[2][2 * i + 2, i, 0, 0] = 1
-    xi_exact = TT(cores)
-    return xi_exact
 
 
 def signaling_cascade(d):
