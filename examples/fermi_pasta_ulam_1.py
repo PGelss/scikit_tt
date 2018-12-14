@@ -104,9 +104,9 @@ xi_exact_mat = xi_exact.full().reshape([p ** number_of_oscillators, number_of_os
 utl.progress('Construct exact solution in matrix format', 100)
 
 # snapshot parameters
-snapshots_min = 100
-snapshots_max = 600
-snapshots_step = 50
+snapshots_min = 1000
+snapshots_max = 6000
+snapshots_step = 500
 
 # maximum number of snapshots for matrix approach
 snapshots_mat = 5000
