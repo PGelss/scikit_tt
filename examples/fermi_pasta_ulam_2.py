@@ -10,26 +10,98 @@ References
 """
 
 import numpy as np
+from scikit_tt.tensor_train import TT
 import scikit_tt.mandy as mandy
 import scikit_tt.models as mdl
 import scikit_tt.utils as utl
 import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm
 
+
+def fpu_coefficient_tensor(d):
+    """Construction of the exact solution of the Fermi-Pasta-Ulam model in TT format. See [1]_ for details.
+
+    Parameters
+    ----------
+    d: int
+        number of oscillators
+
+    Returns
+    -------
+    coefficient_tensor: instance of TT class
+        exact coefficient tensor
+
+    References
+    ----------
+    .. [1] P. Gelß, S. Klus, J. Eisert, C. Schütte, "Multidimensional Approximation of Nonlinear Dynamical Systems",
+           arXiv:1809.02448, 2018
+    """
+
+    # define core types
+    core_type_1 = np.zeros([1, 4, 1, 1])  # define core types
+    core_type_1[0, 0, 0, 0] = 1
+    core_type_2 = np.eye(4).reshape([1, 4, 1, 4])
+    core_type_3 = np.zeros([4, 4, 1, 4])
+    core_type_3[0, 1, 0, 0] = -2
+    core_type_3[0, 3, 0, 0] = -1.4
+    core_type_3[0, 0, 0, 1] = 1
+    core_type_3[0, 2, 0, 1] = 2.1
+    core_type_3[0, 1, 0, 2] = -2.1
+    core_type_3[0, 0, 0, 3] = 0.7
+    core_type_3[1, 0, 0, 0] = 1
+    core_type_3[1, 2, 0, 0] = 2.1
+    core_type_3[2, 1, 0, 0] = -2.1
+    core_type_3[3, 0, 0, 0] = 0.7
+    core_type_4 = np.eye(4).reshape([4, 4, 1, 1])
+
+    # construct cores
+    cores = [np.zeros([1, 4, 1, 4])]
+    cores[0][0, :, :, :] = core_type_3[0, :, :, :]
+    cores.append(core_type_4)
+    for _ in range(2, d):
+        cores.append(core_type_1)
+    cores.append(np.zeros([1, d, 1, 1]))
+    cores[d][0, 0, 0, 0] = 1
+    coefficient_tensor = TT(cores)
+    for q in range(1, d - 1):
+        cores = []
+        for _ in range(q - 1):
+            cores.append(core_type_1)
+        cores.append(core_type_2)
+        cores.append(core_type_3)
+        cores.append(core_type_4)
+        for _ in range(q + 2, d):
+            cores.append(core_type_1)
+        cores.append(np.zeros([1, d, 1, 1]))
+        cores[d][0, q, 0, 0] = 1
+        coefficient_tensor = coefficient_tensor + TT(cores)
+    cores = []
+    for _ in range(d - 2):
+        cores.append(core_type_1)
+    cores.append(core_type_2)
+    cores.append(np.zeros([4, 4, 1, 1]))
+    cores[d - 1][:, :, :, 0] = core_type_3[:, :, :, 0]
+    cores.append(np.zeros([1, d, 1, 1]))
+    cores[d][0, d - 1, 0, 0] = 1
+    coefficient_tensor = coefficient_tensor + TT(cores)
+
+    return coefficient_tensor
+
+
 utl.header(title='MANDy - Fermi-Pasta-Ulam problem', subtitle='Example 2')
 
 # model parameters
-psi = [lambda x: 1, lambda x: x, lambda x: x ** 2, lambda x: x ** 3]
+psi = [lambda t: 1, lambda t: t, lambda t: t ** 2, lambda t: t ** 3]
 p = len(psi)
 
 # snapshot parameters
-snapshots_min = 50
-snapshots_max = 300
-snapshots_step = 50
+snapshots_min = 500
+snapshots_max = 6000
+snapshots_step = 500
 
 # dimension parameters
 d_min = 3
-d_max = 10
+d_max = 20
 
 # define arrays for CPU times and relative errors
 rel_errors = np.zeros([int((snapshots_max - snapshots_min) / snapshots_step) + 1, int(d_max - d_min) + 1])
@@ -42,12 +114,12 @@ for i in range(d_min, d_max + 1):
 
     # construct exact solution in TT and matrix format
     utl.progress('Construct exact solution in TT format', 0, dots=3)
-    xi_exact = mdl.fermi_pasta_ulam_coefficient_tensor(i)
+    xi_exact = fpu_coefficient_tensor(i)
     utl.progress('Construct exact solution in TT format', 100, dots=3)
 
     # generate data
     utl.progress('Generate test data', 0, dots=22)
-    [x, y] = mdl.fermi_pasta_ulam_data(i, snapshots_max)
+    [x, y] = mdl.fermi_pasta_ulam(i, snapshots_max)
     utl.progress('Generate test data', 100, dots=22)
 
     for j in range(snapshots_min, snapshots_max + snapshots_step, snapshots_step):
