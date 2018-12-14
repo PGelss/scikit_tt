@@ -2,24 +2,82 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
+import scipy.integrate as spint
 from scikit_tt.tensor_train import TT
 import scikit_tt.slim as slim
 
 
+def co_oxidation(order, k_ad_co, cyclic=True):
+    """"CO oxidation on RuO2
+
+    Model for the CO oxidation on a RuO2 surface. For a detailed description of the process and the construction of the
+    corresponding TT operator, we refer to [1]_,[2]_, and [3]_.
+
+    Arguments
+    ---------
+    order: int
+        number of reaction sites (= order of the operator)
+    k_ad_co: float
+        reaction rate constant for the adsorption of CO
+    cyclic: bool, optional
+        whether model should be cyclic or not, default=True
+
+    Returns
+    -------
+    operator: instance of TT class
+        TT operator of the process
+
+
+    References
+    ----------
+    .. [1] P. Gelß. "The Tensor-Train Format and Its Applications: Modeling and Analysis of Chemical Reaction
+           Networks, Catalytic Processes, Fluid Flows, and Brownian Dynamics", Freie Universität Berlin, 2017
+    .. [2] P. Gelß, S. Matera, C. Schütte, "Solving the master equation without kinetic Monte Carlo: Tensor train
+           approximations for a CO oxidation model", Journal of Computational Physics 314 (2016) 489–502
+    .. [3] P. Gelß, S. Klus, S. Matera, C. Schütte, "Nearest-neighbor interaction systems in the tensor-train format",
+           Journal of Computational Physics 341 (2017) 140-162
+    """
+
+    # define reaction rate constants
+    k_ad_o2 = 9.7e7
+    k_de_co = 9.2e6
+    k_de_o2 = 2.8e1
+    k_diff_co = 6.6e-2
+    k_diff_o = 5.0e-1
+    k_de_co2 = 1.7e5
+
+    # define state space
+    state_space = [3] * order
+
+    # define operator using automatic construction of SLIM decomposition
+    # ------------------------------------------------------------------
+
+    # define list of reactions
+    single_cell_reactions = [[0, 2, k_ad_co], [2, 0, k_de_co]]
+    two_cell_reactions = [[0, 1, 0, 1, k_ad_o2], [1, 0, 1, 0, k_de_o2], [2, 0, 1, 0, k_de_co2],
+                          [1, 0, 2, 0, k_de_co2], [1, 0, 0, 1, k_diff_o], [0, 1, 1, 0, k_diff_o],
+                          [0, 2, 2, 0, k_diff_co], [2, 0, 0, 2, k_diff_co]]
+
+    # define operator
+    operator = slim.slim_mme_hom(state_space, single_cell_reactions, two_cell_reactions, cyclic=cyclic)
+
+    return operator
+
+
 def fermi_pasta_ulam_data(number_of_oscillators, number_of_snapshots):
-    """Fermi–Pasta–Ulam problem. 
+    """Fermi–Pasta–Ulam problem.
 
     Generate data for the Fermi–Pasta–Ulam problem represented by the differential equation
 
-        d^2/dx^2 x_i = (x_i+1 - 2x_i + x_i-1) + 0.7((x_i+1 - x_i)^3 - (x_i-x_i-1)^3).
+        d^2/dt^2 x_i = (x_i+1 - 2x_i + x_i-1) + 0.7((x_i+1 - x_i)^3 - (x_i-x_i-1)^3).
 
     See [1]_ for details.
 
     Parameters
     ----------
-    number of oscillators: int
+    number_of_oscillators: int
         number of oscillators
-    number of snapshots: int
+    number_of_snapshots: int
         number of snapshots
 
     Returns
@@ -122,61 +180,102 @@ def fermi_pasta_ulam_coefficient_tensor(d):
     return xi_exact
 
 
-def co_oxidation(order, k_ad_co, cyclic=True):
-    """"CO oxidation on RuO2
+def kuramoto_data(theta_init, frequencies, coupling_strength, external_forcing, time, number_of_snapshots):
+    """Kuramoto model
 
-    Model for the CO oxidation on a RuO2 surface. For a detailed description of the process and the construction of the
-    corresponding TT operator, we refer to [1]_,[2]_, and [3]_.
+    Generate data for the Kuramoto model represented by the differential equation
 
-    Arguments
-    ---------
-    order: int
-        number of reaction sites (= order of the operator)
-    k_ad_co: float
-        reaction rate constant for the adsorption of CO
-    cyclic: bool, optional
-        whether model should be cyclic or not, default=True
+        d/dt x_i = w_i + (K/d) * (sin(x_1 - x_i) + ... + sin(x_d - x_i)) + h sin(x_i).
+
+    See [1]_ and [2]_ for details.
+
+    Parameters
+    ----------
+    theta_init: ndarray
+        initial distribution of the oscillators
+    frequencies: ndarray
+        natural frequencies of the oscillators
+    coupling_strength: float
+        coupling strength between the oscillators
+    external_forcing: float
+        external forcing parameter
+    time: float
+        integration time for BDF method
+    number_of_snapshots: int
+        number of snapshots
 
     Returns
     -------
-    operator: instance of TT class
-        TT operator of the process
-
+    snapshots: ndarray(number_of_oscillators, number_of_snapshots)
+        snapshot matrix containing random displacements of the oscillators in [-0.1,0.1]
+    derivatives: ndarray(number_of_oscillators, number_of_snapshots)
+        matrix containing the corresponding derivatives
 
     References
     ----------
-    .. [1] P. Gelß. "The Tensor-Train Format and Its Applications: Modeling and Analysis of Chemical Reaction
-           Networks, Catalytic Processes, Fluid Flows, and Brownian Dynamics", Freie Universität Berlin, 2017
-    .. [2] P. Gelß, S. Matera, C. Schütte, "Solving the master equation without kinetic Monte Carlo: Tensor train
-           approximations for a CO oxidation model", Journal of Computational Physics 314 (2016) 489–502
-    .. [3] P. Gelß, S. Klus, S. Matera, C. Schütte, "Nearest-neighbor interaction systems in the tensor-train format",
-           Journal of Computational Physics 341 (2017) 140-162
+    .. [1] P. Gelß, S. Klus, J. Eisert, C. Schütte, "Multidimensional Approximation of Nonlinear Dynamical Systems",
+           arXiv:1809.02448, 2018
+    .. [2] J. A. Acebrón, L. L. Bonilla, C. J. Pérez Vicente, F. Ritort, R. Spigler, "The Kuramoto model: A simple
+           paradigm for synchronization phenomena", Rev. Mod. Phys. 77, pp. 137-185 , 2005
     """
 
-    # define reaction rate constants
-    k_ad_o2 = 9.7e7
-    k_de_co = 9.2e6
-    k_de_o2 = 2.8e1
-    k_diff_co = 6.6e-2
-    k_diff_o = 5.0e-1
-    k_de_co2 = 1.7e5
+    number_of_oscillators = len(theta_init)
 
-    # define state space
-    state_space = [3] * order
+    def kuramoto_ode(_, theta):
+        [theta_i, theta_j] = np.meshgrid(theta, theta)
+        return frequencies + coupling_strength / number_of_oscillators * np.sin(theta_j - theta_i).sum(
+            0) + external_forcing * np.sin(theta)
 
-    # define operator using automatic construction of SLIM decomposition
-    # ------------------------------------------------------------------
+    sol = spint.solve_ivp(kuramoto_ode, [0, time], theta_init, method='BDF',
+                          t_eval=np.linspace(0, time, number_of_snapshots))
+    snapshots = sol.y
+    derivatives = np.zeros([number_of_oscillators, number_of_snapshots])
+    for i in range(number_of_snapshots):
+        derivatives[:, i] = kuramoto_ode(0, snapshots[:, i])
+    return snapshots, derivatives
 
-    # define list of reactions
-    single_cell_reactions = [[0, 2, k_ad_co], [2, 0, k_de_co]]
-    two_cell_reactions = [[0, 1, 0, 1, k_ad_o2], [1, 0, 1, 0, k_de_o2], [2, 0, 1, 0, k_de_co2],
-                          [1, 0, 2, 0, k_de_co2], [1, 0, 0, 1, k_diff_o], [0, 1, 1, 0, k_diff_o],
-                          [0, 2, 2, 0, k_diff_co], [2, 0, 0, 2, k_diff_co]]
 
-    # define operator
-    operator = slim.slim_mme_hom(state_space, single_cell_reactions, two_cell_reactions, cyclic=cyclic)
+def kuramoto_coefficient_tensor(d, w, k, h):
+    """Construction of the exact solution of the Kuramoto model in TT format. See [1]_ for details.
 
-    return operator
+    Parameters
+    ----------
+    d: int
+        number of oscillators
+    w: ndarray
+        natural frequencies of the oscillators
+    k: float
+        coupling strength between the oscillators
+    h: float
+        external forcing parameter
+
+    Returns
+    -------
+    xi_exact: instance of TT class
+        exact coefficient tensor
+
+    References
+    ----------
+    .. [1] P. Gelß, S. Klus, J. Eisert, C. Schütte, "Multidimensional Approximation of Nonlinear Dynamical Systems",
+           arXiv:1809.02448, 2018
+    """
+    cores = [np.zeros([1, d + 1, 1, 2 * d + 1]), np.zeros([2 * d + 1, d + 1, 1, 2 * d + 1]),
+             np.zeros([2 * d + 1, d, 1, 1])]
+    cores[0][0, 0, 0, 0] = 1
+    cores[1][0, 0, 0, 0] = 1
+    cores[2][0, :, 0, 0] = w
+    for i in range(d):
+        cores[0][0, 1:, 0, 2 * i + 1] = (k / d) * np.ones([d])
+        cores[0][0, i + 1, 0, 2 * i + 1] = 0
+        cores[1][2 * i + 1, i + 1, 0, 2 * i + 1] = 1
+        cores[2][2 * i + 1, i, 0, 0] = 1
+        cores[0][0, i + 1, 0, 2 * i + 2] = 1
+        cores[1][2 * i + 2, 0, 0, 2 * i + 2] = h
+        cores[1][2 * i + 2, 1:, 0, 2 * i + 2] = -(k / d) * np.ones([d])
+        cores[1][2 * i + 2, i + 1, 0, 2 * i + 2] = 0
+        cores[2][2 * i + 2, i, 0, 0] = 1
+    xi_exact = TT(cores)
+    return xi_exact
 
 
 def signaling_cascade(d):
