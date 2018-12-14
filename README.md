@@ -40,31 +40,31 @@ python setup.py install --user
 The tensor-train class - implemented in the module [*tensor-train.py*](scikit_tt/tensor_train.py) - is the core of **scikit_tt** and enables us to work with the tensor-train format. We define tensor trains in terms of different attributes such as *order*, *row_dims*, *col_dims*, *ranks*, and *cores*. An overview of the member functions of the class is shown in the following list.
 
 ```
-TT ................... construct tensor train from array or list of cores
-print ................ print the attributes of a given tensor train
-+,-,*,@ .............. basic operations on tensor trains 
-transpose ............ transpose of a tensor train
-isoperator ........... check if a tensor train is an operator
-copy ................. deep copy of a tensor train
-element .............. compute single element of a tensor train
-full ................. convert a tensor train to full format
-matricize ............ matricize a tensor train
-ortho_left ........... left-orthonormalize a tensor train
-ortho_right .......... right-orthonormalize a tensor train
-norm ................. compute the norm of a tensor train
-tt2qtt ............... convert from TT to QTT format
-qtt2tt ............... convert from QTT to TT format
-pinv ................. compute pseudoinverses of tensor trains
+TT .................... construct tensor train from array or list of cores
+print ................. print the attributes of a given tensor train
++,-,*,@ ............... basic operations on tensor trains 
+transpose ............. transpose of a tensor train
+isoperator ............ check if a tensor train is an operator
+copy .................. deep copy of a tensor train
+element ............... compute single element of a tensor train
+full .................. convert a tensor train to full format
+matricize ............. matricize a tensor train
+ortho_left ............ left-orthonormalize a tensor train
+ortho_right ........... right-orthonormalize a tensor train
+norm .................. compute the norm of a tensor train
+tt2qtt ................ convert from TT to QTT format
+qtt2tt ................ convert from QTT to TT format
+pinv .................. compute pseudoinverses of tensor trains
 ```
 
 Further functions defined in [*tensor-train.py*](scikit_tt/tensor_train.py) are:
 
 ```
-zeros ................ construct a tensor train of all zeros
-ones ................. construct a tensor train of all ones
-eye .................. construct an identity tensor train
-rand ................. construct a random tensor train
-uniform .............. construct a uniformly distributed tensor train
+zeros ................. construct a tensor train of all zeros
+ones .................. construct a tensor train of all ones
+eye ................... construct an identity tensor train
+rand .................. construct a random tensor train
+uniform ............... construct a uniformly distributed tensor train
 ```
 
 ## 3. TT solvers
@@ -74,8 +74,8 @@ uniform .............. construct a uniformly distributed tensor train
 In order to approximate the solution of a system of linear equations in the TT format, a series of low-dimensional problems can be solved by fixing certain components of the tensor network. For this purpose, the *alternating linear scheme* (ALS) and the *modified alternating linear scheme* (MALS) [[3](README.md#11-references)] are implemented in [*solvers/sle.py*](scikit_tt/solvers/sle.py).
 
 ```
-als .................. alternating linear scheme for systems of linear equations in the TT format
-mals ................. modified ALS for systems of linear equations in the TT format
+als ................... alternating linear scheme for systems of linear equations in the TT format
+mals .................. modified ALS for systems of linear equations in the TT format
 ```
 
 ### 3.2 Eigenvalue problems
@@ -83,7 +83,7 @@ mals ................. modified ALS for systems of linear equations in the TT fo
 ALS and MALS can also be used to find approximations of eigenvalues and corresponding eigentensors of TT operators. The basic procedures of ALS and MALS - implemented in [*solvers/evp.py*](scikit_tt/solvers/evp.py) - for eigenvalue problems are similar to the ones for systems of linear equations. The main difference is the type of optimization problem which has to be solved in the iteration steps. See [[3](README.md#11-references)]  for details. 
 
 ```
-als .................. alternating linear scheme for eigenvalue problems in the TT format
+als ................... alternating linear scheme for eigenvalue problems in the TT format
 ```
 
 **TODO: _add MALS for eigenvalue problems_ / _implement solvers for generalized EVPs_**
@@ -93,11 +93,11 @@ als .................. alternating linear scheme for eigenvalue problems in the 
 In order to compute time-dependent or stationary distributions of linear differential equations in the TT format, **scikit_tt** uses implicit integration schemes such as the implicit Euler method or the trapezoidal rule. In order to approximate the solutions at each time step, ALS and MALS, respectively, are used. The methods can be found in [*solvers/ode.py*](scikit_tt/solvers/ode.py).
 
 ```
-implicit_euler ....... implicit Euler method for linear differential equations in the TT format
-errors_impl_euler .... compute approximation errors of the implicit Euler method
-trapezoidal_rule ..... trapezoidal rule for linear differential equations in the TT format
-errors_trapezoidal ... compute approximation errors of the trapezoidal rule
-adaptive_step_size ... adaptive step size method for linear differential equations in the TT format
+implicit_euler ........ implicit Euler method for linear differential equations in the TT format
+errors_impl_euler ..... compute approximation errors of the implicit Euler method
+trapezoidal_rule ...... trapezoidal rule for linear differential equations in the TT format
+errors_trapezoidal .... compute approximation errors of the trapezoidal rule
+adaptive_step_size .... adaptive step size method for linear differential equations in the TT format
 ```
 
 **TODO: _revise code_ / _combine ALS/MALS methods_ / _explicit methods?_**
@@ -107,8 +107,8 @@ adaptive_step_size ... adaptive step size method for linear differential equatio
 The SLIM decomposition is a specific form of TT decompositions which represent tensors networks with a certain structure. For instance, tensor operators corresponding to nearest-neighbor interaction systems can be systematicly decomposed into a tensor-train operator using the algorithms in [*slim.py*](scikit_tt/slim.py). See [[4](README.md#11-references)] for details.
 
 ```
-slim_mme ............. SLIM decomposition for Markov generators
-slim_mme_hom ......... SLIM decomposition for homogeneous Markov generators
+slim_mme .............. SLIM decomposition for Markov generators
+slim_mme_hom .......... SLIM decomposition for homogeneous Markov generators
 ```
 
 ## 5. Multidimensional approximation of nonlinear dynamical systems (MANDy)
@@ -116,8 +116,8 @@ slim_mme_hom ......... SLIM decomposition for homogeneous Markov generators
 MANDy combines the data-driven recovery of dynamical systems with tensor decompositions. The methods implemented in [*mandy.py*](scikit_tt/mandy.py) can be used for the recovery of unknown governing equations from measurement data only. See [[7](README.md#11-references)] for details.
 
 ```
-mandy_cm ............. MANDy using coordinate-major decompositions
-mandy_fm ............. MANDy using function-major decompositions
+mandy_cm .............. MANDy using coordinate-major decompositions
+mandy_fm .............. MANDy using function-major decompositions
 ```
 
 ## 6. Models
@@ -139,14 +139,14 @@ two_step_destruction .. two-step mechanism for the destruction of molecules
 Numerical experiments from different application areas are included in **scikit_tt**. For instance, the application of the TT format to chemical master equations, heterogeneous catalytic processes [[5](README.md#11-references)], fluid dynamics, and molecular dynamics can be found in the directory [*examples*](examples/).
 
 ```
-co_oxidation ......... compute stationary distributions of a catalytic process
-fermi_pasta_ulam_1 ... apply MANDy to the Fermi-Pasta-Ulam problem
-fermi_pasta_ulam_2 ... apply MANDy to the Fermi-Pasta-Ulam problem
-kuramoto ............. apply MANDy to the Kuramoto model
-quadruple_well ....... approximate eigenfunctions of the Perron-Frobenius operator in 3D
-signaling_cascade .... compute mean concentrations of a 20-dimensional signaling cascade
-triple_well .......... approximate eigenfunctions of the Perron-Frobenius operator in 2D
-two_step_destruction . apply QTT and MALS to a two-step destruction process
+co_oxidation .......... compute stationary distributions of a catalytic process
+fermi_pasta_ulam_1 .... apply MANDy to the Fermi-Pasta-Ulam problem
+fermi_pasta_ulam_2 .... apply MANDy to the Fermi-Pasta-Ulam problem
+kuramoto .............. apply MANDy to the Kuramoto model
+quadruple_well ........ approximate eigenfunctions of the Perron-Frobenius operator in 3D
+signaling_cascade ..... compute mean concentrations of a 20-dimensional signaling cascade
+triple_well ........... approximate eigenfunctions of the Perron-Frobenius operator in 2D
+two_step_destruction .. apply QTT and MALS to a two-step destruction process
 ```
 
 ## 8. Tests
@@ -154,11 +154,11 @@ two_step_destruction . apply QTT and MALS to a two-step destruction process
 Modules containing unit tests are provided in the directory [*tests*](tests/).
 
 ```
-test_evp ............. unit tests for evp.py
-test_mandy ........... unit tests for mandy.py
-test_sle ............. unit tests for sle.py
-test_slim ............ unit tests for slim.py
-test_tensor_train .... unit tests for tensor_train.py
+test_evp .............. unit tests for evp.py
+test_mandy ............ unit tests for mandy.py
+test_sle .............. unit tests for sle.py
+test_slim ............. unit tests for slim.py
+test_tensor_train ..... unit tests for tensor_train.py
 ```
 
 ## 9. Subfunctions and tools
@@ -166,12 +166,12 @@ test_tensor_train .... unit tests for tensor_train.py
 In [*utils.py*](scikit_tt/utils.py) we collect algorithms and tools which are employed at several points in **scikit_tt** and/or helpful for data analysis, comparisons, and visualization.
 
 ```
-header ............... ASCII header for scikit_tt
-mean_concentrations .. mean concentrations of TT series
-plot_parameters ...... customized plot parameters
-progress ............. show progress in percent
-timer ................ measure CPU time
-unit_vector .......... canonical unit vector
+header ................ ASCII header for scikit_tt
+mean_concentrations ... mean concentrations of TT series
+plot_parameters ....... customized plot parameters
+progress .............. show progress in percent
+timer ................. measure CPU time
+unit_vector ........... canonical unit vector
 ```
 
 ## 10. Additional information
