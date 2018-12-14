@@ -790,7 +790,7 @@ def ones(row_dims, col_dims, ranks=1):
 
     # set ranks of tt_ones
     if not isinstance(ranks, list):
-        ranks = [1] + [ranks] * (len(row_dims) - 1) + [1]
+        ranks = [1] + [ranks for _ in range(len(row_dims) - 1)] + [1]
 
     # define TT cores of tt_ones
     cores = [np.ones([ranks[i], row_dims[i], col_dims[i], ranks[i + 1]]) for i in range(len(row_dims))]
