@@ -10,7 +10,7 @@ import scipy.io as io
 import os
 
 
-class TestSLE(TestCase):
+class TestEVP(TestCase):
 
     def setUp(self):
         """Consider the triple-well model for testing the routines in sle.py"""
