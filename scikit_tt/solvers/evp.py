@@ -214,7 +214,7 @@ def __update_core_als(i, micro_op, number_ev, solution, solver, sigma, real, dir
     eigenvalues = None
     eigenvectors = None
     if solver == 'eigs':
-        eigenvalues, eigenvectors = splin.eigs(micro_op, sigma=sigma, k=number_ev)
+        eigenvalues, eigenvectors = splin.eigs(micro_op, sigma=sigma, k=number_ev, v0=np.ones(micro_op.shape[0]))
         idx = eigenvalues.argsort()[::-1]
         eigenvalues = eigenvalues[idx]
         eigenvectors = eigenvectors[:, idx]
