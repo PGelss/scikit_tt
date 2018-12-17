@@ -208,11 +208,11 @@ def slim_mme_hom(state_space, single_cell_reactions, two_cell_reactions, cyclic=
 
     # adapt parameters
     order = len(state_space)
-    single_cell_reactions = [single_cell_reactions] * order
+    single_cell_reactions = [single_cell_reactions for _ in range(order)]
     if cyclic is True:
-        two_cell_reactions = [two_cell_reactions] * order
+        two_cell_reactions = [two_cell_reactions for _ in range(order)]
     else:
-        two_cell_reactions = [two_cell_reactions] * (order - 1)
+        two_cell_reactions = [two_cell_reactions for _ in range(order - 1)]
 
     # construct TT operator by using slim_mme
     operator = slim_mme(state_space, single_cell_reactions, two_cell_reactions, threshold=threshold)
