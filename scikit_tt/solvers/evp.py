@@ -6,7 +6,7 @@ import scipy.linalg as lin
 import scipy.sparse.linalg as splin
 
 
-def als(operator, initial_guess, number_ev=1, repeats=1, solver='eigs', sigma=1, real=True):
+def als(operator, initial_guess, operator_gevp=None, number_ev=1, repeats=1, solver='eigs', sigma=1, real=True):
     """Alternating linear scheme
 
     Approximates the leading eigenvalues and corresponding eigentensors of an eigenvalue problem in the TT format. For
@@ -15,9 +15,11 @@ def als(operator, initial_guess, number_ev=1, repeats=1, solver='eigs', sigma=1,
     Parameters
     ----------
     operator: instance of TT class
-        TT operator
+        TT operator, left-hand side
     initial_guess: instance of TT class
         initial guess for the solution
+    operator_gevp: instance of TT class, optional
+        TT operator, right-hand side (for generalized eigenvalue problems), default is None
     number_ev: int, optional
         number of eigenvalues and corresponding eigentensor to compute, default is 1
     repeats: int, optional
@@ -47,10 +49,24 @@ def als(operator, initial_guess, number_ev=1, repeats=1, solver='eigs', sigma=1,
     # define stacks
     stack_left_op = [None] * operator.order
     stack_right_op = [None] * operator.order
+    stack_left_op_gevp = [None] * operator.order
+    stack_right_op_gevp = [None] * operator.order
 
-    # construct right stacks for the left- and right-hand side
+    # define micro operator for generalized eigenvalue problems
+    micro_op_gevp = None
+
+    # set solver for generalized eigenvalue problems
+    if operator_gevp is not None:
+        solver = 'eigs'
+
+    # construct right stacks for the left-hand side
     for i in range(operator.order - 1, -1, -1):
         __construct_stack_right_op(i, stack_right_op, operator, solution)
+
+    # construct right stacks for the right-hand side
+    if operator_gevp is not None:
+        for i in range(operator.order - 1, -1, -1):
+            __construct_stack_right_op(i, stack_right_op_gevp, operator_gevp, solution)
 
     # define iteration number
     current_iteration = 1
@@ -64,23 +80,40 @@ def als(operator, initial_guess, number_ev=1, repeats=1, solver='eigs', sigma=1,
             # update left stack for the left-hand side
             __construct_stack_left_op(i, stack_left_op, operator, solution)
 
+            # update left stack for the right-hand side
+            if operator_gevp is not None:
+                __construct_stack_left_op(i, stack_left_op_gevp, operator_gevp, solution)
+
             if i < operator.order - 1:
+
                 # construct micro system
                 micro_op = __construct_micro_matrix_als(i, stack_left_op, stack_right_op, operator, solution)
+                if operator_gevp is not None:
+                    micro_op_gevp = __construct_micro_matrix_als(i, stack_left_op_gevp, stack_right_op_gevp,
+                                                                 operator_gevp, solution)
 
                 # update solution
-                eigenvalues = __update_core_als(i, micro_op, number_ev, solution, solver, sigma, real, 'forward')
+                eigenvalues = __update_core_als(i, micro_op, micro_op_gevp, number_ev, solution, solver, sigma, real,
+                                                'forward')
 
         # second half sweep
         for i in range(operator.order - 1, -1, -1):
-            # update right stack for the left--hand side
+            # update right stack for the left-hand side
             __construct_stack_right_op(i, stack_right_op, operator, solution)
+
+            # update right stack for the right-hand side
+            if operator_gevp is not None:
+                __construct_stack_right_op(i, stack_right_op_gevp, operator_gevp, solution)
 
             # construct micro system
             micro_op = __construct_micro_matrix_als(i, stack_left_op, stack_right_op, operator, solution)
+            if operator_gevp is not None:
+                micro_op_gevp = __construct_micro_matrix_als(i, stack_left_op_gevp, stack_right_op_gevp, operator_gevp,
+                                                             solution)
 
             # update solution
-            eigenvalues = __update_core_als(i, micro_op, number_ev, solution, solver, sigma, real, 'backward')
+            eigenvalues = __update_core_als(i, micro_op, micro_op_gevp, number_ev, solution, solver, sigma, real,
+                                            'backward')
 
         # increase iteration number
         current_iteration += 1
@@ -187,7 +220,7 @@ def __construct_micro_matrix_als(i, stack_left_op, stack_right_op, operator, sol
     return micro_op
 
 
-def __update_core_als(i, micro_op, number_ev, solution, solver, sigma, real, direction):
+def __update_core_als(i, micro_op, micro_op_gevp, number_ev, solution, solver, sigma, real, direction):
     """Update TT core for ALS
 
     Parameters
@@ -214,8 +247,8 @@ def __update_core_als(i, micro_op, number_ev, solution, solver, sigma, real, dir
     eigenvalues = None
     eigenvectors = None
     if solver == 'eigs':
-        v0=np.ones(micro_op.shape[0])
-        eigenvalues, eigenvectors = splin.eigs(micro_op, sigma=sigma, k=number_ev, v0=v0)
+        v0 = np.ones(micro_op.shape[0])
+        eigenvalues, eigenvectors = splin.eigs(micro_op, M=micro_op_gevp, sigma=sigma, k=number_ev, v0=v0)
         idx = eigenvalues.argsort()[::-1]
         eigenvalues = eigenvalues[idx]
         eigenvectors = eigenvectors[:, idx]
