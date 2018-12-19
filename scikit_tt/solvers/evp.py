@@ -6,7 +6,7 @@ import scipy.linalg as lin
 import scipy.sparse.linalg as splin
 
 
-def als(operator, initial_guess, operator_gevp=None, number_ev=1, repeats=1, solver='eigs', sigma=1, real=True):
+def als(operator, initial_guess, operator_gevp=None, number_ev=1, repeats=1, solver='eig', sigma=1, real=True):
     """Alternating linear scheme
 
     Approximates the leading eigenvalues and corresponding eigentensors of an (generalized) eigenvalue problem in the
@@ -25,8 +25,7 @@ def als(operator, initial_guess, operator_gevp=None, number_ev=1, repeats=1, sol
     repeats: int, optional
         number of repeats of the ALS, default is 1
     solver: string, optional
-        algorithm for obtaining the solutions of the micro systems, can be 'eigs' or 'eig', default is 'eigs'
-        if operator_gevp is defined, solver is set to 'eigs'
+        algorithm for obtaining the solutions of the micro systems, can be 'eig', 'eigs' or 'eigh', default is 'eig'
     sigma: float, optional
         find eigenvalues near sigma, default is 1
     real: bool, optional
@@ -55,10 +54,6 @@ def als(operator, initial_guess, operator_gevp=None, number_ev=1, repeats=1, sol
 
     # define micro operator for generalized eigenvalue problems
     micro_op_gevp = None
-
-    # set solver for generalized eigenvalue problems
-    if operator_gevp is not None:
-        solver = 'eigs'
 
     # construct right stacks for the left-hand side
     for i in range(operator.order - 1, -1, -1):
@@ -254,10 +249,18 @@ def __update_core_als(i, micro_op, micro_op_gevp, number_ev, solution, solver, s
         eigenvalues = eigenvalues[idx]
         eigenvectors = eigenvectors[:, idx]
     if solver == 'eig':
-        eigenvalues, eigenvectors = np.linalg.eig(micro_op)
+        # noinspection PyTupleAssignmentBalance
+        eigenvalues, eigenvectors = lin.eig(micro_op, b=micro_op_gevp, overwrite_a=True, overwrite_b=True,
+                                            check_finite=False)
         idx = (np.abs(eigenvalues - sigma)).argsort()
         eigenvalues = eigenvalues[idx[:number_ev]]
         eigenvectors = eigenvectors[:, idx[:number_ev]]
+    if solver == 'eigh':
+        eigenvalues, eigenvectors = lin.eigh(micro_op, b=micro_op_gevp, overwrite_a=True, overwrite_b=True,
+                                             check_finite=False,
+                                             eigvals=(micro_op.shape[0] - number_ev, micro_op.shape[0] - 1))
+        eigenvalues = eigenvalues[::-1]
+        eigenvectors = eigenvectors[:, ::-1]
     if real is True:
         eigenvalues = np.real(eigenvalues)
         eigenvectors = np.real(eigenvectors)
