@@ -26,6 +26,7 @@ def als(operator, initial_guess, operator_gevp=None, number_ev=1, repeats=1, sol
         number of repeats of the ALS, default is 1
     solver: string, optional
         algorithm for obtaining the solutions of the micro systems, can be 'eigs' or 'eig', default is 'eigs'
+        if operator_gevp is defined, solver is set to 'eigs'
     sigma: float, optional
         find eigenvalues near sigma, default is 1
     real: bool, optional
