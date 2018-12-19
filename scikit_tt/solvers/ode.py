@@ -200,49 +200,50 @@ def errors_trapezoidal(operator, solution, step_sizes):
 
 # TODO:
 #
-# def adaptive_als(operator, initial_value, initial_guess, first_step, T_end, repeats=1, loc_tol=10 ** -3, tau_max=10,
-#                  max_factor=1.25, safety_factor=0.9, solver='lu', compute_errors=False):
-#     solution = [None]
-#     solution[0] = initial_value
-#     X = initial_guess
-#     errors = []
-#     time = 0
-#     tau = first_step
-#     i = 0
-#     while time < T_end:
-#
-#         # S1 = SLE.als(TT.eye(operator.row_dims) - 0.5 * tau * operator, X,
-#         #            (TT.eye(operator.row_dims) + 0.5 * tau * operator) @ solution[i], solver=solver,
-#         #            repeats=repeats)
-#
-#         S1 = SLE.als(TT.eye(operator.row_dims) - tau * operator, X, solution[i], solver=solver, repeats=repeats)
-#         S1 = (1 / S1.norm(p=1)) * S1
-#
-#         # S2 = SLE.als(TT.eye(operator.row_dims) - 0.5 * tau * operator, X,
-#         #            (TT.eye(operator.row_dims) + 0.5 * tau * operator) @ solution[i], solver=solver,
-#         #            repeats=repeats)
-#         # S2 = SLE.als(TT.eye(operator.row_dims) - 0.5 * tau * operator, S2,
-#         #             (TT.eye(operator.row_dims) + 0.5 * tau * operator) @ solution[i], solver=solver,
-#         #             repeats=repeats)
-#
-#         S2 = SLE.als(TT.eye(operator.row_dims) - 0.5 * tau * operator, X, solution[i], solver=solver,
-#                      repeats=repeats)
-#         S2 = SLE.als(TT.eye(operator.row_dims) - 0.5 * tau * operator, S2, solution[i], solver=solver,
-#                      repeats=repeats)
-#         S2 = (1 / S2.norm(p=1)) * S2
-#
-#         loc_err = (S1 - S2).norm()
-#         closeness = (operator @ S1).norm()
-#         factor = (loc_tol) / loc_err
-#
-#         tau_new = np.amin([max_factor * tau, safety_factor * factor * tau])
-#         if factor > 1:
-#             time = time + tau
-#             tau = np.amin([tau_new, T_end - time, tau_max])
-#             solution.append(S1.copy())
-#             # print((operator@solution[-1]).norm())
-#             X = S1
-#             print('tau: ' + str("%.2e" % tau) + ', closeness: ' + str("%.2e" % closeness))
-#         else:
-#             tau = tau_new
-#     return solution
+def adaptive_als(operator, initial_value, initial_guess, first_step, T_end, repeats=1, loc_tol=10 ** -1, tau_max=10,
+                 max_factor=2, safety_factor=0.9, closeness_bound=0.1, solver='solve'):
+    closeness = np.infty
+    solution = [None]
+    solution[0] = initial_value
+    X = initial_guess
+    errors = []
+    time = 0
+    tau = first_step
+    i = 0
+    while (time < T_end) and (closeness>closeness_bound):
+
+        # S1 = SLE.als(TT.eye(operator.row_dims) - 0.5 * tau * operator, X,
+        #            (TT.eye(operator.row_dims) + 0.5 * tau * operator) @ solution[i], solver=solver,
+        #            repeats=repeats)
+
+        S1 = sle.als(tt.eye(operator.row_dims) - tau * operator, X, solution[i], solver=solver, repeats=repeats)
+        S1 = (1 / S1.norm(p=1)) * S1
+
+        S2 = sle.als(tt.eye(operator.row_dims) - 0.5 * tau * operator, X,
+                   (tt.eye(operator.row_dims) + 0.5 * tau * operator) @ solution[i], solver=solver,
+                   repeats=repeats)
+        # S2 = SLE.als(TT.eye(operator.row_dims) - 0.5 * tau * operator, S2,
+        #             (TT.eye(operator.row_dims) + 0.5 * tau * operator) @ solution[i], solver=solver,
+        #             repeats=repeats)
+
+        # S2 = sle.als(tt.eye(operator.row_dims) - 0.5 * tau * operator, X, solution[i], solver=solver,
+        #              repeats=repeats)
+        # S2 = sle.als(tt.eye(operator.row_dims) - 0.5 * tau * operator, S2, solution[i], solver=solver,
+        #              repeats=repeats)
+        S2 = (1 / S2.norm(p=1)) * S2
+
+        loc_err = (S1 - S2).norm()/S1.norm()
+        closeness = (operator @ S1).norm()
+        factor = loc_tol / loc_err
+
+        tau_new = np.amin([max_factor * tau, safety_factor * factor * tau])
+        if factor > 1:
+            time = time + tau
+            tau = np.amin([tau_new, T_end - time, tau_max])
+            solution.append(S1.copy())
+            # print((operator@solution[-1]).norm())
+            X = S1
+            #print('tau: ' + str("%.2e" % tau) + ', closeness: ' + str("%.2e" % closeness))
+        else:
+            tau = tau_new
+    return solution
