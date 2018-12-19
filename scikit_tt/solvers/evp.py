@@ -9,8 +9,8 @@ import scipy.sparse.linalg as splin
 def als(operator, initial_guess, operator_gevp=None, number_ev=1, repeats=1, solver='eigs', sigma=1, real=True):
     """Alternating linear scheme
 
-    Approximates the leading eigenvalues and corresponding eigentensors of an eigenvalue problem in the TT format. For
-    details, see [1]_.
+    Approximates the leading eigenvalues and corresponding eigentensors of an (generalized) eigenvalue problem in the
+    TT format. For details, see [1]_.
 
     Parameters
     ----------
