@@ -826,6 +826,30 @@ def eye(dims):
     return tt_eye
 
 
+def unit(dims, inds):
+    """Canonical unit tensor
+
+    Return specific canonical unit tensor in given dimensions.
+
+    Parameters
+    ----------
+    dims: list of ints
+        dimensions of the tensor train
+    inds: list of ints
+        positions of the 1s
+
+    Returns
+    -------
+    t: instance of TT class
+        unit tensor train
+    """
+
+    t = zeros(dims, [1] * len(dims))
+    for i in range(t.order):
+        t.cores[i][0, inds[i], 0, 0] = 1
+    return t
+
+
 def rand(row_dims, col_dims, ranks=1):
     """random tensor train
 
