@@ -93,6 +93,7 @@ class TT(object):
             self.col_dims = [x[i].shape[2] for i in range(self.order)]
             self.ranks = [x[i].shape[0] for i in range(self.order)] + [1]
             self.cores = x
+            self.nbytes = np.sum([self.cores[i].nbytes for i in range(self.order)])
 
     def __repr__(self):
         """string representation of tensor trains
