@@ -108,7 +108,7 @@ def progress(text, percent, dots=3):
         sys.stdout.write('\n')
 
 
-class Timer(object):
+class timer(object):
     """Measure CPU time
 
     Can be executed using the 'with' statement in order to measure the CPU time needed for calculations.
@@ -167,30 +167,6 @@ def two_cell_tof(t, reactant_states, reaction_rate):
         tof = tof + (reaction_rate / t.order) * (tt_left[i] @ t).element([0] * t.order * 2) + \
               (reaction_rate / t.order) * (tt_right[i] @ t).element([0] * t.order * 2)
     return tof
-
-
-def unit_tensor_train(dimensions, indices):
-    """Canonical unit tensor
-
-    Return specific canonical unit tensor in given dimensions.
-
-    Parameters
-    ----------
-    dimensions: list of ints
-        dimensions of the tensor train
-    indices: list of ints
-        positions of the 1s
-
-    Returns
-    -------
-    t: instance of TT class
-        unit tensor train
-    """
-
-    t = tt.zeros(dimensions, [1] * len(dimensions))
-    for i in range(t.order):
-        t.cores[i][0, indices[i], 0, 0] = 1
-    return t
 
 
 def unit_vector(dimension, index):
