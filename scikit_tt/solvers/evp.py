@@ -118,6 +118,7 @@ def als(operator, initial_guess, operator_gevp=None, number_ev=1, repeats=1, sol
     if number_ev == 1:
         solution_final = solution.copy()
         solution_final.cores[0] = solution.cores[0][:, :, :, :, 0]
+        eigenvalues = eigenvalues[0]
     else:
         solution_final = [None] * number_ev
         for i in range(number_ev):
