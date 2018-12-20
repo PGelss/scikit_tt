@@ -64,6 +64,7 @@ zeros ................. construct a tensor train of all zeros
 ones .................. construct a tensor train of all ones
 eye ................... construct an identity tensor train
 rand .................. construct a random tensor train
+unit .................. construct a canonical unit tensor train
 uniform ............... construct a uniformly distributed tensor train
 ```
 
@@ -171,6 +172,7 @@ mean_concentrations ... mean concentrations of TT series
 plot_parameters ....... customized plot parameters
 progress .............. show progress in percent
 timer ................. measure CPU time
+two_cell_tof .......... turn-over frequency of two-cell reactions
 unit_vector ........... canonical unit vector
 ```
 
