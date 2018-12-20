@@ -169,10 +169,34 @@ def two_cell_tof(t, reactant_states, reaction_rate):
     return tof
 
 
+def unit_tensor_train(dimensions, indices):
+    """Canonical unit tensor
+
+    Return specific canonical unit tensor in given dimensions.
+
+    Parameters
+    ----------
+    dimensions: list of ints
+        dimensions of the tensor train
+    indices: list of ints
+        positions of the 1s
+
+    Returns
+    -------
+    t: instance of TT class
+        unit tensor train
+    """
+
+    t = tt.zeros(dimensions, [1] * len(dimensions))
+    for i in range(t.order):
+        t.cores[i][0, indices[i], 0, 0] = 1
+    return t
+
+
 def unit_vector(dimension, index):
     """Canonical unit vector
 
-    Return specific canonical unit vector in a given given dimension.
+    Return specific canonical unit vector in a given dimension.
 
     Parameters
     ----------
@@ -186,6 +210,7 @@ def unit_vector(dimension, index):
     v: ndarray
         unit vector
     """
+
     v = np.zeros(dimension)
     v[index] = 1
 
