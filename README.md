@@ -12,7 +12,7 @@ The simulation and analysis of high-dimensional problems is often infeasible due
 2. [TT class](README.md#2-tt-class) 
 3. [TT solvers](README.md#3-tt-solvers)
    - [Systems of linear equations](README.md#31-systems-of-linear-equations)
-   - [Eigenvalue problems](README.md#32-eigenvalue-problems)
+   - [Generalized eigenvalue problems](README.md#32-generalized-eigenvalue-problems)
    - [Linear differential equations](README.md#33-linear-differential-equations)
 4. [SLIM decomposition](README.md#4-slim-decomposition)
 5. [Multidimensional approximation of nonlinear dynamical systems (MANDy)](README.md#5-multidimensional-approximation-of-nonlinear-dynamical-systems-mandy)
@@ -78,9 +78,9 @@ als ................... alternating linear scheme for systems of linear equation
 mals .................. modified ALS for systems of linear equations in the TT format
 ```
 
-### 3.2 Eigenvalue problems
+### 3.2 Generalized eigenvalue problems
 
-ALS and MALS can also be used to find approximations of eigenvalues and corresponding eigentensors of TT operators. The basic procedures of ALS and MALS - implemented in [*solvers/evp.py*](scikit_tt/solvers/evp.py) - for eigenvalue problems are similar to the ones for systems of linear equations. The main difference is the type of optimization problem which has to be solved in the iteration steps. See [[3](README.md#11-references)]  for details. 
+ALS and MALS can also be used to find approximations of eigenvalues and corresponding eigentensors of TT operators. The basic procedures of ALS and MALS - implemented in [*solvers/evp.py*](scikit_tt/solvers/evp.py) - for (generalized) eigenvalue problems are similar to the ones for systems of linear equations. The main difference is the type of optimization problem which has to be solved in the iteration steps. See [[3](README.md#11-references)]  for details. 
 
 ```
 als ................... alternating linear scheme for eigenvalue problems in the TT format
