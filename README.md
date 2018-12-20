@@ -115,7 +115,12 @@ slim_mme_hom .......... SLIM decomposition for homogeneous Markov generators
 
 ## 5. Approximation of Perron-Frobenius operators
 
-...
+Given transitions of particles in a 2- or 3-dimensional potentials, **scikit_tt** can be used to approximate the corresponding Perron-Frobenius operator in TT format. See [[2](README.md#12-references)] for details.
+
+```
+perron_frobenius_2d ... approximate Perron-Frobenius operators for 2-dimensional systems
+perron_frobenius_3d ... approximate Perron-Frobenius operators for 3-dimensional systems
+```
 
 ## 6. Multidimensional approximation of nonlinear dynamical systems (MANDy)
 
