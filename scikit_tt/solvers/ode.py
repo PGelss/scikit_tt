@@ -199,7 +199,7 @@ def errors_trapezoidal(operator, solution, step_sizes):
     return errors
 
 
-def adaptive_als(operator, initial_value, initial_guess, time_end, step_size_first=1e-10, repeats=1, solver='solve',
+def adaptive_step_size(operator, initial_value, initial_guess, time_end, step_size_first=1e-10, repeats=1, solver='solve',
                  error_tol=1e-1, closeness_tol=0.5, step_size_min=1e-14, step_size_max=10, closeness_min=1e-3,
                  factor_max=2, factor_safe=0.9, second_method='two_step_Euler'):
     """Adaptive step size method
