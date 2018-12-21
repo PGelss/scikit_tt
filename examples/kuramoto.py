@@ -85,7 +85,7 @@ utl.progress('Generate test data', 100, dots=22)
 
 # apply MANDy (function-major)
 utl.progress('Running MANDy (eps=' + str(threshold) + ')', 0, dots=20 - len(str(threshold)))
-with utl.Timer() as time:
+with utl.timer() as time:
     xi = mandy.mandy_fm(x, y, psi, threshold=threshold)
 utl.progress('Running MANDy (eps=' + str(threshold) + ')', 100, dots=20 - len(str(threshold)))
 
