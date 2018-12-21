@@ -22,7 +22,7 @@ def implicit_euler(operator, initial_value, initial_guess, step_sizes, repeats=1
     step_sizes: list of floats
         step sizes for the application of the implicit Euler method
     repeats: int, optional
-        number of repeats of the ALS in each iteration step, default is 1
+        number of repeats of the (M)ALS in each iteration step, default is 1
     tt_solver: string, optional
         algorithm for solving the systems of linear equations in the TT format, default is 'als'
     threshold: float, optional
@@ -117,7 +117,7 @@ def trapezoidal_rule(operator, initial_value, initial_guess, step_sizes, repeats
     step_sizes: list of floats
         step sizes for the application of the trapezoidal rule
     repeats: int, optional
-        number of repeats of the ALS in each iteration step, default is 1
+        number of repeats of the (M)ALS in each iteration step, default is 1
     tt_solver: string, optional
         algorithm for solving the systems of linear equations in the TT format, default is 'als'
     threshold: float, optional
@@ -198,52 +198,115 @@ def errors_trapezoidal(operator, solution, step_sizes):
 
     return errors
 
-# TODO:
-#
-def adaptive_als(operator, initial_value, initial_guess, first_step, T_end, repeats=1, loc_tol=10 ** -1, tau_max=10,
-                 max_factor=2, safety_factor=0.9, closeness_bound=0.1, solver='solve'):
-    closeness = np.infty
-    solution = [None]
-    solution[0] = initial_value
-    X = initial_guess
-    errors = []
+
+def adaptive_als(operator, initial_value, initial_guess, time_end, step_size_first=1e-10, repeats=1, solver='solve',
+                 error_tol=1e-1, closeness_tol=0.5, step_size_min=1e-14, step_size_max=10, closeness_min=1e-3,
+                 factor_max=2, factor_safe=0.9, second_method='two_step_Euler'):
+    """Adaptive step size method
+
+    Parameters
+    ----------
+    operator: instance of TT class
+        TT operator of the differential equation
+    initial_value: instance of TT class
+        initial value of the differential equation
+    initial_guess: instance of TT class
+        initial guess for the first step
+    time_end: float
+        time point to which the ODE should be integrated
+    step_size_first: float, optional
+        first time step, default is 1e-10
+    repeats: int, optional
+        number of repeats of the ALS in each iteration step, default is 1
+    solver: string, optional
+        algorithm for obtaining the solutions of the micro systems, can be 'solve' or 'lu', default is 'solve'
+    error_tol: float, optional
+        tolerance for relative local error, default is 1e-1
+    closeness_tol: float, optional
+        tolerance for relative change in the closeness to the stationary distribution, default is 0.5
+    step_size_min: float, optional
+        minimum step size, default is 1e-14
+    step_size_max: float, optional
+        maximum step size, default is 10
+    closeness_min: float, optional
+        minimum closeness value, default is 1e-3
+    factor_max: float, optional
+        maximum factor for step size adaption, default is 2
+    factor_safe: float, optional
+        safety factor for step size adaption, default is 0.9
+    second_method: string, optional
+        which higher-order method should be used, can be 'two_step_Euler' or 'trapezoidal_rule', default is
+        'two_step_Euler'
+
+    Returns
+    -------
+    solution: list of instances of the TT class
+        numerical solution of the differential equation
+    """
+
+    # define solution
+    solution = [initial_value]
+
+    # define variable for integration
+    t_2 = []
+
+    # set closeness variables
+    closeness_pre = (operator @ initial_value).norm()
+
+    # define tensor train for solving the systems of linear equations
+    t_tmp = initial_guess
+
+    # set time and step size
     time = 0
-    tau = first_step
-    i = 0
-    while (time < T_end) and (closeness>closeness_bound):
+    step_size = step_size_first
 
-        # S1 = SLE.als(TT.eye(operator.row_dims) - 0.5 * tau * operator, X,
-        #            (TT.eye(operator.row_dims) + 0.5 * tau * operator) @ solution[i], solver=solver,
-        #            repeats=repeats)
+    # begin integration
+    # -----------------
 
-        S1 = sle.als(tt.eye(operator.row_dims) - tau * operator, X, solution[i], solver=solver, repeats=repeats)
-        S1 = (1 / S1.norm(p=1)) * S1
+    while (time < time_end) and (closeness_pre > closeness_min) and (step_size > step_size_min):
 
-        S2 = sle.als(tt.eye(operator.row_dims) - 0.5 * tau * operator, X,
-                   (tt.eye(operator.row_dims) + 0.5 * tau * operator) @ solution[i], solver=solver,
-                   repeats=repeats)
-        # S2 = SLE.als(TT.eye(operator.row_dims) - 0.5 * tau * operator, S2,
-        #             (TT.eye(operator.row_dims) + 0.5 * tau * operator) @ solution[i], solver=solver,
-        #             repeats=repeats)
+        # first method
+        t_1 = sle.als(tt.eye(operator.row_dims) - step_size * operator, t_tmp.copy(), solution[-1], solver=solver,
+                      repeats=repeats)
+        t_1 = (1 / t_1.norm(p=1)) * t_1
 
-        # S2 = sle.als(tt.eye(operator.row_dims) - 0.5 * tau * operator, X, solution[i], solver=solver,
-        #              repeats=repeats)
-        # S2 = sle.als(tt.eye(operator.row_dims) - 0.5 * tau * operator, S2, solution[i], solver=solver,
-        #              repeats=repeats)
-        S2 = (1 / S2.norm(p=1)) * S2
+        # second method
+        if second_method == 'two_step_Euler':
+            t_2 = sle.als(tt.eye(operator.row_dims) - 0.5 * step_size * operator, t_tmp.copy(), solution[-1],
+                          solver=solver,
+                          repeats=repeats)
+            t_2 = sle.als(tt.eye(operator.row_dims) - 0.5 * step_size * operator, t_2.copy(), solution[-1],
+                          solver=solver,
+                          repeats=repeats)
+        if second_method == 'trapezoidal_rule':
+            t_2 = sle.als(tt.eye(operator.row_dims) - 0.5 * step_size * operator, t_tmp.copy(),
+                          (tt.eye(operator.row_dims) + 0.5 * step_size * operator) @ solution[-1], solver=solver,
+                          repeats=repeats)
+        t_2 = (1 / t_2.norm(p=1)) * t_2
 
-        loc_err = (S1 - S2).norm()/S1.norm()
-        closeness = (operator @ S1).norm()
-        factor = loc_tol / loc_err
+        # compute closeness to staionary distribution
+        closeness = (operator @ t_1).norm()
 
-        tau_new = np.amin([max_factor * tau, safety_factor * factor * tau])
-        if factor > 1:
-            time = time + tau
-            tau = np.amin([tau_new, T_end - time, tau_max])
-            solution.append(S1.copy())
-            # print((operator@solution[-1]).norm())
-            X = S1
-            #print('tau: ' + str("%.2e" % tau) + ', closeness: ' + str("%.2e" % closeness))
+        # compute relative local error and closeness change
+        local_error = (t_1 - t_2).norm() / t_1.norm()
+        closeness_difference = (closeness - closeness_pre) / closeness_pre
+
+        # compute factors for step size adaption
+        factor_local = error_tol / local_error
+        factor_closeness = closeness_tol / np.abs(closeness_difference)
+
+        # compute new step size
+        step_size_new = np.amin([factor_max, factor_safe * factor_local, factor_safe * factor_closeness]) * step_size
+
+        # accept or reject step
+        if (factor_local > 1) and (factor_closeness > 1):
+            time = time + step_size
+            step_size = np.amin([step_size_new, time_end - time, step_size_max])
+            solution.append(t_1.copy())
+            t_tmp = t_1
+            print('tau: ' + str("%.2e" % step_size) + ', closeness: ' + str("%.2e" % closeness))
+            closeness_pre = closeness
         else:
-            tau = tau_new
+            step_size = step_size_new
+
     return solution
