@@ -52,7 +52,7 @@ initial_guess = tt.ones(operator.col_dims, [1] * order, ranks=tt_rank).ortho_rig
 
 print('TT approach')
 print('-----------\n')
-with utl.Timer() as time:
+with utl.timer() as time:
     solution = ode.trapezoidal_rule(operator, initial_distribution, initial_guess, step_sizes)
 print('CPU time ' + '.' * 19 + ' ' + str("%.2f" % time.elapsed) + 's\n')
 
@@ -78,7 +78,7 @@ initial_guess = tt.ones(operator.col_dims, [1] * operator.order, ranks=qtt_rank)
 
 print('\nQTT approach')
 print('------------\n')
-with utl.Timer() as time:
+with utl.timer() as time:
     solution = ode.trapezoidal_rule(operator, initial_distribution, initial_guess, step_sizes)
 print('CPU time ' + '.' * 19 + ' ' + str("%.2f" % time.elapsed) + 's\n')
 
