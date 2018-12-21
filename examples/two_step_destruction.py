@@ -55,7 +55,7 @@ initial_guess = tt.uniform([2] * (4 * m + 1), ranks=qtt_rank).ortho_right()
 # solve Markovian master equation in QTT format
 # ---------------------------------------------
 
-with utl.Timer() as time:
+with utl.timer() as time:
     solution = ode.implicit_euler(operator, initial_distribution, initial_guess, step_sizes, tt_solver='mals',
                                   threshold=1e-7, max_rank=max_rank)
 print('CPU time ' + '.' * 24 + ' ' + str("%.2f" % time.elapsed) + 's')
