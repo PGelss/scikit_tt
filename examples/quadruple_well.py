@@ -18,6 +18,7 @@ import scikit_tt.perron_frobenius as pf
 import scikit_tt.solvers.evp as evp
 import scikit_tt.utils as utl
 import matplotlib.pyplot as plt
+# noinspection PyUnresolvedReferences
 from mpl_toolkits.mplot3d import Axes3D
 import scipy.io as io
 
