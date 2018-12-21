@@ -79,7 +79,7 @@ for i in range(snapshots_min, snapshots_max + snapshots_step, snapshots_step):
         utl.progress('Running matrix-based MANDy', 50, dots=5)
 
         # compute xi in matrix format
-        with utl.Timer() as time:
+        with utl.timer() as time:
             [u, s, v] = splin.svd(psi_x, full_matrices=False, overwrite_a=True, check_finite=False,
                                   lapack_driver='gesvd')
             xi = y @ v.transpose() @ np.diag(np.reciprocal(s)) @ u.transpose()
@@ -97,7 +97,7 @@ for i in range(snapshots_min, snapshots_max + snapshots_step, snapshots_step):
 
     # exact computation in TT format
     utl.progress('Running MANDy (eps=0)', 0, dots=10)
-    with utl.Timer() as time:
+    with utl.timer() as time:
         xi = mandy.mandy_cm(x, y, psi, threshold=0)
     cpu_times[1, ind] = time.elapsed
     rel_errors[1, ind] = (xi - xi_exact).norm() / xi_exact.norm()
@@ -109,7 +109,7 @@ for i in range(snapshots_min, snapshots_max + snapshots_step, snapshots_step):
     # use thresholds larger 0 for orthonormalizations
     for j in range(0, 4):
         utl.progress('Running MANDy (eps=10^' + str(-10 + j) + ')', 0, dots=8 - len(str(-10 + j)))
-        with utl.Timer() as time:
+        with utl.timer() as time:
             xi = mandy.mandy_cm(x, y, psi, threshold=10 ** (-10 + j))
         cpu_times[j + 2, ind] = time.elapsed
         rel_errors[j + 2, ind] = (xi - xi_exact).norm() / xi_exact.norm()
