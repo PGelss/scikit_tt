@@ -25,7 +25,7 @@ The simulation and analysis of high-dimensional problems is often infeasible due
     - [Authors & contact](README.md#111-authors--contact)
     - [Built with](README.md#112-built-with)
     - [License](README.md#113-license)
-    - [Versioning](README.md#114-versioning)
+    - [Versions](README.md#114-versions)
 12. [References](README.md#12-references)
 
 ## 1. Installing
