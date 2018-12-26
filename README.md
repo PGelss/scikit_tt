@@ -206,7 +206,7 @@ This project is licensed under the [LGPLv3+](https://www.gnu.org/licenses/lgpl-3
 
 ### 11.4 Versions
 
-The current version of **scikit_tt** is [1.0](scikit_tt/releases/latest).
+The current version of **scikit_tt** is [1.0](https://github.com/PGelss/scikit_tt/releases/latest).
 
 ## 12. References
 
