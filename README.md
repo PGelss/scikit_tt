@@ -204,9 +204,9 @@ unit_vector ........... canonical unit vector
 
 This project is licensed under the [LGPLv3+](https://www.gnu.org/licenses/lgpl-3.0.en.html) license - see [LICENSE.txt](LICENSE.txt) for details.
 
-### 11.4 Versioning
+### 11.4 Versions
 
-We use ... for versioning. For the available versions, see ...
+The current version of **scikit_tt** is [1.0](scikit_tt/releases/latest).
 
 ## 12. References
 
