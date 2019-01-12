@@ -118,15 +118,19 @@ slim_mme_hom .......... SLIM decomposition for homogeneous Markov generators
 
 ## 5. Data analysis
 
-**scikit_tt** combines data-driven methods with tensor network decompositions in order to significantly reduce the computational costs and/or storage consumption for high-dimensional data sets. Different methods can be found in [*data_driven.py*](scikit_tt/data_driven.py)
+**scikit_tt** combines data-driven methods with tensor network decompositions in order to significantly reduce the computational costs and/or storage consumption for high-dimensional data sets. Different methods can be found in the directory[*data_driven*](data_driven/)
 
 ### 5.1 Tensor-based dynamic mode decomposition (TDMD)
 
 ...
 
+```
+...
+```
+
 ### 5.2 Multidimensional approximation of nonlinear dynamical systems (MANDy)
 
-MANDy combines the data-driven recovery of dynamical systems with tensor decompositions. The methods can be used for the recovery of unknown governing equations from measurement data only. See [[7](README.md#12-references)] for details.
+MANDy combines the data-driven recovery of dynamical systems with tensor decompositions. The methods implemented in [*data_driven/mandy.py*](scikit_tt/data_driven/mandy.py) can be used for the recovery of unknown governing equations from measurement data only. See [[7](README.md#12-references)] for details.
 
 ```
 mandy_cm .............. MANDy using coordinate-major decompositions
@@ -135,7 +139,7 @@ mandy_fm .............. MANDy using function-major decompositions
 
 ### 5.3 Approximation of Perron-Frobenius operators
 
-Given transitions of particles in a 2- or 3-dimensional potentials, **scikit_tt** can be used to approximate the corresponding Perron-Frobenius operator in TT format. See [[2](README.md#12-references)] for details.
+Given transitions of particles in a 2- or 3-dimensional potentials, **scikit_tt** can be used to approximate the corresponding Perron-Frobenius operator in TT format. The algorithms can be found in [*data_driven/perron_frobenius.py*](scikit_tt/data_driven/perron_frobenius.py). See [[2](README.md#12-references)] for details.
 
 ```
 perron_frobenius_2d ... approximate Perron-Frobenius operators for 2-dimensional systems
