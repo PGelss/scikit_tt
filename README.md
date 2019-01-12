@@ -1,6 +1,4 @@
-# scikit_tt
-
-A toolbox for tensor train computations.
+![scikit_tt - A toolbox for tensor-train computations](logo.png)
 
 ## Short description
 
