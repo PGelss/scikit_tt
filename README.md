@@ -15,9 +15,12 @@ The simulation and analysis of high-dimensional problems is often infeasible due
    - [Generalized eigenvalue problems](README.md#32-generalized-eigenvalue-problems)
    - [Linear differential equations](README.md#33-linear-differential-equations)
 4. [SLIM decomposition](README.md#4-slim-decomposition)
-5. [Approximation of Perron-Frobenius operators](README.md#5-approximation-of-perron-frobenius-operators)
-6. [Multidimensional approximation of nonlinear dynamical systems (MANDy)](README.md#5-multidimensional-approximation-of-nonlinear-dynamical-systems-mandy)
-7. [Models](README.md#7-models)
+5. [Data analysis](README.md#5-data-analysis)
+   - [Tensor-based dynamic mode decomposition (TDMD)](README.md#51-tensor-based-dynamic-mode-decomposition-tdmd)
+   - [Multidimensional approximation of nonlinear dynamical systems (MANDy)](README.md#52-multidimensional-approximation-of-nonlinear-dynamical-systems-mandy)
+   - [Approximation of Perron-Frobenius operators](README.md#53-approximation-of-perron-frobenius-operators)
+6. [Models](README.md#6-models)
+7. [Fractals](README.md#7-fractals)
 8. [Examples](README.md#8-examples)
 9. [Tests](README.md#9-tests)
 10. [Subfunctions and tools](README.md#10-subfunctions-and-tools)
@@ -113,16 +116,15 @@ slim_mme .............. SLIM decomposition for Markov generators
 slim_mme_hom .......... SLIM decomposition for homogeneous Markov generators
 ```
 
-## 5. Approximation of Perron-Frobenius operators
+## 5. Data analysis
 
-Given transitions of particles in a 2- or 3-dimensional potentials, **scikit_tt** can be used to approximate the corresponding Perron-Frobenius operator in TT format. See [[2](README.md#12-references)] for details.
+...
 
-```
-perron_frobenius_2d ... approximate Perron-Frobenius operators for 2-dimensional systems
-perron_frobenius_3d ... approximate Perron-Frobenius operators for 3-dimensional systems
-```
+### 5.1 Tensor-based dynamic mode decomposition (TDMD)
 
-## 6. Multidimensional approximation of nonlinear dynamical systems (MANDy)
+...
+
+### 5.2 Multidimensional approximation of nonlinear dynamical systems (MANDy)
 
 MANDy combines the data-driven recovery of dynamical systems with tensor decompositions. The methods implemented in [*mandy.py*](scikit_tt/mandy.py) can be used for the recovery of unknown governing equations from measurement data only. See [[7](README.md#12-references)] for details.
 
@@ -131,7 +133,16 @@ mandy_cm .............. MANDy using coordinate-major decompositions
 mandy_fm .............. MANDy using function-major decompositions
 ```
 
-## 7. Models
+### 5.3 Approximation of Perron-Frobenius operators
+
+Given transitions of particles in a 2- or 3-dimensional potentials, **scikit_tt** can be used to approximate the corresponding Perron-Frobenius operator in TT format. See [[2](README.md#12-references)] for details.
+
+```
+perron_frobenius_2d ... approximate Perron-Frobenius operators for 2-dimensional systems
+perron_frobenius_3d ... approximate Perron-Frobenius operators for 3-dimensional systems
+```
+
+## 6. Models
 
 The construction of several models from various fields is included in [*models.py*](scikit_tt/models.py). 
 
@@ -145,6 +156,17 @@ signaling_cascade ..... cascading process on a genetic network consisting of gen
 two_step_destruction .. two-step mechanism for the destruction of molecules
 ```
 
+## 7. Fractals
+
+As we have demonstrated in [[8](README.md#12-references)], the TT format can naturally be used to create self-similar geometric patterns. Several examples for tensor-generated fractals can be found in [*fractals.py*](scikit_tt/fractals.py)
+
+```
+cantor_dust ........... generalization of the Cantor set and the Cantor dust
+multisponge ........... generalization of the Sierpinski carpet and the Menger sponge
+rgb_fractal ........... generate RGB fractals
+vicsek_fractal ........ generalization of the Vicsek fractal
+```
+
 ## 8. Examples
 
 Numerical experiments from different application areas are included in **scikit_tt**. For instance, the application of the TT format to chemical master equations, heterogeneous catalytic processes [[5](README.md#12-references)], fluid dynamics, and molecular dynamics can be found in the directory [*examples*](examples/).
@@ -153,6 +175,7 @@ Numerical experiments from different application areas are included in **scikit_
 co_oxidation .......... compute stationary distributions of a catalytic process
 fermi_pasta_ulam_1 .... apply MANDy to the Fermi-Pasta-Ulam problem
 fermi_pasta_ulam_2 .... apply MANDy to the Fermi-Pasta-Ulam problem
+fractals .............. use tensor decompositions for generating fractal patterns
 kuramoto .............. apply MANDy to the Kuramoto model
 quadruple_well ........ approximate eigenfunctions of the Perron-Frobenius operator in 3D
 signaling_cascade ..... compute mean concentrations of a 20-dimensional signaling cascade
@@ -223,3 +246,5 @@ The current version of **scikit_tt** is [1.0](https://github.com/PGelss/scikit_t
 [6] S. Klus, P. Gelß, S. Peitz, C. Schütte, "Tensor-based Dynamic Mode Decomposition", Nonlinearity 31 (7) (2018) 3359
 
 [7] P. Gelß, S. Klus, J. Eisert, C. Schütte, "Multidimensional Approximation of Nonlinear Dynamical Systems", arXiv:1809.02448 (2018)
+
+[8] P. Gelß, C. Schütte, "Tensor-generated fractals: Using tensor decompositions for creating self-similar patterns", arXiv:1812.00814 (2018)
