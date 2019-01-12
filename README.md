@@ -118,7 +118,7 @@ slim_mme_hom .......... SLIM decomposition for homogeneous Markov generators
 
 ## 5. Data analysis
 
-**scikit_tt** combines data-driven methods with tensor network decompositions in order to significantly reduce the computational costs and/or storage consumption for high-dimensional data sets. Different methods can be found in the directory[*data_driven*](data_driven/)
+**scikit_tt** combines data-driven methods with tensor network decompositions in order to significantly reduce the computational costs and/or storage consumption for high-dimensional data sets. Different methods can be found in the directory [*data_driven*](data_driven/)
 
 ### 5.1 Tensor-based dynamic mode decomposition (TDMD)
 
