@@ -14,7 +14,7 @@ import numpy as np
 import scipy.sparse.linalg as splin
 from scikit_tt.tensor_train import TT
 import scikit_tt.tensor_train as tt
-import scikit_tt.perron_frobenius as pf
+import scikit_tt.data_driven.perron_frobenius as pf
 import scikit_tt.solvers.evp as evp
 import scikit_tt.utils as utl
 import matplotlib.pyplot as plt

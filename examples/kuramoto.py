@@ -12,7 +12,7 @@ References
 import numpy as np
 import scipy.integrate as spint
 from scikit_tt.tensor_train import TT
-import scikit_tt.mandy as mandy
+import scikit_tt.data_driven.mandy as mandy
 import scikit_tt.models as mdl
 import scikit_tt.utils as utl
 import matplotlib.pyplot as plt
