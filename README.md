@@ -118,7 +118,7 @@ slim_mme_hom .......... SLIM decomposition for homogeneous Markov generators
 
 ## 5. Data analysis
 
-...
+**scikit_tt** combines data-driven methods with tensor network decompositions in order to significantly reduce the computational costs and/or storage consumption for high-dimensional data sets. Different methods can be found in [*data_driven.py*](scikit_tt/data_driven.py)
 
 ### 5.1 Tensor-based dynamic mode decomposition (TDMD)
 
@@ -126,7 +126,7 @@ slim_mme_hom .......... SLIM decomposition for homogeneous Markov generators
 
 ### 5.2 Multidimensional approximation of nonlinear dynamical systems (MANDy)
 
-MANDy combines the data-driven recovery of dynamical systems with tensor decompositions. The methods implemented in [*mandy.py*](scikit_tt/mandy.py) can be used for the recovery of unknown governing equations from measurement data only. See [[7](README.md#12-references)] for details.
+MANDy combines the data-driven recovery of dynamical systems with tensor decompositions. The methods can be used for the recovery of unknown governing equations from measurement data only. See [[7](README.md#12-references)] for details.
 
 ```
 mandy_cm .............. MANDy using coordinate-major decompositions
@@ -217,7 +217,7 @@ unit_vector ........... canonical unit vector
   - address: Arnimallee 9, 14195 Berlin, Germany
   - email: p.gelss@fu-berlin.de
 * **Dr. Stefan Klus** - _initial work_ - CRC 1114, Freie Universität Berlin, Germany
-* **Martin Scherer** - _setup_ - Computational Molecular Biology, Freie Universität Berlin, Germany
+* **Martin Scherer** - _development advisor_ - Computational Molecular Biology, Freie Universität Berlin, Germany
 
 ### 11.2 Built with
 
