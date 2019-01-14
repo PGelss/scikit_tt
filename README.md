@@ -120,10 +120,11 @@ slim_mme_hom .......... SLIM decomposition for homogeneous Markov generators
 
 ### 5.1 Tensor-based dynamic mode decomposition (TDMD)
 
-...
+TDMD is an extension of the classical dynamic mode decomposition which exploits the TT format to compute DMD modes and eigenvalues. The algorithms below can be found in [*data_driven/tdmd.py*](scikit_tt/data_driven/tdmd.py). See [[6](README.md#12-references)] for details.
 
 ```
-...
+standard .............. standard TDMD algorithm
+exact ................. exact TDMD algorithm
 ```
 
 ### 5.2 Multidimensional approximation of nonlinear dynamical systems (MANDy)
