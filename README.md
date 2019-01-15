@@ -37,6 +37,12 @@ A [*setup.py*](setup.py) is included in the package. To install **scikit_tt** si
 python setup.py install --user
 ```
 
+or install the latest version directly from GitHub:
+
+```
+pip install git+https://github.com/PGelss/scikit_tt
+```
+
 ## 2. TT class
 
 The tensor-train class - implemented in the module [*tensor-train.py*](scikit_tt/tensor_train.py) - is the core of **scikit_tt** and enables us to work with the tensor-train format. We define tensor trains in terms of different attributes such as *order*, *row_dims*, *col_dims*, *ranks*, and *cores*. An overview of the member functions of the class is shown in the following list.
