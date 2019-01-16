@@ -1,7 +1,9 @@
 ![scikit_tt - A toolbox for tensor-train computations](logo.png)
 
-[![](https://img.shields.io/travis/PGelss/scikit_tt.svg)](https://travis-ci.org/PGelss/scikit_tt)
-[![](https://img.shields.io/codecov/c/github/PGelss/scikit_tt.svg)](https://codecov.io/gh/PGelss/scikit_tt/branch/master)
+<p style="text-align: center;">
+  [![](https://img.shields.io/travis/PGelss/scikit_tt.svg)](https://travis-ci.org/PGelss/scikit_tt)
+  [![](https://img.shields.io/codecov/c/github/PGelss/scikit_tt.svg)](https://codecov.io/gh/PGelss/scikit_tt/branch/master) 
+</p>
 
 ## Short description
 
