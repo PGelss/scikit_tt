@@ -6,6 +6,10 @@ metadata = dict(name='scikit_tt',
                 license='LGPLv3',
                 version='1.0',
                 packages=find_packages(),
+                install_requires=['numpy>=1.14',
+                                  'scipy>=1',
+                                  'matplotlib>=2.2',
+                                  ],
                 )
 
 if __name__ == '__main__':
