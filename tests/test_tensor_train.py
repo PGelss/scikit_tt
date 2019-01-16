@@ -48,7 +48,7 @@ class TestTT(TestCase):
         str = self.t.__repr__()
 
         # check if string is not empty
-        self.assertEqual(str, None)
+        self.assertIsNotNone(str)
 
     def test_conversion(self):
         """test conversion to full format and element extraction"""
