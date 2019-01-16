@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from unittest import TestCase
-import scikit_tt.perron_frobenius as pf
+import scikit_tt.data_driven.perron_frobenius as pf
 import scikit_tt.tensor_train as tt
 import scikit_tt.solvers.evp as evp
 import numpy as np

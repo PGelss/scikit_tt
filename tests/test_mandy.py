@@ -3,7 +3,7 @@
 from unittest import TestCase
 import numpy as np
 import scikit_tt.models as mdl
-import scikit_tt.mandy as mandy
+import scikit_tt.data_driven.mandy as mandy
 
 
 class TestMANDy(TestCase):
