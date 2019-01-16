@@ -12,6 +12,6 @@ install:
   - python setup.py install
 # command to run tests
 script:
-  - pytest --cov=./ tests/
+  - pytest --cov=scikit_tt tests/
 after_script:
   - bash <(curl -s https://codecov.io/bash)
