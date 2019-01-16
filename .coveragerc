@@ -1,0 +1,7 @@
+[report]
+
+omit =
+    # omit utils.py
+    scikit_tt/utils.py
+    # omit fractals
+    scikit_tt/fractals
