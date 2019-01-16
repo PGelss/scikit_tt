@@ -148,7 +148,7 @@ class TT(object):
 
             return tt_sum
         else:
-            raise ValueError('unsupported argument')
+            raise TypeError('unsupported argument')
 
     def __sub__(self, tt_sub):
         """difference of two tensor trains
@@ -237,6 +237,8 @@ class TT(object):
             return tt_prod
         else:
             raise ValueError('unsupported argument')
+
+    # dot = __matmul__
 
     def transpose(self):
         """transpose of tensor trains

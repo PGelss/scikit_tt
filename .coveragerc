@@ -1,7 +1,8 @@
 [report]
 
+exclude_lines =
+    raise TypeError
+
 omit =
-    # omit utils.py
     scikit_tt/utils.py
-    # omit fractals
     scikit_tt/fractals
