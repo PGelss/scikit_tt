@@ -8,8 +8,10 @@ matrix:
   - python: "2.7"
 # command to install dependencies
 install:
-  - pip install pytest
+  - pip install pytest pytest-cov
   - python setup.py install
 # command to run tests
 script:
-  - pytest tests/
+  - pytest tests/ --cov=./
+after_script:
+  - bash <(curl -s https://codecov.io/bash)
