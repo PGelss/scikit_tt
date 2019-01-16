@@ -156,12 +156,12 @@ utl.progress('Plotting patterns', 0, dots=12)
 # multisponges
 f = plt.figure(figsize=plt.figaspect(0.65))
 for i in range(3):
-    ax = f.add_subplot(2, 3, i+1)
+    ax = f.add_subplot(2, 3, i+1, aspect=1)
     plot2d(multisponge[i])
     if i == 1:
         plt.title('Sierpinski carpet', y=1.2)
 for i in range(3,6):
-    ax = f.add_subplot(2, 3, i+1, projection='3d')
+    ax = f.add_subplot(2, 3, i+1, projection='3d', aspect=1)
     plot3d(multisponge[i])
     if i == 4:
         plt.title('Menger sponge', y=1.1)
@@ -172,17 +172,17 @@ utl.progress('Plotting patterns', 25, dots=12)
 # Cantor dusts
 f = plt.figure(figsize=plt.figaspect(1))
 for i in range(3):
-    ax = f.add_subplot(3, 3, i+1)
+    ax = f.add_subplot(3, 3, i+1, aspect=1)
     plot1d(cantor_dust[i])
     if i == 1:
         plt.title('Cantor set', y=1.2)
 for i in range(3,6):
-    ax = f.add_subplot(3, 3, i+1)
+    ax = f.add_subplot(3, 3, i+1, aspect=1)
     plot2d(cantor_dust[i])
     if i == 4:
         plt.title('Cantor dust (2D)', y=1.2)
 for i in range(6,9):
-    ax = f.add_subplot(3, 3, i+1, projection='3d')
+    ax = f.add_subplot(3, 3, i+1, projection='3d', aspect=1)
     plot3d(cantor_dust[i])
     if i == 7:
         plt.title('Cantor dust (3D)', y=1.1)
@@ -193,12 +193,12 @@ utl.progress('Plotting patterns', 50, dots=12)
 # Vicsek fractals
 f = plt.figure(figsize=plt.figaspect(0.65))
 for i in range(3):
-    ax = f.add_subplot(2, 3, i+1)
+    ax = f.add_subplot(2, 3, i+1, aspect=1)
     plot2d(vicsek[i])
     if i == 1:
         plt.title('Vicsek fractal (2D)', y=1.2)
 for i in range(3,6):
-    ax = f.add_subplot(2, 3, i+1, projection='3d')
+    ax = f.add_subplot(2, 3, i+1, projection='3d', aspect=1)
     plot3d(vicsek[i])
     if i == 4:
         plt.title('Vicsek fractal (3D)', y=1.1)
@@ -209,7 +209,7 @@ utl.progress('Plotting patterns', 75, dots=12)
 # RGB fractals
 f = plt.figure(figsize=plt.figaspect(0.45))
 for i in range(3):
-    ax = f.add_subplot(1, 3, i + 1)
+    ax = f.add_subplot(1, 3, i + 1, aspect=1)
     plotrgb(rgb_fractals[i])
     if i == 1:
         plt.title('RGB fractals', y=1.1)
