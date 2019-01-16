@@ -1,5 +1,8 @@
 ![scikit_tt - A toolbox for tensor-train computations](logo.png)
 
+[![](https://img.shields.io/travis/PGelss/scikit_tt.svg)](https://travis-ci.org/PGelss/scikit_tt)
+
+
 ## Short description
 
 The simulation and analysis of high-dimensional problems is often infeasible due to the curse of dimensionality. Using the *tensor-train format* (TT format) [[1](README.md#12-references), [2](README.md#12-references)] and tensor-based solvers [[3](README.md#12-references)], **scikit_tt** can be applied to various numerical problems in order to reduce the memory consumption and the computational costs compared to classical approaches significantly. Possible application areas are the computation of low-rank approximations for high-dimensional systems, solving systems of linear equations and eigenvalue problems in the TT format, representing operators based on nearest-neighbor interactions in the TT format, constructing pseudoinverses for tensor-based reformulations of dimensionality reduction methods, and the approximation of transfer operators as well as governing equations of dynamical systems.
