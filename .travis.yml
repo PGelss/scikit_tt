@@ -3,6 +3,9 @@ python:
   - "2.7"
   - "3.5"
   - "3.6"
+matrix:
+  allow_failures:
+  - python: 2.7
 # command to install dependencies
 install:
   - pip install pytest
