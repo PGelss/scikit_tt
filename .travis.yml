@@ -9,7 +9,7 @@ matrix:
 # command to install dependencies
 install:
   - pip install pytest pytest-cov -U
-  - python setup.py install
+  - python setup.py develop
 # command to run tests
 script:
   - pytest --cov=scikit_tt tests/
