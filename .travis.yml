@@ -8,7 +8,7 @@ matrix:
   - python: "2.7"
 # command to install dependencies
 install:
-  - pip install pytest pytest-cov
+  - pip install pytest pytest-cov -U
   - python setup.py install
 # command to run tests
 script:
