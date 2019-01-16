@@ -41,6 +41,15 @@ class TestTT(TestCase):
         self.assertEqual(self.t.col_dims, self.col_dims)
         self.assertEqual(self.t.cores, self.cores)
 
+    def test_representation(self):
+        """test string representation of tensor trains"""
+
+        # get string representation
+        str = self.t.__repr__()
+
+        # check if string is not empty
+        self.assertEqual(str, None)
+
     def test_conversion(self):
         """test conversion to full format and element extraction"""
 
