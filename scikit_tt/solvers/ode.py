@@ -194,7 +194,7 @@ def errors_trapezoidal(operator, solution, step_sizes):
     for i in range(len(solution) - 1):
         errors.append(((tt.eye(operator.row_dims) - 0.5 * step_sizes[i] * operator) @ solution[i + 1] -
                        (tt.eye(operator.row_dims) + 0.5 * step_sizes[i] * operator) @ solution[i]).norm() /
-                      (tt.eye(operator.row_dims) + 0.5 * step_sizes[i] * operator) @ solution[i].norm())
+                      ((tt.eye(operator.row_dims) + 0.5 * step_sizes[i] * operator) @ solution[i]).norm())
 
     return errors
 
