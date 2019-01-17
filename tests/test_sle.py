@@ -41,17 +41,22 @@ class TestSLE(TestCase):
         solution_mat = np.linalg.solve(self.operator_mat, self.rhs_mat)
 
         # solve system of linear equations in TT format
-        solution_tt = sle.als(self.operator_tt, self.initial_tt, self.rhs_tt, repeats=1)
+        solution_tt_solve = sle.als(self.operator_tt, self.initial_tt, self.rhs_tt, repeats=1)
+        solution_tt_lu = sle.als(self.operator_tt, self.initial_tt, self.rhs_tt, repeats=1, solver='lu')
 
         # compute relative error between exact and approximate solution
-        rel_err_mat = np.linalg.norm(solution_mat - solution_tt.matricize()) / np.linalg.norm(solution_mat)
+        rel_err_mat_solve = np.linalg.norm(solution_mat - solution_tt_solve.matricize()) / np.linalg.norm(solution_mat)
+        rel_err_mat_lu = np.linalg.norm(solution_mat - solution_tt_lu.matricize()) / np.linalg.norm(solution_mat)
 
         # compute relative error of the system on linear equations in TT format
-        rel_err_tt = (self.operator_tt@solution_tt-self.rhs_tt).norm()/self.rhs_tt.norm()
+        rel_err_tt_solve = (self.operator_tt@solution_tt_solve-self.rhs_tt).norm()/self.rhs_tt.norm()
+        rel_err_tt_lu = (self.operator_tt @ solution_tt_lu - self.rhs_tt).norm() / self.rhs_tt.norm()
 
         # check if relative errors are smaller than tolerance
-        self.assertLess(rel_err_mat, self.tol)
-        self.assertLess(rel_err_tt, self.tol)
+        self.assertLess(rel_err_mat_solve, self.tol)
+        self.assertLess(rel_err_mat_lu, self.tol)
+        self.assertLess(rel_err_tt_solve, self.tol)
+        self.assertLess(rel_err_tt_lu, self.tol)
 
     def test_mals(self):
         """test for MALS"""
@@ -60,14 +65,19 @@ class TestSLE(TestCase):
         solution_mat = np.linalg.solve(self.operator_mat, self.rhs_mat)
 
         # solve system of linear equations in TT format
-        solution_tt = sle.mals(self.operator_tt, self.initial_tt, self.rhs_tt, repeats=1, threshold=1e-14, max_rank=10)
+        solution_tt_solve = sle.mals(self.operator_tt, self.initial_tt, self.rhs_tt, repeats=1, threshold=1e-14, max_rank=10)
+        solution_tt_lu = sle.mals(self.operator_tt, self.initial_tt, self.rhs_tt, repeats=1, solver='lu', threshold=1e-14, max_rank=10)
 
         # compute relative error between exact and approximate solution
-        rel_err_mat = np.linalg.norm(solution_mat - solution_tt.matricize()) / np.linalg.norm(solution_mat)
+        rel_err_mat_solve = np.linalg.norm(solution_mat - solution_tt_solve.matricize()) / np.linalg.norm(solution_mat)
+        rel_err_mat_lu = np.linalg.norm(solution_mat - solution_tt_lu.matricize()) / np.linalg.norm(solution_mat)
 
         # compute relative error of the system on linear equations in TT format
-        rel_err_tt = (self.operator_tt@solution_tt-self.rhs_tt).norm()/self.rhs_tt.norm()
+        rel_err_tt_solve = (self.operator_tt@solution_tt_solve-self.rhs_tt).norm()/self.rhs_tt.norm()
+        rel_err_tt_lu = (self.operator_tt @ solution_tt_lu - self.rhs_tt).norm() / self.rhs_tt.norm()
 
         # check if relative errors are smaller than tolerance
-        self.assertLess(rel_err_mat, self.tol)
-        self.assertLess(rel_err_tt, self.tol)
+        self.assertLess(rel_err_mat_solve, self.tol)
+        self.assertLess(rel_err_mat_lu, self.tol)
+        self.assertLess(rel_err_tt_solve, self.tol)
+        self.assertLess(rel_err_tt_lu, self.tol)
