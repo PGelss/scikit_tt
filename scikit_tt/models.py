@@ -306,14 +306,13 @@ def signaling_cascade(d):
     cores[0][0, :, :, 0] = s_mat_0
     cores[0][0, :, :, 1] = l_mat
     cores[0][0, :, :, 2] = i_mat
-    cores.append(np.zeros([3, 64, 64, 3]))
-    cores[1][0, :, :, 0] = i_mat
-    cores[1][1, :, :, 0] = m_mat
-    cores[1][2, :, :, 0] = s_mat
-    cores[1][2, :, :, 1] = l_mat
-    cores[1][2, :, :, 2] = i_mat
-    for k in range(2, d - 1):
-        cores.append(cores[1])
+    for k in range(1, d - 1):
+        cores.append(np.zeros([3, 64, 64, 3]))
+        cores[k][0, :, :, 0] = i_mat
+        cores[k][1, :, :, 0] = m_mat
+        cores[k][2, :, :, 0] = s_mat
+        cores[k][2, :, :, 1] = l_mat
+        cores[k][2, :, :, 2] = i_mat
     cores.append(np.zeros([3, 64, 64, 1]))
     cores[d - 1][0, :, :, 0] = i_mat
     cores[d - 1][1, :, :, 0] = m_mat
