@@ -95,7 +95,7 @@ def multisponge(dimension, level):
 
     else:
 
-        fractal = None
+        raise ValueError('dimension must be larger than 1')
 
     return fractal
 
@@ -199,6 +199,6 @@ def vicsek_fractal(dimension, level):
 
     else:
 
-        fractal = None
+        raise ValueError('dimension must be larger than 1')
 
     return fractal
