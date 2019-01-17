@@ -212,7 +212,7 @@ class TestTT(TestCase):
         t_col = TT(cores)
 
         # left-orthonormalize t
-        t_left = t_col.ortho_left()
+        t_left = t_col.ortho_left(threshold=1e-14)
 
         # test if cores are left-orthonormal
         err = 0
@@ -239,7 +239,7 @@ class TestTT(TestCase):
         t_col = TT(cores)
 
         # right-orthonormalize t
-        t_right = t_col.ortho_right()
+        t_right = t_col.ortho_right(threshold=1e-14)
 
         # test if cores are right-orthonormal
         err = 0
@@ -304,7 +304,7 @@ class TestTT(TestCase):
         t_tt_full = t_tt.full().flatten()
 
         # split the cores of t_tt, convert to full array, and flatten
-        t_qtt = t_tt.tt2qtt([self.row_dims[0:2], self.row_dims[2:]], [self.col_dims[0:2], self.col_dims[2:]])
+        t_qtt = t_tt.tt2qtt([self.row_dims[0:2], self.row_dims[2:]], [self.col_dims[0:2], self.col_dims[2:]], threshold=1e-14)
 
         # convert t_qtt to full array, and flatten
         t_qtt_full = t_qtt.full().flatten()
@@ -373,7 +373,7 @@ class TestTT(TestCase):
         # check if relative error is smaller than tolerance
         self.assertLess(rel_err, self.tol)
 
-    def test_identity(self):
+    def test_eye(self):
         """test identity tensor train"""
 
         # construct identity tensor train, convert to full format, and flatten
@@ -388,12 +388,39 @@ class TestTT(TestCase):
         # check if relative error is smaller than tolerance
         self.assertLess(rel_err, self.tol)
 
+    def test_unit(self):
+        """test unit tensor train"""
+
+        # construct unit tensor train, convert to full format, and flatten
+        t_unit = tt.unit(self.row_dims, [0]*self.order).full().flatten()
+
+        # construct unit vector
+        t_full = np.eye(np.int(np.prod(self.row_dims)), 1).T
+
+        # compute relative error
+        rel_err = np.linalg.norm(t_unit - t_full) / np.linalg.norm(t_full)
+
+        # check if relative error is smaller than tolerance
+        self.assertLess(rel_err, self.tol)
+
+    def test_random(self):
+        """test random tensor train"""
+
+        # construct random tensor train
+        t_rand = tt.rand(self.row_dims, self.col_dims)
+
+        # check if attributes are correct
+        self.assertEqual(t_rand.order, self.order)
+        self.assertEqual(t_rand.row_dims, self.row_dims)
+        self.assertEqual(t_rand.col_dims, self.col_dims)
+        self.assertEqual(t_rand.ranks, [1]*(self.order+1))
+
     def test_uniform(self):
         """test uniform tensor train"""
 
         # construct uniform tensor train
         norm = 10 * np.random.rand()
-        t_uni = tt.uniform(self.row_dims, ranks=self.ranks, norm=norm)
+        t_uni = tt.uniform(self.row_dims, ranks=self.ranks[1], norm=norm)
 
         # compute norms
         norm_tt = t_uni.norm()

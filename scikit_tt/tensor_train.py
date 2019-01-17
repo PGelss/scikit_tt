@@ -762,7 +762,7 @@ def zeros(row_dims, col_dims, ranks=1):
 
     # set ranks of tt_zeros
     if not isinstance(ranks, list):
-        ranks = [1] + [ranks] * (len(row_dims) - 1) + [1]
+        ranks = [1] + [ranks for _ in range(len(row_dims) - 1)] + [1]
 
     # define TT cores of tt_zeros
     cores = [np.zeros([ranks[i], row_dims[i], col_dims[i], ranks[i + 1]]) for i in range(len(row_dims))]
@@ -873,7 +873,7 @@ def rand(row_dims, col_dims, ranks=1):
 
     # set ranks of tt_rand
     if not isinstance(ranks, list):
-        ranks = [1] + [ranks] * (len(row_dims) - 1) + [1]
+        ranks = [1] + [ranks for _ in range(len(row_dims) - 1)] + [1]
 
     # define TT cores of tt_rand
     cores = [np.random.rand(ranks[i], row_dims[i], col_dims[i], ranks[i + 1]) for i in range(len(row_dims))]
@@ -904,7 +904,7 @@ def uniform(row_dims, ranks=1, norm=1):
 
     # set ranks of tt_uni
     if not isinstance(ranks, list):
-        ranks = [1] + [ranks] * (len(row_dims) - 1) + [1]
+        ranks = [1] + [ranks for _ in range(len(row_dims) - 1)] + [1]
 
     # compute factor for each core such that tt_uni has given norm
     factor = (norm / (np.sqrt(np.prod(row_dims)) * np.prod(ranks))) ** (1 / len(row_dims))
