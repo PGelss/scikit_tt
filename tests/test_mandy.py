@@ -54,6 +54,7 @@ class TestMANDy(TestCase):
         """test function-major approach"""
 
         # apply MANDy
+        _ = mandy.mandy_fm(self.kuramoto_x, self.kuramoto_y, self.kuramoto_psi, add_one=False)
         xi = mandy.mandy_fm(self.kuramoto_x, self.kuramoto_y, self.kuramoto_psi)
 
         # compute relative error
