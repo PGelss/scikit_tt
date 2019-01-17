@@ -1,9 +1,0 @@
-[report]
-
-exclude_lines =
-    raise TypeError
-    raise ValueError
-    utl.progress
-
-omit =
-    scikit_tt/utils.py
