@@ -15,7 +15,7 @@ class TestMANDy(TestCase):
         self.tol = 1e-5
 
         # number of oscillators
-        self.fpu_d = 3
+        self.fpu_d = 4
         self.kuramoto_d = 10
 
         # parameters for the Fermi-Pasta_ulam problem
