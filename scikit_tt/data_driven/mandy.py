@@ -120,7 +120,7 @@ def mandy_fm(x, y, psi, threshold=0, add_one=True):
                 cores[i][j, 1:, 0, j] = np.array([psi[i](x[k, j]) for k in range(d)])
         else:
             for j in range(m):
-                cores[0][0, :, 0, j] = np.array([psi[0](x[k, j]) for k in range(d)])
+                cores[i][j, :, 0, j] = np.array([psi[i](x[k, j]) for k in range(d)])
 
     # append core containing unit vectors
     cores.append(np.eye(m).reshape(m, m, 1, 1))
