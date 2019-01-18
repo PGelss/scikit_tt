@@ -87,7 +87,7 @@ def plot_parameters(font_size=14):
     plt.rcParams.update({'axes.grid': True})
 
 
-def progress(text, percent, dots=3):
+def progress(text, percent, dots=3, show=True):
     """Show progress in percent
 
     Print strings of the form, e.g., 'Running ... 10%' etc., without line breaks.
@@ -100,12 +100,15 @@ def progress(text, percent, dots=3):
         current progress
     dots: int, optional
         number of dots to print, default is 3
+    show: bool, optional
+        whether to print the progress, default is True
     """
 
-    sys.stdout.write('\r' + text + ' ' + dots * '.' + ' ' + str("%.1f" % percent) + '%')
+    if show:
+        sys.stdout.write('\r' + text + ' ' + dots * '.' + ' ' + str("%.1f" % percent) + '%')
 
-    if percent == 100:
-        sys.stdout.write('\n')
+        if percent == 100:
+            sys.stdout.write('\n')
 
 
 class timer(object):
