@@ -83,6 +83,8 @@ uniform ............... construct a uniformly distributed tensor train
 
 ## 3. TT solvers
 
+Different methods for solving systems of linear equations, eigenvalue problems, and linear differential equations in the TT format are implemented in **scikit_tt**. These methods - which can be found in the directory [*scikit_tt/solvers*](scikit_tt/solvers) - are based on the alternating optimization of the TT cores.
+
 ### 3.1 Systems of linear equations
 
 In order to approximate the solution of a system of linear equations in the TT format, a series of low-dimensional problems can be solved by fixing certain components of the tensor network. For this purpose, the *alternating linear scheme* (ALS) and the *modified alternating linear scheme* (MALS) [[3](README.md#12-references)] are implemented in [*sle.py*](scikit_tt/solvers/sle.py).
