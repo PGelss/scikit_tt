@@ -66,8 +66,7 @@ def implicit_euler(operator, initial_value, initial_guess, step_sizes, repeats=1
         solution.append(tt_tmp.copy())
 
         # print progress
-        if progress is True:
-            utl.progress('Running implicit Euler method', 100 * i / (len(step_sizes) - 1))
+        utl.progress('Running implicit Euler method', 100 * i / (len(step_sizes) - 1), show=progress)
 
     return solution
 
@@ -163,8 +162,7 @@ def trapezoidal_rule(operator, initial_value, initial_guess, step_sizes, repeats
         solution.append(tt_tmp.copy())
 
         # print progress
-        if progress is True:
-            utl.progress('Running trapezoidal rule', 100 * i / (len(step_sizes) - 1))
+        utl.progress('Running trapezoidal rule', 100 * i / (len(step_sizes) - 1), show=progress)
 
     return solution
 
@@ -199,9 +197,10 @@ def errors_trapezoidal(operator, solution, step_sizes):
     return errors
 
 
-def adaptive_step_size(operator, initial_value, initial_guess, time_end, step_size_first=1e-10, repeats=1, solver='solve',
-                 error_tol=1e-1, closeness_tol=0.5, step_size_min=1e-14, step_size_max=10, closeness_min=1e-3,
-                 factor_max=2, factor_safe=0.9, second_method='two_step_Euler'):
+def adaptive_step_size(operator, initial_value, initial_guess, time_end, step_size_first=1e-10, repeats=1,
+                       solver='solve',
+                       error_tol=1e-1, closeness_tol=0.5, step_size_min=1e-14, step_size_max=10, closeness_min=1e-3,
+                       factor_max=2, factor_safe=0.9, second_method='two_step_Euler', progress=True):
     """Adaptive step size method
 
     Parameters
@@ -237,6 +236,8 @@ def adaptive_step_size(operator, initial_value, initial_guess, time_end, step_si
     second_method: string, optional
         which higher-order method should be used, can be 'two_step_Euler' or 'trapezoidal_rule', default is
         'two_step_Euler'
+    progress: bool, optional
+        whether to show the progress of the algorithm or not, default is True
 
     Returns
     -------
@@ -300,11 +301,11 @@ def adaptive_step_size(operator, initial_value, initial_guess, time_end, step_si
 
         # accept or reject step
         if (factor_local > 1) and (factor_closeness > 1):
-            time = time + step_size
+            time = np.min([time + step_size, time_end])
             step_size = np.amin([step_size_new, time_end - time, step_size_max])
             solution.append(t_1.copy())
             t_tmp = t_1
-            print('tau: ' + str("%.2e" % step_size) + ', closeness: ' + str("%.2e" % closeness))
+            utl.progress('Running adaptive step size method', 100 * time / time_end, show=progress)
             closeness_pre = closeness
         else:
             step_size = step_size_new
