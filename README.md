@@ -99,10 +99,8 @@ mals .................. modified ALS for systems of linear equations in the TT f
 ALS and MALS can also be used to find approximations of eigenvalues and corresponding eigentensors of TT operators. The basic procedures of ALS and MALS - implemented in [*evp.py*](scikit_tt/solvers/evp.py) - for (generalized) eigenvalue problems are similar to the ones for systems of linear equations. The main difference is the type of optimization problem which has to be solved in the iteration steps. See [[3](README.md#12-references)]  for details.
 
 ```
-als ................... alternating linear scheme for eigenvalue problems in the TT format
+als ................... ALS for generalized eigenvalue problems in the TT format
 ```
-
-**TODO: _add MALS for eigenvalue problems_ / _implement solvers for generalized EVPs_**
 
 ### 3.3 Linear differential equations
 
@@ -115,8 +113,6 @@ trapezoidal_rule ...... trapezoidal rule for linear differential equations in th
 errors_trapezoidal .... compute approximation errors of the trapezoidal rule
 adaptive_step_size .... adaptive step size method for linear differential equations in the TT format
 ```
-
-**TODO: _revise code_ / _combine ALS/MALS methods_ / _explicit methods?_**
 
 ## 4. SLIM decomposition
 
