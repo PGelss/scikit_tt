@@ -72,7 +72,6 @@ class TestODE(TestCase):
             self.assertLess(derivatives_als[i], self.tol)
             self.assertLess(derivatives_mals[i], self.tol)
 
-
     def test_errors(self):
         """test for error computations"""
 
@@ -91,3 +90,19 @@ class TestODE(TestCase):
         # check if errors are smaller than tolerance
         self.assertLess(np.max(errors_ie), self.tol)
         self.assertLess(np.max(errors_tr), self.tol)
+
+    def test_adaptive(self):
+        """test for adaptive_step_size"""
+
+        # compute numerical solution of the ODE
+        operator = mdl.signaling_cascade(2).tt2qtt([[2] * 6] * 2, [[2] * 6] * 2)
+        initial_value = tt.unit(operator.row_dims, [0] * operator.order)
+        initial_guess = tt.ones(operator.row_dims, [1] * operator.order, ranks=self.rank).ortho_right()
+        solution = ode.adaptive_step_size(operator, initial_value, initial_guess, 300, step_size_first=1e-2,
+                                          progress=False)
+
+        # compute norm of the derivatives at the final time step
+        derivatives = (operator @ solution[-1]).norm()
+
+        # check if converged to stationary distribution
+        self.assertLess(derivatives, self.tol)
