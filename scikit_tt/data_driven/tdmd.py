@@ -4,7 +4,7 @@ import numpy as np
 import scipy.linalg as lin
 
 
-def exact(x, y, threshold=0, ortho_l=True, ortho_r=True):
+def tdmd_exact(x, y, threshold=0, ortho_l=True, ortho_r=True):
     """Exact TDMD
 
     Tensor-based version of exact DMD. See [1]_ for details.
@@ -39,7 +39,7 @@ def exact(x, y, threshold=0, ortho_l=True, ortho_r=True):
     x = x.pinv(x.order - 1, threshold=threshold, ortho_l=ortho_l, ortho_r=ortho_r)
 
     # compute reduced matrix
-    reduced_matrix = __reduced_matrix(x, y)
+    reduced_matrix = __tdmd_reduced_matrix(x, y)
 
     # compute eigenvalues and eigenvectors of the reduced matrix
     # noinspection PyTupleAssignmentBalance
@@ -58,7 +58,7 @@ def exact(x, y, threshold=0, ortho_l=True, ortho_r=True):
     return dmd_eigenvalues, dmd_modes
 
 
-def standard(x, y, threshold=0, ortho_l=True, ortho_r=True):
+def tdmd_standard(x, y, threshold=0, ortho_l=True, ortho_r=True):
     """Standard TDMD
 
     Tensor-based version of standard DMD. See [1]_ for details.
@@ -93,7 +93,7 @@ def standard(x, y, threshold=0, ortho_l=True, ortho_r=True):
     x = x.pinv(x.order - 1, threshold=threshold, ortho_l=ortho_l, ortho_r=ortho_r)
 
     # compute reduced matrix
-    reduced_matrix = __reduced_matrix(x, y)
+    reduced_matrix = __tdmd_reduced_matrix(x, y)
 
     # compute eigenvalues and eigenvectors of the reduced matrix
     # noinspection PyTupleAssignmentBalance
@@ -111,7 +111,7 @@ def standard(x, y, threshold=0, ortho_l=True, ortho_r=True):
     return dmd_eigenvalues, dmd_modes
 
 
-def __reduced_matrix(x, y):
+def __tdmd_reduced_matrix(x, y):
     """Compute the reduced matrix for finding DMD eigenvalues. See [1]_ for details.
 
     Parameters
