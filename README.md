@@ -85,7 +85,7 @@ uniform ............... construct a uniformly distributed tensor train
 
 ### 3.1 Systems of linear equations
 
-In order to approximate the solution of a system of linear equations in the TT format, a series of low-dimensional problems can be solved by fixing certain components of the tensor network. For this purpose, the *alternating linear scheme* (ALS) and the *modified alternating linear scheme* (MALS) [[3](README.md#12-references)] are implemented in [*solvers/sle.py*](scikit_tt/solvers/sle.py).
+In order to approximate the solution of a system of linear equations in the TT format, a series of low-dimensional problems can be solved by fixing certain components of the tensor network. For this purpose, the *alternating linear scheme* (ALS) and the *modified alternating linear scheme* (MALS) [[3](README.md#12-references)] are implemented in [*sle.py*](scikit_tt/solvers/sle.py).
 
 ```
 als ................... alternating linear scheme for systems of linear equations in the TT format
@@ -94,7 +94,7 @@ mals .................. modified ALS for systems of linear equations in the TT f
 
 ### 3.2 Generalized eigenvalue problems
 
-ALS and MALS can also be used to find approximations of eigenvalues and corresponding eigentensors of TT operators. The basic procedures of ALS and MALS - implemented in [*solvers/evp.py*](scikit_tt/solvers/evp.py) - for (generalized) eigenvalue problems are similar to the ones for systems of linear equations. The main difference is the type of optimization problem which has to be solved in the iteration steps. See [[3](README.md#12-references)]  for details. 
+ALS and MALS can also be used to find approximations of eigenvalues and corresponding eigentensors of TT operators. The basic procedures of ALS and MALS - implemented in [*evp.py*](scikit_tt/solvers/evp.py) - for (generalized) eigenvalue problems are similar to the ones for systems of linear equations. The main difference is the type of optimization problem which has to be solved in the iteration steps. See [[3](README.md#12-references)]  for details.
 
 ```
 als ................... alternating linear scheme for eigenvalue problems in the TT format
@@ -104,7 +104,7 @@ als ................... alternating linear scheme for eigenvalue problems in the
 
 ### 3.3 Linear differential equations
 
-In order to compute time-dependent or stationary distributions of linear differential equations in the TT format, **scikit_tt** uses implicit integration schemes such as the implicit Euler method or the trapezoidal rule. In order to approximate the solutions at each time step, ALS and MALS, respectively, are used. The methods can be found in [*solvers/ode.py*](scikit_tt/solvers/ode.py).
+In order to compute time-dependent or stationary distributions of linear differential equations in the TT format, **scikit_tt** uses implicit integration schemes such as the implicit Euler method or the trapezoidal rule. In order to approximate the solutions at each time step, ALS and MALS, respectively, are used. The methods can be found in [*ode.py*](scikit_tt/solvers/ode.py).
 
 ```
 implicit_euler ........ implicit Euler method for linear differential equations in the TT format
@@ -127,20 +127,20 @@ slim_mme_hom .......... SLIM decomposition for homogeneous Markov generators
 
 ## 5. Data analysis
 
-**scikit_tt** combines data-driven methods with tensor network decompositions in order to significantly reduce the computational costs and/or storage consumption for high-dimensional data sets. Different methods can be found in the directory [*data_driven*](data_driven/)
+**scikit_tt** combines data-driven methods with tensor network decompositions in order to significantly reduce the computational costs and/or storage consumption for high-dimensional data sets. Different methods can be found in the directory [*scikit_tt/data_driven*](scikit_tt/data_driven/).
 
-### 5.1 Tensor-based dynamic mode decomposition (TDMD)
+### 5.1 Tensor-based dynamic mode decomposition (tDMD)
 
-TDMD is an extension of the classical dynamic mode decomposition which exploits the TT format to compute DMD modes and eigenvalues. The algorithms below can be found in [*data_driven/tdmd.py*](scikit_tt/data_driven/tdmd.py). See [[6](README.md#12-references)] for details.
+tDMD is an extension of the classical dynamic mode decomposition which exploits the TT format to compute DMD modes and eigenvalues. The algorithms below can be found in [*tdmd.py*](scikit_tt/data_driven/tdmd.py). See [[6](README.md#12-references)] for details.
 
 ```
-standard .............. standard TDMD algorithm
-exact ................. exact TDMD algorithm
+tdmd_exact ............ exact tDMD algorithm
+tdmd_standard ......... standard tDMD algorithm
 ```
 
 ### 5.2 Multidimensional approximation of nonlinear dynamical systems (MANDy)
 
-MANDy combines the data-driven recovery of dynamical systems with tensor decompositions. The methods implemented in [*data_driven/mandy.py*](scikit_tt/data_driven/mandy.py) can be used for the recovery of unknown governing equations from measurement data only. See [[7](README.md#12-references)] for details.
+MANDy combines the data-driven recovery of dynamical systems with tensor decompositions. The methods implemented in [*mandy.py*](scikit_tt/data_driven/mandy.py) can be used for the recovery of unknown governing equations from measurement data only. See [[7](README.md#12-references)] for details.
 
 ```
 mandy_cm .............. MANDy using coordinate-major decompositions
@@ -149,7 +149,7 @@ mandy_fm .............. MANDy using function-major decompositions
 
 ### 5.3 Approximation of Perron-Frobenius operators
 
-Given transitions of particles in a 2- or 3-dimensional potentials, **scikit_tt** can be used to approximate the corresponding Perron-Frobenius operator in TT format. The algorithms can be found in [*data_driven/perron_frobenius.py*](scikit_tt/data_driven/perron_frobenius.py). See [[2](README.md#12-references)] for details.
+Given transitions of particles in a 2- or 3-dimensional potentials, **scikit_tt** can be used to approximate the corresponding Perron-Frobenius operator in TT format. The algorithms can be found in [*perron_frobenius.py*](scikit_tt/data_driven/perron_frobenius.py). See [[2](README.md#12-references)] for details.
 
 ```
 perron_frobenius_2d ... approximate Perron-Frobenius operators for 2-dimensional systems
@@ -190,6 +190,7 @@ co_oxidation .......... compute stationary distributions of a catalytic process
 fermi_pasta_ulam_1 .... apply MANDy to the Fermi-Pasta-Ulam problem
 fermi_pasta_ulam_2 .... apply MANDy to the Fermi-Pasta-Ulam problem
 fractals .............. use tensor decompositions for generating fractal patterns
+karman ................ apply tDMD to the von Kármán vortex street
 kuramoto .............. apply MANDy to the Kuramoto model
 quadruple_well ........ approximate eigenfunctions of the Perron-Frobenius operator in 3D
 signaling_cascade ..... compute mean concentrations of a 20-dimensional signaling cascade
@@ -202,10 +203,14 @@ two_step_destruction .. apply QTT and MALS to a two-step destruction process
 Modules containing unit tests are provided in the directory [*tests*](tests/).
 
 ```
-test_evp .............. unit tests for evp.py
-test_mandy ............ unit tests for mandy.py
-test_sle .............. unit tests for sle.py
+test_evp .............. unit tests for solvers/evp.py
+test_fractals.......... unit tests for fractals.py
+test_mandy ............ unit tests for data_driven/mandy.py
+test_ode .............. unit tests for solvers/ode.py
+test_perron_frobenius . unit tests for data_driven/perron_frobenius.py
+test_sle .............. unit tests for solvers/sle.py
 test_slim ............. unit tests for slim.py
+test_tdmd ............. unit tests for data_driven/tdmd.py
 test_tensor_train ..... unit tests for tensor_train.py
 ```
 
