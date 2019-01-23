@@ -235,8 +235,8 @@ class TT(object):
             tt_prod = TT(cores)
 
             # set tt_prod to scalar if all dimensions are equal to 1
-            m = np.prod(self.row_dims)
-            n = np.prod(self.col_dims)
+            m = np.prod(tt_prod.row_dims)
+            n = np.prod(tt_prod.col_dims)
             if m == 1 and n == 1:
                 tt_prod = tt_prod.matricize()[0]
 
