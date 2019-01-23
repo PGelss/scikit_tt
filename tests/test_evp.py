@@ -33,7 +33,7 @@ class TestEVP(TestCase):
         self.operator_mat = self.operator_tt.matricize()
 
         # define initial tensor train for solving the eigenvalue problem
-        self.initial_tt = tt.ones(self.operator_tt.row_dims, [1] * self.operator_tt.order, ranks=11).ortho_right()
+        self.initial_tt = tt.ones(self.operator_tt.row_dims, [1] * self.operator_tt.order, ranks=15).ortho_right()
 
     def test_als(self):
         """test for ALS"""
@@ -66,3 +66,24 @@ class TestEVP(TestCase):
         for i in range(self.number_ev):
             self.assertLess(rel_err_val[i], self.tol_eigval)
             self.assertLess(rel_err_vec[i], self.tol_eigvec)
+
+    def test_power_method(self):
+        """test for inverse power iteration method"""
+
+        # solve eigenvalue problem in TT format
+        eigenvalue_tt, eigenvector_tt = evp.power_method(self.operator_tt, self.initial_tt)
+
+        # solve eigenvalue problem in matrix format
+        eigenvalue_mat, eigenvector_mat = splin.eigs(self.operator_mat, k=1)
+
+        # compute relative error between exact and approximate eigenvalues
+        rel_err_val = np.abs(eigenvalue_mat - eigenvalue_tt) / np.abs(eigenvalue_mat)
+
+        # compute relative error between exact and approximate eigenvectors
+        norm_1 = np.linalg.norm(eigenvector_mat + eigenvector_tt.matricize()[:,None])
+        norm_2 = np.linalg.norm(eigenvector_mat - eigenvector_tt.matricize()[:,None])
+        rel_err_vec = np.amin([norm_1, norm_2]) / np.linalg.norm(eigenvector_mat)
+
+        # check if relative errors are smaller than tolerance
+        self.assertLess(rel_err_val, self.tol_eigval)
+        self.assertLess(rel_err_vec, self.tol_eigvec)
