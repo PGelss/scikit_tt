@@ -4,13 +4,15 @@
 import numpy as np
 import scipy.linalg as lin
 import scipy.sparse.linalg as splin
+import scikit_tt.tensor_train as tt
+import scikit_tt.solvers.sle as sle
 
 
 def als(operator, initial_guess, operator_gevp=None, number_ev=1, repeats=1, solver='eig', sigma=1, real=True):
     """Alternating linear scheme
 
-    Approximates the leading eigenvalues and corresponding eigentensors of an (generalized) eigenvalue problem in the
-    TT format. For details, see [1]_.
+    Approximates eigenvalues and corresponding eigentensors of an (generalized) eigenvalue problem in the TT format.
+    For details, see [1]_.
 
     Parameters
     ----------
@@ -33,8 +35,10 @@ def als(operator, initial_guess, operator_gevp=None, number_ev=1, repeats=1, sol
 
     Returns
     -------
-    solution: instance of TT class or list of instances of TT class
-        approximated solution of the eigenvalue problem, if number_ev>1 solution is a list of tensor trains
+    eigenvalues: float or list of floats
+        approximated eigenvalues, if number_ev>1 eigenvalues is a list of floats
+    eigentensors: instance of TT class or list of instances of TT class
+        approximated eigentensors, if number_ev>1 eigentensors is a list of tensor trains
 
     References
     ----------
@@ -116,16 +120,78 @@ def als(operator, initial_guess, operator_gevp=None, number_ev=1, repeats=1, sol
 
     # define form of the final solution depending on the number of eigenvalues to compute
     if number_ev == 1:
-        solution_final = solution.copy()
-        solution_final.cores[0] = solution.cores[0][:, :, :, :, 0]
+        eigentensors = solution.copy()
+        eigentensors.cores[0] = solution.cores[0][:, :, :, :, 0]
         eigenvalues = eigenvalues[0]
     else:
-        solution_final = [None] * number_ev
+        eigentensors = [None] * number_ev
         for i in range(number_ev):
-            solution_final[i] = solution.copy()
-            solution_final[i].cores[0] = solution.cores[0][:, :, :, :, i]
+            eigentensors[i] = solution.copy()
+            eigentensors[i].cores[0] = solution.cores[0][:, :, :, :, i]
 
-    return eigenvalues, solution_final
+    return eigenvalues, eigentensors
+
+
+def power_method(operator, initial_guess, operator_gevp=None, repeats=10, sigma=0.999):
+    """Inverse power iteration method
+
+    Approximates eigenvalues and corresponding eigentensors of an (generalized) eigenvalue problem in the TT format.
+    For details, see [1]_.
+
+    Parameters
+    ----------
+    operator: instance of TT class
+        TT operator, left-hand side
+    initial_guess: instance of TT class
+        initial guess for the solution
+    operator_gevp: instance of TT class, optional
+        TT operator, right-hand side (for generalized eigenvalue problems), default is None
+    repeats: int, optional
+        number of iterations, default is 10
+    sigma: float, optional
+        find eigenvalues near sigma, default is 1
+
+    Returns
+    -------
+    eigenvalue: float
+        approximated eigenvalue
+    eigentensor: instance of TT class
+        approximated eigentensors
+
+    References
+    ----------
+    ..[1] S. Klus, C. Schütte, "Towards tensor-based methods for the numerical approximation of the Perron-Frobenius
+          and Koopman operator", Journal of Computational Dynamics 3 (2), 2016
+    """
+
+    # define shift operator
+    if operator_gevp is None:
+        operator_shift = operator - sigma * tt.eye(operator.row_dims)
+    else:
+        operator_shift = operator - sigma * operator_gevp
+
+    # define eigenvalue and eigentensor
+    eigenvalue = 0
+    eigentensor = initial_guess
+
+    # start iteration
+    for i in range(repeats):
+
+        # solve system of linear equations in the TT format
+        if operator_gevp is None:
+            eigentensor = sle.als(operator_shift, eigentensor, eigentensor)
+        else:
+            eigentensor = sle.als(operator_shift, eigentensor, operator_gevp @ eigentensor)
+
+        # normalize eigentensor
+        eigentensor *= (1 / eigentensor.norm())
+
+        # compute eigenvalue
+        eigenvalue = (eigentensor.transpose() @ operator @ eigentensor)
+        if operator_gevp is not None:
+            eigenvalue *= 1 / (eigentensor.transpose() @ operator_gevp @ eigentensor)
+
+    return eigenvalue, eigentensor
 
 
 def __construct_stack_left_op(i, stack_left_op, operator, solution):
