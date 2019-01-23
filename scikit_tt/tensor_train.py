@@ -220,7 +220,7 @@ class TT(object):
 
         Returns
         -------
-        tt_prod: instance of TT class
+        tt_prod: instance of TT class or float
             product of self and tt_mul
         """
 
@@ -233,6 +233,12 @@ class TT(object):
 
             # define product tensor
             tt_prod = TT(cores)
+
+            # set tt_prod to scalar if all dimensions are equal to 1
+            m = np.prod(self.row_dims)
+            n = np.prod(self.col_dims)
+            if m == 1 and n == 1:
+                tt_prod = tt_prod.matricize()[0]
 
             return tt_prod
         else:
