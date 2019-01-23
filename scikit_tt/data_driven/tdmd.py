@@ -132,14 +132,31 @@ def __tdmd_reduced_matrix(x, y):
            3359
     """
 
-    # contract snapshot tensors
-    z = x.transpose() @ y
-
     # construct reduced matrix
-    reduced_matrix = z.cores[0][:, 0, 0, :]
+    # ------------------------
+
+    # contract first cores of x and y and reshape
+    contraction = np.tensordot(x.cores[0], y.cores[0], axes=(1,1)).reshape([1, x.ranks[1]*y.ranks[1]])
+
+    # set reduced_matrix to contraction
+    reduced_matrix = contraction
+
+    # loop over all cores except the last
     for i in range(1, x.order - 1):
-        reduced_matrix = reduced_matrix @ z.cores[i][:, 0, 0, :]
+
+        # contract ith cores of x and y and reshape
+        contraction = np.tensordot(x.cores[i], y.cores[i], axes=(1,1)).transpose([0, 1, 3, 2, 4, 5]).reshape([x.ranks[i]*y.ranks[i], x.ranks[i+1]*y.ranks[i+1]])
+
+        # multiply reduced_matrix with contraction
+        reduced_matrix = reduced_matrix @ contraction
+
+    # reshape reduced_matrix to 2-dimensional array
     reduced_matrix = reduced_matrix.reshape([x.ranks[-2], y.ranks[-2]])
-    reduced_matrix = reduced_matrix @ z.cores[-1].reshape([x.ranks[-2], y.ranks[-2]]).T
+
+    # contract last cores and reshape
+    contraction = np.tensordot(x.cores[-1], y.cores[-1], axes=(1, 1)).reshape([x.ranks[-2], y.ranks[-2]]).T
+
+    # multiply reduced_matrix with contraction
+    reduced_matrix = reduced_matrix @ contraction
 
     return reduced_matrix
