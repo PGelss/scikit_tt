@@ -96,10 +96,11 @@ mals .................. modified ALS for systems of linear equations in the TT f
 
 ### 3.2 Generalized eigenvalue problems
 
-ALS and MALS can also be used to find approximations of eigenvalues and corresponding eigentensors of TT operators. The basic procedures of ALS and MALS - implemented in [*evp.py*](scikit_tt/solvers/evp.py) - for (generalized) eigenvalue problems are similar to the ones for systems of linear equations. The main difference is the type of optimization problem which has to be solved in the iteration steps. See [[3](README.md#12-references)]  for details.
+Besides power iteration methods, ALS and MALS can also be used to find approximations of eigenvalues and corresponding eigentensors of TT operators. The basic procedures of ALS and MALS - implemented in [*evp.py*](scikit_tt/solvers/evp.py) - for (generalized) eigenvalue problems are similar to the ones for systems of linear equations. The main difference is the type of optimization problem which has to be solved in the iteration steps. See [[3](README.md#12-references)] for details.
 
 ```
 als ................... ALS for generalized eigenvalue problems in the TT format
+power_method .......... inverse power iteration method for eigenvalue problems in the TT format
 ```
 
 ### 3.3 Linear differential equations
@@ -265,3 +266,5 @@ The current version of **scikit_tt** is [1.0](https://github.com/PGelss/scikit_t
 [7] P. Gelß, S. Klus, J. Eisert, C. Schütte, "Multidimensional Approximation of Nonlinear Dynamical Systems", arXiv:1809.02448 (2018)
 
 [8] P. Gelß, C. Schütte, "Tensor-generated fractals: Using tensor decompositions for creating self-similar patterns", arXiv:1812.00814 (2018)
+
+[9] S. Klus, C. Schütte, "Towards tensor-based methods for the numerical approximation of the Perron-Frobenius and Koopman operator", Journal of Computational Dynamics 3 (2), 2016
