@@ -45,10 +45,10 @@ class TestTT(TestCase):
         """test string representation of tensor trains"""
 
         # get string representation
-        str = self.t.__repr__()
+        string = self.t.__repr__()
 
         # check if string is not empty
-        self.assertIsNotNone(str)
+        self.assertIsNotNone(string)
 
     def test_conversion(self):
         """test conversion to full format and element extraction"""
@@ -109,6 +109,10 @@ class TestTT(TestCase):
         # check if relative error is smaller than tolerance
         self.assertLess(rel_err, self.tol)
 
+        # check if addition fails when input is not a tensor train
+        with self.assertRaises(TypeError):
+            self.t + 0
+
     def test_scalar_multiplication(self):
         """test scalar multiplication"""
 
@@ -164,6 +168,10 @@ class TestTT(TestCase):
 
         # check if relative error is smaller than tolerance
         self.assertLess(rel_err, self.tol)
+
+        # check if multiplication fails when input is not a tensor train
+        with self.assertRaises(TypeError):
+            self.t @ 0
 
     def test_construction_from_array(self):
         """test tensor train class for arrays"""
@@ -331,7 +339,8 @@ class TestTT(TestCase):
         t_tt_full = t_tt.full().flatten()
 
         # split the cores of t_tt, convert to full array, and flatten
-        t_qtt = t_tt.tt2qtt([self.row_dims[0:2], self.row_dims[2:]], [self.col_dims[0:2], self.col_dims[2:]], threshold=1e-14)
+        t_qtt = t_tt.tt2qtt([self.row_dims[0:2], self.row_dims[2:]], [self.col_dims[0:2], self.col_dims[2:]],
+                            threshold=1e-14)
 
         # convert t_qtt to full array, and flatten
         t_qtt_full = t_qtt.full().flatten()
@@ -419,7 +428,7 @@ class TestTT(TestCase):
         """test unit tensor train"""
 
         # construct unit tensor train, convert to full format, and flatten
-        t_unit = tt.unit(self.row_dims, [0]*self.order).full().flatten()
+        t_unit = tt.unit(self.row_dims, [0] * self.order).full().flatten()
 
         # construct unit vector
         t_full = np.eye(np.int(np.prod(self.row_dims)), 1).T
@@ -440,7 +449,7 @@ class TestTT(TestCase):
         self.assertEqual(t_rand.order, self.order)
         self.assertEqual(t_rand.row_dims, self.row_dims)
         self.assertEqual(t_rand.col_dims, self.col_dims)
-        self.assertEqual(t_rand.ranks, [1]*(self.order+1))
+        self.assertEqual(t_rand.ranks, [1] * (self.order + 1))
 
     def test_uniform(self):
         """test uniform tensor train"""
