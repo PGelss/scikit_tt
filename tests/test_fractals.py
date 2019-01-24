@@ -87,6 +87,10 @@ class TestFractals(TestCase):
         for i in range(2):
             self.assertEqual(np.sum(self.multisponge[i] - multisponge[i]),0)
 
+        # check if construction fails when dimension equal to 1
+        with self.assertRaises(ValueError):
+            frac.multisponge(1,1)
+
     def test_rgb_fractal(self):
         """test for rgb_fractal"""
 
@@ -107,3 +111,7 @@ class TestFractals(TestCase):
         # check if construction is correct
         for i in range(2):
             self.assertEqual(np.sum(self.vicsek_fractal[i] - vicsek_fractal[i]),0)
+
+        # check if construction fails when dimension equal to 1
+        with self.assertRaises(ValueError):
+            frac.vicsek_fractal(1, 1)
