@@ -242,7 +242,7 @@ class TT(object):
 
             return tt_prod
         else:
-            raise ValueError('unsupported argument')
+            raise TypeError('unsupported argument')
 
     # dot = __matmul__
 
