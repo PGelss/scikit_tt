@@ -64,6 +64,7 @@ full .................. convert a tensor train to full format
 matricize ............. matricize a tensor train
 ortho_left ............ left-orthonormalize a tensor train
 ortho_right ........... right-orthonormalize a tensor train
+ortho ................. left- and right-orthonormalize a tensor train
 norm .................. compute the norm of a tensor train
 tt2qtt ................ convert from TT to QTT format
 qtt2tt ................ convert from QTT to TT format
@@ -105,9 +106,11 @@ power_method .......... inverse power iteration method for eigenvalue problems i
 
 ### 3.3 Linear differential equations
 
-In order to compute time-dependent or stationary distributions of linear differential equations in the TT format, **scikit_tt** uses implicit integration schemes such as the implicit Euler method or the trapezoidal rule. In order to approximate the solutions at each time step, ALS and MALS, respectively, are used. The methods can be found in [*ode.py*](scikit_tt/solvers/ode.py).
+In order to compute time-dependent or stationary distributions of linear differential equations in the TT format, **scikit_tt** uses explicit as well as implicit integration schemes such as the Euler methods or the trapezoidal rule. In order to approximate the solutions at each time step using implicit methods, ALS and MALS, respectively, are used. The methods can be found in [*ode.py*](scikit_tt/solvers/ode.py).
 
 ```
+explicit_euler ........ explicit Euler method for linear differential equations in the TT format
+errors_expl_euler ..... compute approximation errors of the explicit Euler method
 implicit_euler ........ implicit Euler method for linear differential equations in the TT format
 errors_impl_euler ..... compute approximation errors of the implicit Euler method
 trapezoidal_rule ...... trapezoidal rule for linear differential equations in the TT format
