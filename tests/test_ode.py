@@ -17,7 +17,7 @@ class TestODE(TestCase):
 
         # set ranks for approximations
         self.rank = 4
-        self.max_rank = 10
+        self.max_rank = 15
 
     def test_explicit_euler(self):
         """test for explicit Euler method"""
