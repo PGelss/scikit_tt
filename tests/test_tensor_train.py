@@ -258,6 +258,33 @@ class TestTT(TestCase):
         self.assertEqual(err, 0)
         self.assertLess(rel_err, self.tol)
 
+    def test_orthonormalization(self):
+        """test orthonormalization"""
+
+        # construct non-operator tensor train
+        cores = [self.cores[i][:, :, 0:1, :] for i in range(self.order)]
+        t_col = TT(cores)
+
+        # orthonormalize t
+        t_right = t_col.ortho(threshold=1e-14)
+
+        # test if cores are right-orthonormal
+        err = 0
+        for i in range(1, self.order):
+            c = np.tensordot(t_right.cores[i], t_right.cores[i], axes=([1, 3], [1, 3])).squeeze()
+            if np.linalg.norm(c - np.eye(t_right.ranks[i])) > self.tol:
+                err += 1
+
+        # convert t_col to full format and flatten
+        t_full = t_col.full().flatten()
+
+        # compute relative error
+        rel_err = np.linalg.norm(t_right.full().flatten() - t_full) / np.linalg.norm(t_full)
+
+        # check if t_right is right-orthonormal and equal to t_col
+        self.assertEqual(err, 0)
+        self.assertLess(rel_err, self.tol)
+
     def test_1_norm(self):
         """test 1-norm"""
 
