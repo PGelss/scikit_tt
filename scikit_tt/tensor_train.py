@@ -421,7 +421,7 @@ class TT(object):
             if max_rank != np.infty:
                 u = u[:, :np.minimum(u.shape[1], max_rank)]
                 s = s[:np.minimum(s.shape[0], max_rank)]
-                v = v[:np.minimum(v.shape[0], max_rank),:]
+                v = v[:np.minimum(v.shape[0], max_rank), :]
 
             # define updated rank and core
             self.ranks[i + 1] = u.shape[1]
@@ -493,6 +493,27 @@ class TT(object):
                 self.cores[i - 1].shape[3]) @ u @ np.diag(s)
             self.cores[i - 1] = self.cores[i - 1].reshape(self.ranks[i - 1], self.row_dims[i - 1],
                                                           self.col_dims[i - 1], self.ranks[i])
+
+        return self
+
+    def ortho(self, threshold=0, max_rank=np.infty):
+        """left- and right-orthonormalization of tensor trains
+
+        Parameters
+        ----------
+        threshold: float, optional
+            threshold for reduced SVD decompositions, default is 0
+        max_rank: int
+            maximum rank of the right-orthonormalized tensor train
+
+        Returns
+        -------
+        tt_ortho: instance of TT class
+            copy of self with right-orthonormalized cores
+        """
+
+        # left- and right-orthonormalize self
+        self.ortho_left(threshold=threshold, max_rank=max_rank).ortho_right(threshold=threshold, max_rank=max_rank)
 
         return self
 
