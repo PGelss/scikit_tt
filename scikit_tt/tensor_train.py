@@ -238,7 +238,7 @@ class TT(object):
             m = np.prod(tt_prod.row_dims)
             n = np.prod(tt_prod.col_dims)
             if m == 1 and n == 1:
-                tt_prod = tt_prod.matricize()[0]
+                tt_prod = tt_prod.element([0] * tt_prod.order * 2)
 
             return tt_prod
         else:
