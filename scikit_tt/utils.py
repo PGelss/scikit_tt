@@ -170,27 +170,3 @@ def two_cell_tof(t, reactant_states, reaction_rate):
         tof = tof + (reaction_rate / t.order) * (tt_left[i] @ t).element([0] * t.order * 2) + \
               (reaction_rate / t.order) * (tt_right[i] @ t).element([0] * t.order * 2)
     return tof
-
-
-def unit_vector(dimension, index):
-    """Canonical unit vector
-
-    Return specific canonical unit vector in a given dimension.
-
-    Parameters
-    ----------
-    dimension: int
-        dimension of the unit vector
-    index: int
-        position of the 1
-
-    Returns
-    -------
-    v: ndarray
-        unit vector
-    """
-
-    v = np.zeros(dimension)
-    v[index] = 1
-
-    return v
