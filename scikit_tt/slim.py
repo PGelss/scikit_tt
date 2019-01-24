@@ -4,7 +4,6 @@
 import numpy as np
 from scipy import linalg
 from scikit_tt.tensor_train import TT
-import scikit_tt.utils as utl
 
 
 def slim_mme(state_space, single_cell_reactions, two_cell_reactions, threshold=0):
@@ -72,7 +71,7 @@ def slim_mme(state_space, single_cell_reactions, two_cell_reactions, threshold=0
             net_change = product_state - reactant_state
             reaction_rate = single_cell_reactions[i][j][2]
             s_mat[i] = s_mat[i] + reaction_rate * (np.eye(dimension, k=-net_change) - np.eye(dimension)) @ np.diag(
-                utl.unit_vector(dimension, reactant_state))
+                np.eye(dimension)[:, reactant_state])
 
     # core elements for two-cell reactions
     # ------------------------------------
@@ -94,11 +93,11 @@ def slim_mme(state_space, single_cell_reactions, two_cell_reactions, threshold=0
             net_change_2 = product_state_2 - reactant_state_2
             reaction_rate = two_cell_reactions[i][j][4]
             super_core = super_core + reaction_rate * (np.tensordot(
-                np.eye(dimension_1, k=-net_change_1) @ np.diag(utl.unit_vector(dimension_1, reactant_state_1)),
-                np.eye(dimension_2, k=-net_change_2) @ np.diag(utl.unit_vector(dimension_2, reactant_state_2)), axes=0)
+                np.eye(dimension_1, k=-net_change_1) @ np.diag(np.eye(dimension_1)[:, reactant_state_1]),
+                np.eye(dimension_2, k=-net_change_2) @ np.diag(np.eye(dimension_2)[:, reactant_state_2]), axes=0)
                                                        - np.tensordot(
-                        np.diag(utl.unit_vector(dimension_1, reactant_state_1)),
-                        np.diag(utl.unit_vector(dimension_2, reactant_state_2)), axes=0))
+                        np.diag(np.eye(dimension_1)[:, reactant_state_1]),
+                        np.diag(np.eye(dimension_2)[:, reactant_state_2]), axes=0))
 
         # split super-core append quantities
         core_left, core_right, rank = __slim_tcr_decomposition(super_core, threshold=threshold)
@@ -126,11 +125,11 @@ def slim_mme(state_space, single_cell_reactions, two_cell_reactions, threshold=0
             net_change_2 = product_state_2 - reactant_state_2
             reaction_rate = two_cell_reactions[-1][j][4]
             super_core = super_core + reaction_rate * (np.tensordot(
-                np.eye(dimension_1, k=-net_change_1) @ np.diag(utl.unit_vector(dimension_1, reactant_state_1)),
-                np.eye(dimension_2, k=-net_change_2) @ np.diag(utl.unit_vector(dimension_2, reactant_state_2)), axes=0)
+                np.eye(dimension_1, k=-net_change_1) @ np.diag(np.eye(dimension_1)[:, reactant_state_1]),
+                np.eye(dimension_2, k=-net_change_2) @ np.diag(np.eye(dimension_2)[:, reactant_state_2]), axes=0)
                                                        - np.tensordot(
-                        np.diag(utl.unit_vector(dimension_1, reactant_state_1)),
-                        np.diag(utl.unit_vector(dimension_2, reactant_state_2)), axes=0))
+                        np.diag(np.eye(dimension_1)[:, reactant_state_1]),
+                        np.diag(np.eye(dimension_2)[:, reactant_state_2]), axes=0))
 
         # split super-core append quantities
         core_left, core_right, rank = __slim_tcr_decomposition(super_core, threshold=threshold)
