@@ -14,12 +14,61 @@ References
        Journal of Computational Physics 341 (2017) 140-162
 """
 
+import numpy as np
 import scikit_tt.tensor_train as tt
 import scikit_tt.models as mdl
 import scikit_tt.solvers.evp as evp
 import scikit_tt.solvers.ode as ode
 import scikit_tt.utils as utl
 import matplotlib.pyplot as plt
+
+
+def two_cell_tof(t, reactant_states, reaction_rate):
+    """Turn-over frequency of a reaction in a cyclic homogeneous nearest-neighbor interaction system
+
+    Parameters
+    ----------
+    t: instance of TT class
+        tensor train representing a probability distribution
+    reactant_states: list of ints
+        reactant states of the given reaction in the form of [reactant_state_1, reactant_state_2] where the list entries
+        represent the reactant states on two neighboring cell
+    reaction_rate: float
+        reaction rate constant of the given reaction
+
+    Returns
+    -------
+    turn_over_frequency: float
+        turn-over frequency of the given reaction
+    """
+
+    tt_left = [None] * t.order
+    tt_right = [None] * t.order
+    for k in range(t.order):
+        tt_left[k] = tt.ones([1] * t.order, t.row_dims)
+        tt_right[k] = tt.ones([1] * t.order, t.row_dims)
+        tt_left[k].cores[k] = np.zeros([1, 1, t.row_dims[k], 1])
+        tt_left[k].cores[k][0, 0, reactant_states[0], 0] = 1
+        tt_right[k].cores[k] = np.zeros([1, 1, t.row_dims[k], 1])
+        tt_right[k].cores[k][0, 0, reactant_states[0], 0] = 1
+        if k > 0:
+            tt_left[k].cores[k - 1] = np.zeros([1, 1, t.row_dims[k - 1], 1])
+            tt_left[k].cores[k - 1][0, 0, reactant_states[1], 0] = 1
+        else:
+            tt_left[k].cores[-1] = np.zeros([1, 1, t.row_dims[-1], 1])
+            tt_left[k].cores[-1][0, 0, reactant_states[1], 0] = 1
+        if k < t.order - 1:
+            tt_right[k].cores[k + 1] = np.zeros([1, 1, t.row_dims[k + 1], 1])
+            tt_right[k].cores[k + 1][0, 0, reactant_states[1], 0] = 1
+        else:
+            tt_right[k].cores[0] = np.zeros([1, 1, t.row_dims[0], 1])
+            tt_right[k].cores[0][0, 0, reactant_states[1], 0] = 1
+    turn_over_frequency = 0
+    for k in range(t.order):
+        turn_over_frequency = turn_over_frequency + (reaction_rate / t.order) * (tt_left[k] @ t) + \
+                              (reaction_rate / t.order) * (tt_right[k] @ t)
+    return turn_over_frequency
+
 
 utl.header(title='CO oxidation')
 
@@ -55,7 +104,7 @@ for i in range(8):
         solution = (1 / solution.norm(p=1)) * solution
 
     # compute turn-over frequency of CO2 desorption
-    tof.append(utl.two_cell_tof(solution, [2, 1], 1.7e5))
+    tof.append(two_cell_tof(solution, [2, 1], 1.7e5))
 
     # print results
     string_p_CO = '10^' + (p_CO_exp[i] >= 0) * '+' + str("%.1f" % p_CO_exp[i])
@@ -69,16 +118,15 @@ for i in range(8):
 # ------------------------------------------------------------------------------
 
 for i in range(8, len(R)):
-
     # integrate ODE to approximate stationary distribution
     operator = mdl.co_oxidation(20, 10 ** (8 + p_CO_exp[i]))
     initial_value = tt.unit(operator.row_dims, [1] * operator.order)
     initial_guess = tt.ones(operator.row_dims, [1] * operator.order, ranks=R[i]).ortho_left().ortho_right()
     with utl.timer() as time:
-        solution = ode.adaptive_step_size(operator, initial_value, initial_guess, 100)
+        solution = ode.adaptive_step_size(operator, initial_value, initial_guess, 100, progress=False)
 
     # compute turn-over frequency of CO2 desorption
-    tof.append(utl.two_cell_tof(solution[-1], [2, 1], 1.7e5))
+    tof.append(two_cell_tof(solution[-1], [2, 1], 1.7e5))
 
     # print results
     string_p_CO = '10^' + (p_CO_exp[i] >= 0) * '+' + str("%.1f" % p_CO_exp[i])
@@ -103,5 +151,5 @@ plt.title('Turn-over frequency', y=1.05)
 plt.xticks([-4, -3, -2, -1, 0, 1, 2],
            (r'$10^{-4}$', r'$10^{-3}$', r'$10^{-2}$', r'$10^{-1}$', r'$10^{0}$', r'$10^{1}$', r'$10^{2}$'))
 plt.xlim(-4, 2)
-plt.ylim(10**-4, 10**6)
+plt.ylim(10 ** -4, 10 ** 6)
 plt.show()
