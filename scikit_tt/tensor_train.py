@@ -378,7 +378,7 @@ class TT(object):
 
         return tt_mat
 
-    def ortho_left(self, start_index=0, end_index=None, threshold=0):
+    def ortho_left(self, start_index=0, end_index=None, threshold=0, max_rank=np.infty):
         """left-orthonormalization of tensor trains
 
         Parameters
@@ -389,6 +389,8 @@ class TT(object):
             end index for orthonormalization, default is the index of the penultimate core
         threshold: float, optional
             threshold for reduced SVD decompositions, default is 0
+        max_rank: int
+            maximum rank of the left-orthonormalized tensor train
 
         Returns
         -------
@@ -416,6 +418,10 @@ class TT(object):
                 u = u[:, indices]
                 s = s[indices]
                 v = v[indices, :]
+            if max_rank != np.infty:
+                u = u[:, :np.minimum(u.shape[1], max_rank)]
+                s = s[:np.minimum(s.shape[0], max_rank)]
+                v = v[:np.minimum(v.shape[0], max_rank),:]
 
             # define updated rank and core
             self.ranks[i + 1] = u.shape[1]
@@ -432,7 +438,7 @@ class TT(object):
 
         return self
 
-    def ortho_right(self, start_index=None, end_index=1, threshold=0):
+    def ortho_right(self, start_index=None, end_index=1, threshold=0, max_rank=np.infty):
         """right-orthonormalization of tensor trains
 
         Parameters
@@ -443,6 +449,8 @@ class TT(object):
             end index for orthonormalization, default is 1
         threshold: float, optional
             threshold for reduced SVD decompositions, default is 0
+        max_rank: int
+            maximum rank of the right-orthonormalized tensor train
 
         Returns
         -------
@@ -470,6 +478,10 @@ class TT(object):
                 u = u[:, indices]
                 s = s[indices]
                 v = v[indices, :]
+            if max_rank != np.infty:
+                u = u[:, :np.minimum(u.shape[1], max_rank)]
+                s = s[:np.minimum(s.shape[0], max_rank)]
+                v = v[:np.minimum(v.shape[0], max_rank), :]
 
             # define updated rank and core
             self.ranks[i] = v.shape[0]
