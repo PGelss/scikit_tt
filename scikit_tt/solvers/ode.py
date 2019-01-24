@@ -7,6 +7,85 @@ from scikit_tt.solvers import sle
 import numpy as np
 
 
+def explicit_euler(operator, initial_value, step_sizes, threshold=1e-12, max_rank=50, progress=True):
+    """Explicit Euler method for linear differential equations in the TT format
+
+    Parameters
+    ----------
+    operator: instance of TT class
+        TT operator of the differential equation
+    initial_value: instance of TT class
+        initial value of the differential equation
+    step_sizes: list of floats
+        step sizes for the application of the implicit Euler method
+    threshold: float, optional
+        threshold for reduced SVD decompositions, default is 1e-12
+    max_rank: int, optional
+        maximum rank of the solution, default is 50
+    progress: bool, optional
+        whether to show the progress of the algorithm or not, default is True
+
+    Returns
+    -------
+    solution: list of instances of the TT class
+        numerical solution of the differential equation
+    """
+
+    # define solution
+    solution = [initial_value]
+
+    # begin explicit Euler method
+    # ---------------------------
+
+    for i in range(len(step_sizes)):
+        # compute next time step
+        tt_tmp = (tt.eye(operator.row_dims) + step_sizes[i] * operator) @ solution[i]
+
+        # truncate ranks of the solution
+        tt_tmp = tt_tmp.ortho(threshold=threshold, max_rank=max_rank)
+
+        # normalize solution
+        tt_tmp = (1 / tt_tmp.norm(p=1)) * tt_tmp
+
+        # append solution
+        solution.append(tt_tmp.copy())
+
+        # print progress
+        utl.progress('Running explicit Euler method', 100 * i / (len(step_sizes) - 1), show=progress)
+
+    return solution
+
+
+def errors_expl_euler(operator, solution, step_sizes):
+    """Compute approximation errors of the explicit Euler method
+
+    Parameters
+    ----------
+    operator: instance of TT class
+        TT operator of the differential equation
+    solution: list of instances of TT class
+        approximate solution of the linear differential equation
+    step_sizes: list of floats
+        step sizes for the application of the implicit Euler method
+
+    Returns
+    -------
+    errors: list of floats
+        approximation errors
+    """
+
+    # define errors
+    errors = []
+
+    # compute relative approximation errors
+    for i in range(len(solution) - 1):
+        errors.append(
+            (solution[i + 1] - (tt.eye(operator.row_dims) + step_sizes[i] * operator) @ solution[i]).norm() /
+            solution[i].norm())
+
+    return errors
+
+
 def implicit_euler(operator, initial_value, initial_guess, step_sizes, repeats=1, tt_solver='als', threshold=1e-12,
                    max_rank=np.infty, micro_solver='solve', progress=True):
     """Implicit Euler method for linear differential equations in the TT format
