@@ -18,6 +18,43 @@ import scikit_tt.utils as utl
 import numpy as np
 import matplotlib.pyplot as plt
 
+
+def mean_concentrations(series):
+    """Mean concentrations of TT series
+
+    Compute mean concentrations of a given time series in TT format representing probability distributions of, e.g., a
+    chemical reaction network..
+
+    Parameters
+    ----------
+    series: list of instances of TT class
+
+    Returns
+    -------
+    mean: ndarray(#time_steps,#species)
+        mean concentrations of the species over time
+    """
+
+    # define array
+    mean = np.zeros([len(series), series[0].order])
+
+    # loop over time steps
+    for i in range(len(series)):
+
+        # loop over species
+        for j in range(series[0].order):
+            # define tensor train to compute mean concentration of jth species
+            cores = [np.ones([1, series[0].row_dims[k], 1, 1]) for k in range(series[0].order)]
+            cores[j] = np.zeros([1, series[0].row_dims[j], 1, 1])
+            cores[j][0, :, 0, 0] = np.arange(series[0].row_dims[j])
+            tensor_mean = TT(cores)
+
+            # define entry of mean
+            mean[i, j] = series[i].transpose() @ tensor_mean
+
+    return mean
+
+
 utl.header(title='Signaling cascade')
 
 # parameters
@@ -39,8 +76,8 @@ operator = mdl.signaling_cascade(order)
 # ---------------------------------
 
 initial_distribution = tt.zeros(operator.col_dims, [1] * order)
-for i in range(initial_distribution.order):
-    initial_distribution.cores[i][0, 0, 0, 0] = 1
+for p in range(initial_distribution.order):
+    initial_distribution.cores[p][0, 0, 0, 0] = 1
 
 # initial guess in TT format
 # --------------------------
@@ -65,8 +102,8 @@ operator = TT.tt2qtt(operator, qtt_modes, qtt_modes, threshold=threshold)
 # ----------------------------------
 
 initial_distribution = tt.zeros(operator.col_dims, [1] * operator.order)
-for i in range(initial_distribution.order):
-    initial_distribution.cores[i][0, 0, 0, 0] = 1
+for p in range(initial_distribution.order):
+    initial_distribution.cores[p][0, 0, 0, 0] = 1
 
 # initial guess in QTT format
 # ---------------------------
@@ -85,18 +122,18 @@ print('CPU time ' + '.' * 19 + ' ' + str("%.2f" % time.elapsed) + 's\n')
 # convert to TT and compute mean concentrations
 # ---------------------------------------------
 
-for i in range(len(solution)):
-    solution[i] = TT.qtt2tt(solution[i], [len(qtt_modes[0])] * order)
-mean = utl.mean_concentrations(solution)
+for p in range(len(solution)):
+    solution[p] = TT.qtt2tt(solution[p], [len(qtt_modes[0])] * order)
+mean_concentrations = mean_concentrations(solution)
 
 # plot mean concentrations
 # ------------------------
 
 utl.plot_parameters()
-plt.plot(np.insert(np.cumsum(step_sizes), 0, 0), mean)
+plt.plot(np.insert(np.cumsum(step_sizes), 0, 0), mean_concentrations)
 plt.title('Mean concentrations', y=1.05)
 plt.xlabel(r'$t$')
 plt.ylabel(r'$\overline{x_i}(t)$')
-plt.axis([0, len(step_sizes), 0, np.amax(mean) + 0.5])
+plt.axis([0, len(step_sizes), 0, np.amax(mean_concentrations) + 0.5])
 plt.legend(['species ' + str(i) for i in range(1, np.amin([8, order]))] + ['...'], loc=4)
 plt.show()
