@@ -13,10 +13,30 @@ class TestODE(TestCase):
         """Use the signaling cascade and the two-step destruction models for testing"""
 
         # set tolerance for the errors
-        self.tol = 1e-3
+        self.tol = 1e-2
 
         # set ranks for approximations
         self.rank = 4
+        self.max_rank = 10
+
+    def test_explicit_euler(self):
+        """test for explicit Euler method"""
+
+        # compute numerical solution of the ODE
+        operator = mdl.signaling_cascade(2).tt2qtt([[2] * 6] * 2, [[2] * 6] * 2)
+        initial_value = tt.unit(operator.row_dims, [0] * operator.order)
+        step_sizes = [0.1] * 3000
+        solution = ode.explicit_euler(operator, initial_value, step_sizes, progress=False, max_rank=self.max_rank)
+
+        # compute norm of the derivatives at the final 10 time steps
+        derivatives = []
+        for i in range(10):
+            derivatives.append((operator @ solution[-i - 1]).norm())
+
+        # check if implicit Euler method converged to stationary distribution
+        for i in range(10):
+            self.assertLess(derivatives[i], self.tol)
+
 
     def test_implicit_euler(self):
         """test for implicit Euler method"""
@@ -80,14 +100,17 @@ class TestODE(TestCase):
         initial_value = tt.unit(operator.row_dims, [0] * operator.order)
         initial_guess = tt.ones(operator.row_dims, [1] * operator.order, ranks=self.rank).ortho_right()
         step_sizes = [0.1] * 10
+        solution_ee = ode.explicit_euler(operator, initial_value, step_sizes, progress=False, max_rank=self.max_rank)
         solution_ie = ode.implicit_euler(operator, initial_value, initial_guess, step_sizes, progress=False)
         solution_tr = ode.trapezoidal_rule(operator, initial_value, initial_guess, step_sizes, progress=False)
 
         # compute errors
+        errors_ee = ode.errors_expl_euler(operator, solution_ee, step_sizes)
         errors_ie = ode.errors_impl_euler(operator, solution_ie, step_sizes)
         errors_tr = ode.errors_trapezoidal(operator, solution_tr, step_sizes)
 
         # check if errors are smaller than tolerance
+        self.assertLess(np.max(errors_ee), self.tol)
         self.assertLess(np.max(errors_ie), self.tol)
         self.assertLess(np.max(errors_tr), self.tol)
 
