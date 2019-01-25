@@ -25,10 +25,15 @@ class TestEVP(TestCase):
         # set number of eigenvalues to compute
         self.number_ev = 3
 
-        # generate operator in TT format
+        # load data
         directory = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
         transitions = io.loadmat(directory + '/examples/data/TripleWell2D_500.mat')["indices"]
-        self.operator_tt = pf.perron_frobenius_2d(transitions, [50, 50], 500)
+
+        # coarse-grain data
+        transitions = np.int64(np.ceil(np.true_divide(transitions, 10)))  
+
+        # generate operators in TT format
+        self.operator_tt = pf.perron_frobenius_2d(transitions, [5, 5], 50000)
         self.operator_gevp = tt.eye(self.operator_tt.row_dims)
 
         # matricize TT operator
