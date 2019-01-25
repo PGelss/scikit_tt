@@ -74,7 +74,7 @@ class TT(object):
                 cores.append(np.reshape(u, [ranks[i], row_dims[i], col_dims[i], ranks[i + 1]]))
 
                 # set new residual tensor
-                y = np.diag(s) @ v
+                y = np.diag(s).dot(v)
 
             # define last TT core
             cores.append(np.reshape(y, [ranks[-2], row_dims[-1], col_dims[-1], 1]))
@@ -339,8 +339,8 @@ class TT(object):
 
         # multiply with respective matrices for the following coordinates
         for i in range(1, self.order):
-            entry = entry @ np.squeeze(self.cores[i][:, coordinates[i], coordinates[self.order + i], :]).reshape(
-                self.ranks[i], self.ranks[i + 1])
+            entry = entry.dot(np.squeeze(self.cores[i][:, coordinates[i], coordinates[self.order + i], :]).reshape(
+                self.ranks[i], self.ranks[i + 1]))
 
         entry = entry[0, 0]
 
@@ -360,9 +360,9 @@ class TT(object):
 
         for i in range(1, self.order):
             # contract full_tensor with next TT core and reshape
-            full_tensor = full_tensor @ self.cores[i].reshape(self.ranks[i],
+            full_tensor = full_tensor.dot(self.cores[i].reshape(self.ranks[i],
                                                               self.row_dims[i] * self.col_dims[i] * self.ranks[
-                                                                  i + 1])
+                                                                  i + 1]))
             full_tensor = full_tensor.reshape(np.prod(self.row_dims[:i + 1]) * np.prod(self.col_dims[:i + 1]),
                                               self.ranks[i + 1])
 
@@ -449,10 +449,10 @@ class TT(object):
             self.cores[i] = u.reshape(self.ranks[i], self.row_dims[i], self.col_dims[i], self.ranks[i + 1])
 
             # shift non-orthonormal part to next core
-            self.cores[i + 1] = np.diag(s) @ v @ self.cores[i + 1].reshape(self.cores[i + 1].shape[0],
+            self.cores[i + 1] = np.diag(s).dot(v).dot(self.cores[i + 1].reshape(self.cores[i + 1].shape[0],
                                                                            self.row_dims[i + 1] *
                                                                            self.col_dims[i + 1] *
-                                                                           self.ranks[i + 2])
+                                                                           self.ranks[i + 2]))
             self.cores[i + 1] = self.cores[i + 1].reshape(self.ranks[i + 1], self.row_dims[i + 1],
                                                           self.col_dims[i + 1],
                                                           self.ranks[i + 2])
@@ -511,7 +511,7 @@ class TT(object):
             # shift non-orthonormal part to previous core
             self.cores[i - 1] = self.cores[i - 1].reshape(
                 self.ranks[i - 1] * self.row_dims[i - 1] * self.col_dims[i - 1],
-                self.cores[i - 1].shape[3]) @ u @ np.diag(s)
+                self.cores[i - 1].shape[3]).dot(u).dot(np.diag(s))
             self.cores[i - 1] = self.cores[i - 1].reshape(self.ranks[i - 1], self.row_dims[i - 1],
                                                           self.col_dims[i - 1], self.ranks[i])
 
@@ -667,7 +667,7 @@ class TT(object):
                 qtt_cores.append(u.reshape(rank, row_dims[i][j], col_dims[i][j], s.shape[0]))
 
                 # update residual core and rank
-                core = np.diag(s) @ v
+                core = np.diag(s).dot(v)
                 rank = s.shape[0]
 
             # define last QTT core
@@ -794,7 +794,7 @@ class TT(object):
         p_inv.cores[index - 1] = u.reshape(p_inv.ranks[index - 1], p_inv.row_dims[index - 1], 1, p_inv.ranks[index])
 
         # update (index)th core
-        p_inv.cores[index] = np.tensordot(np.diag(np.reciprocal(s)) @ v, p_inv.cores[index], axes=(1, 0))
+        p_inv.cores[index] = np.tensordot(np.diag(np.reciprocal(s)).dot(v), p_inv.cores[index], axes=(1, 0))
 
         return p_inv
 
