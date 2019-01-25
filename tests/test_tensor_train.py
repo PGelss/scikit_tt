@@ -152,7 +152,7 @@ class TestTT(TestCase):
         """test multiplication of tensor trains"""
 
         # multiply t with its tranpose
-        t_tmp = self.t.transpose() @ self.t
+        t_tmp = self.t.transpose().dot(self.t)
 
         # convert to full format and reshape to vector
         t_tmp = t_tmp.full().flatten()
@@ -161,7 +161,7 @@ class TestTT(TestCase):
         t_full = self.t.full().reshape([np.prod(self.row_dims), np.prod(self.col_dims)])
 
         # multiply with its transpose and flatten
-        t_full = (t_full.transpose() @ t_full).flatten()
+        t_full = (t_full.transpose().dot(t_full)).flatten()
 
         # compute relative error
         rel_err = np.linalg.norm(t_tmp - t_full) / np.linalg.norm(t_full)
@@ -171,7 +171,7 @@ class TestTT(TestCase):
 
         # check if multiplication fails when input is not a tensor train
         with self.assertRaises(TypeError):
-            self.t @ 0
+            self.t.dot(0)
 
     def test_construction_from_array(self):
         """test tensor train class for arrays"""
@@ -371,10 +371,10 @@ class TestTT(TestCase):
         t_pinv = t_pinv.full().reshape([np.prod(self.row_dims[:-1]), self.row_dims[-1]]).transpose()
 
         # compute relative errors
-        rel_err_1 = np.linalg.norm(t @ t_pinv @ t - t) / np.linalg.norm(t)
-        rel_err_2 = np.linalg.norm(t_pinv @ t @ t_pinv - t_pinv) / np.linalg.norm(t_pinv)
-        rel_err_3 = np.linalg.norm((t @ t_pinv).transpose() - t @ t_pinv) / np.linalg.norm(t @ t_pinv)
-        rel_err_4 = np.linalg.norm((t_pinv @ t).transpose() - t_pinv @ t) / np.linalg.norm(t_pinv @ t)
+        rel_err_1 = np.linalg.norm(t.dot(t_pinv).dot(t) - t) / np.linalg.norm(t)
+        rel_err_2 = np.linalg.norm(t_pinv.dot(t).dot(t_pinv) - t_pinv) / np.linalg.norm(t_pinv)
+        rel_err_3 = np.linalg.norm((t.dot(t_pinv)).transpose() - t.dot(t_pinv)) / np.linalg.norm(t.dot(t_pinv))
+        rel_err_4 = np.linalg.norm((t_pinv.dot(t)).transpose() - t_pinv.dot(t)) / np.linalg.norm(t_pinv.dot(t))
 
         # check if relative errors are smaller than tolerance
         self.assertLess(rel_err_1, self.tol)
