@@ -49,7 +49,6 @@ class TT(object):
     
     Examples
     --------
-
     Construct tensor train from list of cores:
 
     >>> import numpy as np
