@@ -41,6 +41,27 @@ class TT(object):
     cores: list of ndarrays
         list of the cores of the tensor train
 
+    Methods
+    -------
+    print(t)
+        string representation of tensor trains
+    +
+        sum of two tensor trains
+    -
+        difference of two tensor trains
+    *
+        multiplication of tensor trains and scalars
+    @/dot(t,u)
+        multiplication of two tensor trains
+    transpose(t)
+        transpose of a tensor train
+    isoperator(t)
+        check is given tensor train is an operator
+    copy(t)
+        deep copy of a tensor train
+    element(t, indices)
+        element of t at given indices
+
     References
     ----------
     .. [1] I. V. Oseledets, "Tensor-Train Decomposition", SIAM Journal on Scientific Computing 33 (5), 2011
@@ -71,70 +92,104 @@ class TT(object):
 
     """
 
-    def __init__(self, x):
+    def __init__(self, x, threshold=0, max_rank=np.infty):
         """
         Parameters
         ----------
-        x: ndarray or list of ndarrays
-            either a full tensor or a list of TT cores
+        x: list of ndarrays or ndarray
+            either a list of TT cores or a full tensor
+
+        Raises
+        ------
+        TypeError
+            if x is neither a list of ndarray nor a single ndarray
+        ValueError
+            if list elements of x are not 4-dimensional tensors or shapes do not match#
+        ValueError
+            if number of dimensions of the ndarray x is not a multiple of 2
         """
 
-        # initialize from full array
-        # --------------------------
-
-        # X is an array with dimensions m_1 x ... x m_d x n_1 x ... x n_d
-
-        if isinstance(x, np.ndarray):
-
-            # define order, row dimensions, column dimensions, ranks, and cores
-            order = len(x.shape) // 2
-            row_dims = x.shape[:order]
-            col_dims = x.shape[order:]
-            ranks = [1] * (order + 1)
-            cores = []
-
-            # permute dimensions, e.g., for order = 4: p = [0, 4, 1, 5, 2, 6, 3, 7]
-            p = [order * j + i for i in range(order) for j in range(2)]
-            y = np.transpose(x, p).copy()
-
-            # decompose the full tensor
-            for i in range(order - 1):
-                # reshape residual tensor
-                m = ranks[i] * row_dims[i] * col_dims[i]
-                n = np.prod(row_dims[i + 1:]) * np.prod(col_dims[i + 1:])
-                y = np.reshape(y, [m, n])
-
-                # apply SVD in order to isolate modes
-                [u, s, v] = linalg.svd(y, full_matrices=False)
-
-                # define new TT core
-                ranks[i + 1] = u.shape[1]
-                cores.append(np.reshape(u, [ranks[i], row_dims[i], col_dims[i], ranks[i + 1]]))
-
-                # set new residual tensor
-                y = np.diag(s).dot(v)
-
-            # define last TT core
-            cores.append(np.reshape(y, [ranks[-2], row_dims[-1], col_dims[-1], 1]))
-
-            # initialize tensor train
-            self.__init__(cores)
-
         # initialize from list of cores
-        # -----------------------------
+        if isinstance(x, list):
+
+            # check if orders of list elements are correct
+            if np.all([x[i].ndim==4 for i in range(len(x))]):
+
+                # check if ranks are correct
+                if np.all([x[0].shape[0]==1] + [x[i].shape[3]==x[i+1].shape[0] for i in range(len(x)-1)] + [x[-1].shape[3]==1]):
+
+                    # define order, row dimensions, column dimensions, ranks, and cores
+                    self.order = len(x)
+                    self.row_dims = [x[i].shape[1] for i in range(self.order)]
+                    self.col_dims = [x[i].shape[2] for i in range(self.order)]
+                    self.ranks = [x[i].shape[0] for i in range(self.order)] + [1]
+                    self.cores = x
+
+                else:
+                    raise ValueError('Shapes of list elements do not match.')
+
+            else:
+                raise ValueError('List elements must be 4-dimensional arrays.')
+         
+        # initialize from full array   
+        elif isinstance(x, np.ndarray):
+
+            # check if order of ndarray is a multiple of 2
+            if np.mod(x.ndim,2)==0:
+
+                # define order, row dimensions, column dimensions, ranks, and cores
+                order = len(x.shape) // 2
+                row_dims = x.shape[:order]
+                col_dims = x.shape[order:]
+                ranks = [1] * (order + 1)
+                cores = []
+
+                # permute dimensions, e.g., for order = 4: p = [0, 4, 1, 5, 2, 6, 3, 7]
+                p = [order * j + i for i in range(order) for j in range(2)]
+                y = np.transpose(x, p).copy()
+
+                # decompose the full tensor
+                for i in range(order - 1):
+                    # reshape residual tensor
+                    m = ranks[i] * row_dims[i] * col_dims[i]
+                    n = np.prod(row_dims[i + 1:]) * np.prod(col_dims[i + 1:])
+                    y = np.reshape(y, [m, n])
+
+                    # apply SVD in order to isolate modes
+                    [u, s, v] = linalg.svd(y, full_matrices=False)
+
+                    # rank reduction
+                    if threshold != 0:
+                        indices = np.where(s / s[0] > threshold)[0]
+                        u = u[:, indices]
+                        s = s[indices]
+                        v = v[indices, :]
+                    if max_rank != np.infty:
+                        u = u[:, :np.minimum(u.shape[1], max_rank)]
+                        s = s[:np.minimum(s.shape[0], max_rank)]
+                        v = v[:np.minimum(v.shape[0], max_rank), :]
+
+                    # define new TT core
+                    ranks[i + 1] = u.shape[1]
+                    cores.append(np.reshape(u, [ranks[i], row_dims[i], col_dims[i], ranks[i + 1]]))
+
+                    # set new residual tensor
+                    y = np.diag(s).dot(v)
+
+                # define last TT core
+                cores.append(np.reshape(y, [ranks[-2], row_dims[-1], col_dims[-1], 1]))
+
+                # initialize tensor train
+                self.__init__(cores)
+
+            else:
+                raise ValueError('Number of dimensions must be a multiple of 2.')
 
         else:
-
-            # define order, row dimensions, column dimensions, ranks, and cores
-            self.order = len(x)
-            self.row_dims = [x[i].shape[1] for i in range(self.order)]
-            self.col_dims = [x[i].shape[2] for i in range(self.order)]
-            self.ranks = [x[i].shape[0] for i in range(self.order)] + [1]
-            self.cores = x
-            self.nbytes = np.sum([self.cores[i].nbytes for i in range(self.order)])
+            raise TypeError('Parameter must be either a list of cores or an ndarray.')
 
     def __repr__(self):
-        """string representation of tensor trains
+        """String representation of tensor trains
 
         Print the attributes of a given tensor train.
         """
@@ -146,9 +201,9 @@ class TT(object):
                 '                  ranks    = {r}'.format(d=self.order, m=self.row_dims, n=self.col_dims, r=self.ranks))
 
     def __add__(self, tt_add):
-        """sum of two tensor trains
+        """Sum of two tensor trains
 
-        Add two given tensor trains.
+        Add two given tensor trains with same row and column dimensions.
 
         Parameters
         ----------
@@ -159,37 +214,51 @@ class TT(object):
         -------
         tt_sum: instance of TT class
             sum of tt_add and self
+
+        Raises
+        ------
+        TypeError
+            if tt_add is not an instance of the TT class
+        ValueError
+            if dimensions of both tensor trains do not match
         """
 
         if isinstance(tt_add, TT):
 
-            # define order, ranks, and cores
-            order = self.order
-            ranks = [1] + [self.ranks[i] + tt_add.ranks[i] for i in range(1, order)] + [1]
-            cores = []
+            # check if row and column dimension are equal
+            if self.row_dims==tt_add.row_dims and self.col_dims==tt_add.col_dims:
 
-            # construct cores
-            for i in range(order):
-                # set core to zero array
-                cores.append(np.zeros([ranks[i], self.row_dims[i], self.col_dims[i], ranks[i + 1]]))
+                # define order, ranks, and cores
+                order = self.order
+                ranks = [1] + [self.ranks[i] + tt_add.ranks[i] for i in range(1, order)] + [1]
+                cores = []
 
-                # insert core of self
-                cores[i][0:self.ranks[i], :, :, 0:self.ranks[i + 1]] = self.cores[i]
+                # construct cores
+                for i in range(order):
+                    # set core to zero array
+                    cores.append(np.zeros([ranks[i], self.row_dims[i], self.col_dims[i], ranks[i + 1]]))
 
-                # insert core of tt_add
+                    # insert core of self
+                    cores[i][0:self.ranks[i], :, :, 0:self.ranks[i + 1]] = self.cores[i]
 
-                cores[i][ranks[i] - tt_add.ranks[i]:ranks[i], :, :, ranks[i + 1] - tt_add.ranks[i + 1]:ranks[i + 1]] = \
-                    tt_add.cores[i]
+                    # insert core of tt_add
 
-            # define tt_sum
-            tt_sum = TT(cores)
+                    cores[i][ranks[i] - tt_add.ranks[i]:ranks[i], :, :, ranks[i + 1] - tt_add.ranks[i + 1]:ranks[i + 1]] = \
+                        tt_add.cores[i]
 
-            return tt_sum
+                # define tt_sum
+                tt_sum = TT(cores)
+
+                return tt_sum
+
+            else:
+                raise ValueError('Tensor trains must have the same dimensions')
+
         else:
-            raise TypeError('unsupported argument')
+            raise TypeError('Unsupported parameter.')
 
     def __sub__(self, tt_sub):
-        """difference of two tensor trains
+        """Difference of two tensor trains
 
         Subtract two given tensor trains.
 
@@ -210,27 +279,40 @@ class TT(object):
         return tt_diff
 
     def __mul__(self, scalar):
-        """left-multiplication of tensor trains and scalars
+        """Left-multiplication of tensor trains and scalars
 
         Parameters
         ----------
-        scalar: float
+        scalar: int, float, or complex
             scalar value for the left-multiplication
 
         Returns
         -------
         tt_prod: instance of TT class
             product of scalar and self
+
+        Raises
+        ------
+        TypeError
+            if scalar is neither int nor float nor complex
         """
 
-        # multiply first core with scalar
+        # copy self
         tt_prod = self.copy()
-        tt_prod.cores[0] *= scalar
+
+        # check if scalar is int, float, or complex
+        if isinstance(scalar, (int, np.integer, float, np.float, complex, np.complex)):
+        
+            # multiply first core by scalar
+            tt_prod.cores[0] *= scalar
+
+        else:
+            TypeError('Unsupported parameter.')
 
         return tt_prod
 
     def __rmul__(self, scalar):
-        """right-multiplication of tensor trains and scalars
+        """Right-multiplication of tensor trains and scalars
 
         Parameters
         ----------
@@ -249,7 +331,7 @@ class TT(object):
         return tt_prod
 
     def __matmul__(self, tt_mul):
-        """multiplication of tensor trains
+        """Multiplication of tensor trains
 
         For Python 3.5 and higher, use the operator, i.e. T @ U = T.__matmul__(T,U). Otherwise you can use T.dot(U) or
         TT.dot(T,U).
@@ -263,30 +345,41 @@ class TT(object):
         -------
         tt_prod: instance of TT class or float
             product of self and tt_mul
+
+        Raises
+        ------
+        TypeError
+            if tt_mul is not an instance of the TT class
+        ValueError
+            if row dimensions of self do not match column dimensions of tt_mul
         """
 
         if isinstance(tt_mul, TT):
 
-            # multiply TT cores
-            cores = [np.tensordot(self.cores[i], tt_mul.cores[i], axes=(2, 1)).transpose([0, 3, 1, 4, 2, 5]).reshape(
-                self.ranks[i] * tt_mul.ranks[i], self.row_dims[i], tt_mul.col_dims[i],
-                self.ranks[i + 1] * tt_mul.ranks[i + 1]) for i in range(self.order)]
+            # check if dimensions match
+            if self.col_dims==tt_mul.row_dims:
 
-            # define product tensor
-            tt_prod = TT(cores)
+                # multiply TT cores
+                cores = [np.tensordot(self.cores[i], tt_mul.cores[i], axes=(2, 1)).transpose([0, 3, 1, 4, 2, 5]).reshape(
+                    self.ranks[i] * tt_mul.ranks[i], self.row_dims[i], tt_mul.col_dims[i],
+                    self.ranks[i + 1] * tt_mul.ranks[i + 1]) for i in range(self.order)]
 
-            # set tt_prod to scalar if all dimensions are equal to 1
-            m = np.prod(tt_prod.row_dims)
-            n = np.prod(tt_prod.col_dims)
-            if m == 1 and n == 1:
-                tt_prod = tt_prod.element([0] * tt_prod.order * 2)
+                # define product tensor
+                tt_prod = TT(cores)
 
-            return tt_prod
+                # set tt_prod to scalar if all dimensions are equal to 1
+                if np.prod(tt_prod.row_dims) == 1 and np.prod(tt_prod.col_dims) == 1:
+                    tt_prod = tt_prod.element([0] * tt_prod.order * 2)
+
+                return tt_prod
+
+            else:
+                raise ValueError('Dimensions do not match.')
         else:
-            raise TypeError('unsupported argument')
+            raise TypeError('Unsupported argument.')
 
     def dot(self, tt_mul):
-        """multiplication of tensor trains
+        """Multiplication of tensor trains
 
         Alias for TT.__matmul__().
 
@@ -306,7 +399,7 @@ class TT(object):
         return tt_prod
 
     def transpose(self):
-        """transpose of tensor trains
+        """Transpose of tensor trains
 
         Returns
         -------
@@ -328,7 +421,7 @@ class TT(object):
         return tt_transpose
 
     def isoperator(self):
-        """operator check
+        """Operator check
 
         Returns
         -------
@@ -342,7 +435,7 @@ class TT(object):
         return op_bool
 
     def copy(self):
-        """deep copy of tensor trains
+        """Deep copy of tensor trains
 
         Returns
         -------
@@ -358,31 +451,65 @@ class TT(object):
 
         return tt_copy
 
-    def element(self, coordinates):
-        """single element of tensor trains
+    def element(self, indices):
+        """Single element of tensor trains
 
         Parameters
         ----------
-        coordinates: list of ints
-            coordinates of a single entry of self ([x_1, ..., x_d, y_1, ..., y_d])
+        indices: list of ints
+            indices of a single entry of self ([x_1, ..., x_d, y_1, ..., y_d])
 
         Returns
         -------
         entry: float
             single entry of self
+
+        Raises
+        ------
+        TypeError
+            if indices is not a list of ints
+        ValueError
+            if length of indices does not match the order of self
+        IndexError
+            if one or more indices are out of range
         """
 
-        # construct matrix for first row and column coordinates
-        entry = np.squeeze(self.cores[0][:, coordinates[0], coordinates[self.order], :]).reshape(1, self.ranks[1])
 
-        # multiply with respective matrices for the following coordinates
-        for i in range(1, self.order):
-            entry = entry.dot(np.squeeze(self.cores[i][:, coordinates[i], coordinates[self.order + i], :]).reshape(
-                self.ranks[i], self.ranks[i + 1]))
+        if isinstance(indices, list):
 
-        entry = entry[0, 0]
+            # check is all indices are ints
+            if np.all([isinstance(indices[i], (int, np.integer)) for i in range(len(indices))]):
 
-        return entry
+                # check if length of indices is correct
+                if len(indices)==2*self.order:
+
+                    # check if indices are in range
+                    if np.all([indices[i] < self.row_dims[i] for i in range(self.order)]) and np.all([indices[i+self.order] < self.col_dims[i] for i in range(self.order)]):
+
+                        # construct matrix for first row and column indices
+                        entry = np.squeeze(self.cores[0][:, indices[0], indices[self.order], :]).reshape(1, self.ranks[1])
+
+                        # multiply with respective matrices for the following indices
+                        for i in range(1, self.order):
+                            entry = entry.dot(np.squeeze(self.cores[i][:, indices[i], indices[self.order + i], :]).reshape(
+                                self.ranks[i], self.ranks[i + 1]))
+
+                        entry = entry[0, 0]
+
+                        return entry
+
+                    else:
+                        raise IndexError('Indices out of range.')
+
+                else:
+                    raise ValueError('Number of indices must be twice the order of the tensor train.')
+
+            else:
+                raise TypeError('Indices must be integers.')
+
+        else:
+            raise TypeError('Unsupported parameter.')
+
 
     def full(self):
         """conversion to full format
