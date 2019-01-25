@@ -98,6 +98,10 @@ class TT(object):
         ----------
         x: list of ndarrays or ndarray
             either a list of TT cores or a full tensor
+        threshold: float, optional
+            threshold for reduced SVD decompositions, default is 0
+        max_rank: int, optional
+            maximum rank of the left-orthonormalized tensor train, default is np.infty
 
         Raises
         ------
@@ -124,6 +128,10 @@ class TT(object):
                     self.col_dims = [x[i].shape[2] for i in range(self.order)]
                     self.ranks = [x[i].shape[0] for i in range(self.order)] + [1]
                     self.cores = x
+
+                    # rank reduction
+                    if threshold!=0 or max_rank!=np.infty:
+                        self.ortho(threshold=threshold, max_rank=max_rank)
 
                 else:
                     raise ValueError('Shapes of list elements do not match.')
@@ -575,13 +583,13 @@ class TT(object):
             end index for orthonormalization, default is the index of the penultimate core
         threshold: float, optional
             threshold for reduced SVD decompositions, default is 0
-        max_rank: int
-            maximum rank of the left-orthonormalized tensor train
+        max_rank: int, optional
+            maximum rank of the left-orthonormalized tensor train, default is np.infty
 
         Returns
         -------
         tt_ortho: instance of TT class
-            copy of self with left-orthonormalized cores
+            left-orthonormalized representation of self
         """
 
         # set end_index to the index of the penultimate core if not otherwise defined
@@ -635,13 +643,13 @@ class TT(object):
             end index for orthonormalization, default is 1
         threshold: float, optional
             threshold for reduced SVD decompositions, default is 0
-        max_rank: int
-            maximum rank of the right-orthonormalized tensor train
+        max_rank: int, optional
+            maximum rank of the left-orthonormalized tensor train, default is np.infty
 
         Returns
         -------
         tt_ortho: instance of TT class
-            copy of self with right-orthonormalized cores
+            right-orthonormalized representation of self
         """
 
         # set start_index to the index of the last core if not otherwise defined
@@ -695,7 +703,7 @@ class TT(object):
         Returns
         -------
         tt_ortho: instance of TT class
-            copy of self with right-orthonormalized cores
+           right-orthonormalized representation of self
         """
 
         # left- and right-orthonormalize self
