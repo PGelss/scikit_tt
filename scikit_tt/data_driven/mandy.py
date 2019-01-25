@@ -58,7 +58,7 @@ def mandy_cm(x, y, psi, threshold=0):
     xi = xi.pinv(d, threshold=threshold, ortho_r=False)
 
     # multiply last core with y
-    xi.cores[d] = (xi.cores[d].reshape([xi.ranks[d], m]) @ y.transpose()).reshape(xi.ranks[d], d, 1, 1)
+    xi.cores[d] = (xi.cores[d].reshape([xi.ranks[d], m]).dot(y.transpose())).reshape(xi.ranks[d], d, 1, 1)
 
     # set new row dimension
     xi.row_dims[d] = d
@@ -132,7 +132,7 @@ def mandy_fm(x, y, psi, threshold=0, add_one=True):
     xi = xi.pinv(p, threshold=threshold, ortho_r=False)
 
     # multiply last core with y
-    xi.cores[p] = (xi.cores[p].reshape([xi.ranks[p], m]) @ y.transpose()).reshape(xi.ranks[p], d, 1, 1)
+    xi.cores[p] = (xi.cores[p].reshape([xi.ranks[p], m]).dot(y.transpose())).reshape(xi.ranks[p], d, 1, 1)
 
     # set new row dimension
     xi.row_dims[p] = d
