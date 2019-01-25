@@ -23,44 +23,42 @@ class TestPF(TestCase):
         # coarse-grain 3d data
         for j in range(self.transitions_3d.shape[1]):
             for i in range(self.transitions_3d.shape[0]):
-                self.transitions_3d[i,j] = np.ceil(self.transitions_3d[i,j]/5)
-
+                self.transitions_3d[i, j] = np.ceil(np.true_divide(self.transitions_3d[i, j], 5))
 
     def test_perron_frobenius_2d(self):
         """test for perron_frobenius_2d"""
-    
+
         # construct transition operator in TT format
         operator = pf.perron_frobenius_2d(self.transitions_2d, [50, 50], 500)
 
         # construct full operator
-        operator_full = np.zeros([50,50,50,50])
+        operator_full = np.zeros([50, 50, 50, 50])
         for i in range(self.transitions_2d.shape[1]):
-            [x_1, y_1, x_2, y_2] = self.transitions_2d[:,i] - 1
+            [x_1, y_1, x_2, y_2] = self.transitions_2d[:, i] - 1
             operator_full[x_2, y_2, x_1, y_1] += 1
-        operator_full *= 1/500
+        operator_full *= 1 / 500
 
         # compute error
-        error = np.abs(operator.full()-operator_full).sum()
-               
+        error = np.abs(operator.full() - operator_full).sum()
+
         # check if error is smaller than tolerance         
         self.assertLess(error, self.tol)
 
     def test_perron_frobenius_3d(self):
         """test for perron_frobenius_3d"""
-    
+
         # construct transition operator in TT format
-        operator = pf.perron_frobenius_3d(self.transitions_3d, [5,5,5], 12500)
+        operator = pf.perron_frobenius_3d(self.transitions_3d, [5, 5, 5], 12500)
 
         # construct full operator
-        operator_full = np.zeros([5,5,5,5,5,5])
+        operator_full = np.zeros([5, 5, 5, 5, 5, 5])
         for i in range(self.transitions_3d.shape[1]):
             [x_1, y_1, z_1, x_2, y_2, z_2] = self.transitions_3d[:, i] - 1
             operator_full[x_2, y_2, z_2, x_1, y_1, z_1] += 1
-        operator_full *= 1/12500
+        operator_full *= 1 / 12500
 
         # compute error
-        error = np.abs(operator.full()-operator_full).sum()
-               
+        error = np.abs(operator.full() - operator_full).sum()
+
         # check if error is smaller than tolerance         
         self.assertLess(error, self.tol)
-
