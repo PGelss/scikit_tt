@@ -213,6 +213,9 @@ class TT(object):
     def __matmul__(self, tt_mul):
         """multiplication of tensor trains
 
+        For Python 3.5 and higher, use the operator, i.e. T @ U = T.__matmul__(T,U). Otherwise you can use T.dot(U) or
+        TT.dot(T,U).
+
         Parameters
         ----------
         tt_mul: instance of TT class
@@ -244,7 +247,25 @@ class TT(object):
         else:
             raise TypeError('unsupported argument')
 
-    # dot = __matmul__
+    def dot(self, tt_mul):
+        """multiplication of tensor trains
+
+        Alias for TT.__matmul__().
+
+        Parameters
+        ----------
+        tt_mul: instance of TT class
+            tensor train which is multiplied with self
+
+        Returns
+        -------
+        tt_prod: instance of TT class or float
+            product of self and tt_mul
+        """
+
+        tt_prod = self.__matmul__(tt_mul)
+
+        return tt_prod
 
     def transpose(self):
         """transpose of tensor trains
