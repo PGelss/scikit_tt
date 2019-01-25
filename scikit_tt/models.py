@@ -295,9 +295,9 @@ def signaling_cascade(d):
     """
 
     # define core elements
-    s_mat_0 = 0.7 * (np.eye(64, k=-1) - np.eye(64)) + 0.07 * (np.eye(64, k=1) - np.eye(64)) @ np.diag(np.arange(64))
-    s_mat = 0.07 * (np.eye(64, k=1) - np.eye(64)) @ np.diag(np.arange(64))
-    l_mat = np.diag(np.arange(64)) @ np.diag(np.reciprocal(np.arange(5.0, 69.0)))
+    s_mat_0 = 0.7 * (np.eye(64, k=-1) - np.eye(64)) + 0.07 * (np.eye(64, k=1) - np.eye(64)).dot(np.diag(np.arange(64)))
+    s_mat = 0.07 * (np.eye(64, k=1) - np.eye(64)).dot(np.diag(np.arange(64)))
+    l_mat = np.diag(np.arange(64)).dot(np.diag(np.reciprocal(np.arange(5.0, 69.0))))
     i_mat = np.eye(64)
     m_mat = np.eye(64, k=-1) - np.eye(64)
 
@@ -357,19 +357,19 @@ def two_step_destruction(k_1, k_2, m):
     # define TT cores
     cores = [np.zeros([r[i], n[i], n[i], r[i + 1]]) for i in range(4)]
     cores[0][0, :, :, 0] = np.eye(n[0])
-    cores[0][0, :, :, 1] = k_1 * np.eye(n[0], k=1) @ np.diag(np.arange(n[0]))
+    cores[0][0, :, :, 1] = k_1 * np.eye(n[0], k=1).dot(np.diag(np.arange(n[0])))
     cores[0][0, :, :, 2] = -k_1 * np.diag(np.arange(n[0]))
     cores[1][0, :, :, 0] = np.eye(n[1])
-    cores[1][0, :, :, 1] = k_2 * np.eye(n[1], k=1) @ np.diag(np.arange(n[1]))
+    cores[1][0, :, :, 1] = k_2 * np.eye(n[1], k=1).dot(np.diag(np.arange(n[1])))
     cores[1][0, :, :, 2] = -k_2 * np.diag(np.arange(n[1]))
-    cores[1][1, :, :, 3] = np.eye(n[1], k=1) @ np.diag(np.arange(n[1]))
+    cores[1][1, :, :, 3] = np.eye(n[1], k=1).dot(np.diag(np.arange(n[1])))
     cores[1][2, :, :, 4] = np.diag(np.arange(n[1]))
     cores[2][0, :, :, 0] = np.eye(n[2])
-    cores[2][1, :, :, 1] = np.eye(n[2], k=1) @ np.diag(np.arange(n[2]))
+    cores[2][1, :, :, 1] = np.eye(n[2], k=1).dot(np.diag(np.arange(n[2])))
     cores[2][2, :, :, 2] = np.diag(np.arange(n[2]))
     cores[2][3, :, :, 2] = np.eye(n[2], k=-1)
     cores[2][4, :, :, 2] = np.eye(n[2])
-    cores[3][0, :, :, 0] = (np.eye(n[3], k=1) - np.eye(n[3])) @ np.diag(np.arange(n[3]))
+    cores[3][0, :, :, 0] = (np.eye(n[3], k=1) - np.eye(n[3])).dot(np.diag(np.arange(n[3])))
     cores[3][1, :, :, 0] = np.eye(n[3], k=-1)
     cores[3][2, :, :, 0] = np.eye(n[3])
 
