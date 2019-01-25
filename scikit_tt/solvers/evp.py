@@ -6,6 +6,7 @@ import scipy.linalg as lin
 import scipy.sparse.linalg as splin
 import scikit_tt.tensor_train as tt
 import scikit_tt.solvers.sle as sle
+from scikit_tt.tensor_train import TT
 
 
 def als(operator, initial_guess, operator_gevp=None, number_ev=1, repeats=1, solver='eig', sigma=1, real=True):
@@ -120,14 +121,12 @@ def als(operator, initial_guess, operator_gevp=None, number_ev=1, repeats=1, sol
 
     # define form of the final solution depending on the number of eigenvalues to compute
     if number_ev == 1:
-        eigentensors = solution.copy()
-        eigentensors.cores[0] = solution.cores[0][:, :, :, :, 0]
+        eigentensors = TT([solution.cores[0][:, :, :, :, 0]] + solution.cores[1:])
         eigenvalues = eigenvalues[0]
     else:
         eigentensors = [None] * number_ev
         for i in range(number_ev):
-            eigentensors[i] = solution.copy()
-            eigentensors[i].cores[0] = solution.cores[0][:, :, :, :, i]
+            eigentensors[i] = TT([solution.cores[0][:, :, :, :, i]] + solution.cores[1:])
 
     return eigenvalues, eigentensors
 
