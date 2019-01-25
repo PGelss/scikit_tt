@@ -51,8 +51,8 @@ def tdmd_exact(x, y, threshold=0, ortho_l=True, ortho_r=True):
 
     # compute exact DMD modes
     dmd_modes = y.copy()
-    dmd_modes.cores[-1] = y.cores[-1][:, :, 0, 0] @ x.cores[-1][:, :, 0, 0].T @ eigenvectors[:, ind] @ np.diag(
-        np.reciprocal(dmd_eigenvalues))
+    dmd_modes.cores[-1] = y.cores[-1][:, :, 0, 0].dot(x.cores[-1][:, :, 0, 0].T).dot(eigenvectors[:, ind]).dot(np.diag(
+        np.reciprocal(dmd_eigenvalues)))
     dmd_modes.row_dims[-1] = len(ind)
 
     return dmd_eigenvalues, dmd_modes
@@ -148,7 +148,7 @@ def __tdmd_reduced_matrix(x, y):
         contraction = np.tensordot(x.cores[i], y.cores[i], axes=(1,1)).transpose([0, 1, 3, 2, 4, 5]).reshape([x.ranks[i]*y.ranks[i], x.ranks[i+1]*y.ranks[i+1]])
 
         # multiply reduced_matrix with contraction
-        reduced_matrix = reduced_matrix @ contraction
+        reduced_matrix = reduced_matrix.dot(contraction)
 
     # reshape reduced_matrix to 2-dimensional array
     reduced_matrix = reduced_matrix.reshape([x.ranks[-2], y.ranks[-2]])
@@ -157,6 +157,6 @@ def __tdmd_reduced_matrix(x, y):
     contraction = np.tensordot(x.cores[-1], y.cores[-1], axes=(1, 1)).reshape([x.ranks[-2], y.ranks[-2]]).T
 
     # multiply reduced_matrix with contraction
-    reduced_matrix = reduced_matrix @ contraction
+    reduced_matrix = reduced_matrix.dot(contraction)
 
     return reduced_matrix
