@@ -21,9 +21,7 @@ class TestPF(TestCase):
         self.transitions_3d = io.loadmat(directory + '/examples/data/QuadrupleWell3D_25x25x25_100.mat')["indices"]
 
         # coarse-grain 3d data
-        for j in range(self.transitions_3d.shape[1]):
-            for i in range(self.transitions_3d.shape[0]):
-                self.transitions_3d[i, j] = np.ceil(np.true_divide(self.transitions_3d[i, j], 5))
+        self.transitions_3d = np.int64(np.ceil(np.true_divide(self.transitions_3d, 5)))
 
     def test_perron_frobenius_2d(self):
         """test for perron_frobenius_2d"""
