@@ -17,7 +17,7 @@ class TestEVP(TestCase):
         """Consider the triple-well model for testing the routines in sle.py"""
 
         # set tolerance for the error of the eigenvalues
-        self.tol_eigval = 1e-3
+        self.tol_eigval = 5e-3
 
         # set tolerance for the error of the eigenvectors
         self.tol_eigvec = 5e-2
