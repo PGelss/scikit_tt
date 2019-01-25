@@ -51,7 +51,7 @@ class TestTDMD(TestCase):
         u, s, v = lin.svd(x, full_matrices=False, overwrite_a=True, check_finite=False, lapack_driver='gesvd')
 
         # construct reduced matrix
-        reduced_matrix = u.T @ y @ v.T @ np.diag(np.reciprocal(s))
+        reduced_matrix = u.T.dot(y).dot(v.T).dot(np.diag(np.reciprocal(s)))
 
         # find eigenvalues
         eigenvalues, eigenvectors = lin.eig(reduced_matrix, overwrite_a=True, check_finite=False)
@@ -61,7 +61,8 @@ class TestTDMD(TestCase):
         eigenvalues_dmd = eigenvalues[ind]
 
         # compute modes
-        modes_dmd = y @ v.T @ np.diag(np.reciprocal(s)) @ eigenvectors[:, ind] @ np.diag(np.reciprocal(eigenvalues_dmd))
+        modes_dmd = y.dot(v.T).dot(np.diag(np.reciprocal(s))).dot(eigenvectors[:, ind]).dot(
+            np.diag(np.reciprocal(eigenvalues_dmd)))
 
         # compute errors
         error_ev = np.linalg.norm(eigenvalues_tdmd - eigenvalues_dmd)
@@ -104,7 +105,7 @@ class TestTDMD(TestCase):
         u, s, v = lin.svd(x, full_matrices=False, overwrite_a=True, check_finite=False, lapack_driver='gesvd')
 
         # construct reduced matrix
-        reduced_matrix = u.T @ y @ v.T @ np.diag(np.reciprocal(s))
+        reduced_matrix = u.T.dot(y).dot(v.T).dot(np.diag(np.reciprocal(s)))
 
         # find eigenvalues
         eigenvalues, eigenvectors = lin.eig(reduced_matrix, overwrite_a=True, check_finite=False)
@@ -114,7 +115,7 @@ class TestTDMD(TestCase):
         eigenvalues_dmd = eigenvalues[ind]
 
         # compute modes
-        modes_dmd = u @ eigenvectors[:, ind]
+        modes_dmd = u.dot(eigenvectors[:, ind])
 
         # compute errors
         error_ev = np.linalg.norm(eigenvalues_tdmd - eigenvalues_dmd)
