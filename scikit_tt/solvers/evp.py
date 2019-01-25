@@ -340,7 +340,7 @@ def __update_core_als(i, micro_op, micro_op_gevp, number_ev, solution, solver, s
         # decompose solution
         [u, _, _] = lin.svd(
             eigenvectors.reshape(solution.ranks[i] * solution.row_dims[i], solution.ranks[i + 1] * number_ev),
-            overwrite_a=True, check_finite=False)
+            overwrite_a=True, check_finite=False, lapack_driver='gesvd')
 
         # rank reduction
         r = np.minimum(solution.ranks[i + 1], u.shape[1])
@@ -363,7 +363,7 @@ def __update_core_als(i, micro_op, micro_op_gevp, number_ev, solution, solver, s
             # decompose solution
             [_, _, v] = lin.svd(
                 eigenvectors.reshape([number_ev * solution.ranks[i], solution.row_dims[i] * solution.ranks[i + 1]]),
-                overwrite_a=True, check_finite=False)
+                overwrite_a=True, check_finite=False, lapack_driver='gesvd')
 
             # rank reduction
             r = np.minimum(solution.ranks[i], v.shape[0])
