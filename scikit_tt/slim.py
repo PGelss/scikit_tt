@@ -70,8 +70,8 @@ def slim_mme(state_space, single_cell_reactions, two_cell_reactions, threshold=0
             product_state = single_cell_reactions[i][j][1]
             net_change = product_state - reactant_state
             reaction_rate = single_cell_reactions[i][j][2]
-            s_mat[i] = s_mat[i] + reaction_rate * (np.eye(dimension, k=-net_change) - np.eye(dimension)) @ np.diag(
-                np.eye(dimension)[:, reactant_state])
+            s_mat[i] = s_mat[i] + reaction_rate * (np.eye(dimension, k=-net_change) - np.eye(dimension)).dot(np.diag(
+                np.eye(dimension)[:, reactant_state]))
 
     # core elements for two-cell reactions
     # ------------------------------------
@@ -93,8 +93,8 @@ def slim_mme(state_space, single_cell_reactions, two_cell_reactions, threshold=0
             net_change_2 = product_state_2 - reactant_state_2
             reaction_rate = two_cell_reactions[i][j][4]
             super_core = super_core + reaction_rate * (np.tensordot(
-                np.eye(dimension_1, k=-net_change_1) @ np.diag(np.eye(dimension_1)[:, reactant_state_1]),
-                np.eye(dimension_2, k=-net_change_2) @ np.diag(np.eye(dimension_2)[:, reactant_state_2]), axes=0)
+                np.eye(dimension_1, k=-net_change_1).dot(np.diag(np.eye(dimension_1)[:, reactant_state_1])),
+                np.eye(dimension_2, k=-net_change_2).dot(np.diag(np.eye(dimension_2)[:, reactant_state_2])), axes=0)
                                                        - np.tensordot(
                         np.diag(np.eye(dimension_1)[:, reactant_state_1]),
                         np.diag(np.eye(dimension_2)[:, reactant_state_2]), axes=0))
@@ -125,8 +125,8 @@ def slim_mme(state_space, single_cell_reactions, two_cell_reactions, threshold=0
             net_change_2 = product_state_2 - reactant_state_2
             reaction_rate = two_cell_reactions[-1][j][4]
             super_core = super_core + reaction_rate * (np.tensordot(
-                np.eye(dimension_1, k=-net_change_1) @ np.diag(np.eye(dimension_1)[:, reactant_state_1]),
-                np.eye(dimension_2, k=-net_change_2) @ np.diag(np.eye(dimension_2)[:, reactant_state_2]), axes=0)
+                np.eye(dimension_1, k=-net_change_1).dot(np.diag(np.eye(dimension_1)[:, reactant_state_1])),
+                np.eye(dimension_2, k=-net_change_2).dot(np.diag(np.eye(dimension_2)[:, reactant_state_2])), axes=0)
                                                        - np.tensordot(
                         np.diag(np.eye(dimension_1)[:, reactant_state_1]),
                         np.diag(np.eye(dimension_2)[:, reactant_state_2]), axes=0))
@@ -258,6 +258,6 @@ def __slim_tcr_decomposition(super_core, threshold):
 
     # set quantities for decomposition
     rank = u.shape[1]
-    core_left = (u @ np.diag(s)).reshape(dimension_1, dimension_1, rank)
+    core_left = (u.dot(np.diag(s))).reshape(dimension_1, dimension_1, rank)
     core_right = v.reshape(rank, dimension_2, dimension_2)
     return core_left, core_right, rank
