@@ -97,7 +97,7 @@ mals .................. modified ALS for systems of linear equations in the TT f
 
 ### 3.2 Generalized eigenvalue problems
 
-Besides power iteration methods, ALS and MALS can also be used to find approximations of eigenvalues and corresponding eigentensors of TT operators. The basic procedures of ALS and MALS - implemented in [*evp.py*](scikit_tt/solvers/evp.py) - for (generalized) eigenvalue problems are similar to the ones for systems of linear equations. The main difference is the type of optimization problem which has to be solved in the iteration steps. See [[3](README.md#12-references)] for details.
+Besides power iteration methods [[8](README.md#12-references)], ALS and MALS can also be used to find approximations of eigenvalues and corresponding eigentensors of TT operators. The basic procedures of ALS and MALS - implemented in [*evp.py*](scikit_tt/solvers/evp.py) - for (generalized) eigenvalue problems are similar to the ones for systems of linear equations. The main difference is the type of optimization problem which has to be solved in the iteration steps. See [[3](README.md#12-references)] for details.
 
 ```
 als ................... ALS for generalized eigenvalue problems in the TT format
@@ -120,7 +120,7 @@ adaptive_step_size .... adaptive step size method for linear differential equati
 
 ## 4. SLIM decomposition
 
-The SLIM decomposition is a specific form of TT decompositions which represent tensors networks with a certain structure. For instance, tensor operators corresponding to nearest-neighbor interaction systems can be systematicly decomposed into a tensor-train operator using the algorithms in [*slim.py*](scikit_tt/slim.py). See [[4](README.md#12-references)] for details.
+The SLIM decomposition is a specific form of TT decompositions which represent tensors networks with a certain structure. For instance, tensor operators corresponding to nearest-neighbor interaction systems can be systematicly decomposed into a tensor-train operator using the algorithms in [*slim.py*](scikit_tt/slim.py). See [[5](README.md#12-references)] for details.
 
 ```
 slim_mme .............. SLIM decomposition for Markov generators
@@ -174,7 +174,7 @@ two_step_destruction .. two-step mechanism for the destruction of molecules
 
 ## 7. Fractals
 
-As we have demonstrated in [[8](README.md#12-references)], the TT format can naturally be used to create self-similar geometric patterns. Several examples for tensor-generated fractals can be found in [*fractals.py*](scikit_tt/fractals.py)
+As we have demonstrated in [[9](README.md#12-references)], the TT format can naturally be used to create self-similar geometric patterns. Several examples for tensor-generated fractals can be found in [*fractals.py*](scikit_tt/fractals.py)
 
 ```
 cantor_dust ........... generalization of the Cantor set and the Cantor dust
@@ -185,7 +185,7 @@ vicsek_fractal ........ generalization of the Vicsek fractal
 
 ## 8. Examples
 
-Numerical experiments from different application areas are included in **scikit_tt**. For instance, the application of the TT format to chemical master equations, heterogeneous catalytic processes [[5](README.md#12-references)], fluid dynamics, and molecular dynamics can be found in the directory [*examples*](examples/).
+Numerical experiments from different application areas are included in **scikit_tt**. For instance, the application of the TT format to chemical master equations [[2](README.md#12-references)], heterogeneous catalytic processes [[3](README.md#12-references)], fluid dynamics [[6](README.md#12-references)], and dynamical systems [[6](README.md#12-references), [7](README.md#12-references)] can be found in the directory [*examples*](examples/).
 
 ```
 co_oxidation .......... compute stationary distributions of a catalytic process
@@ -218,16 +218,13 @@ test_tensor_train ..... unit tests for tensor_train.py
 
 ## 10. Subfunctions and tools
 
-In [*utils.py*](scikit_tt/utils.py) we collect algorithms and tools which are employed at several points in **scikit_tt** and/or helpful for data analysis, comparisons, and visualization.
+In [*utils.py*](scikit_tt/utils.py) we collect routines which are employed at several points in **scikit_tt** for the sake of visualization.
 
 ```
 header ................ ASCII header for scikit_tt
-mean_concentrations ... mean concentrations of TT series
 plot_parameters ....... customized plot parameters
 progress .............. show progress in percent
 timer ................. measure CPU time
-two_cell_tof .......... turn-over frequency of two-cell reactions
-unit_vector ........... canonical unit vector
 ```
 
 ## 11. Additional information
@@ -268,6 +265,6 @@ The current version of **scikit_tt** is [1.0](https://github.com/PGelss/scikit_t
 
 [7] P. Gelß, S. Klus, J. Eisert, C. Schütte, "Multidimensional Approximation of Nonlinear Dynamical Systems", arXiv:1809.02448 (2018)
 
-[8] P. Gelß, C. Schütte, "Tensor-generated fractals: Using tensor decompositions for creating self-similar patterns", arXiv:1812.00814 (2018)
+[8] S. Klus, C. Schütte, "Towards tensor-based methods for the numerical approximation of the Perron-Frobenius and Koopman operator", Journal of Computational Dynamics 3 (2), 2016
 
-[9] S. Klus, C. Schütte, "Towards tensor-based methods for the numerical approximation of the Perron-Frobenius and Koopman operator", Journal of Computational Dynamics 3 (2), 2016
+[9] P. Gelß, C. Schütte, "Tensor-generated fractals: Using tensor decompositions for creating self-similar patterns", arXiv:1812.00814 (2018)
