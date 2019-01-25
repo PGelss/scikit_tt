@@ -7,7 +7,7 @@
 
 ## Short description
 
-The simulation and analysis of high-dimensional problems is often infeasible due to the curse of dimensionality. Using the *tensor-train format* (TT format) [[1](README.md#12-references), [2](README.md#12-references)] and tensor-based solvers [[3](README.md#12-references)], **scikit_tt** can be applied to various numerical problems in order to reduce the memory consumption and the computational costs compared to classical approaches significantly. Possible application areas are the computation of low-rank approximations for high-dimensional systems, solving systems of linear equations and eigenvalue problems in the TT format, representing operators based on nearest-neighbor interactions in the TT format, constructing pseudoinverses for tensor-based reformulations of dimensionality reduction methods, and the approximation of transfer operators as well as governing equations of dynamical systems.
+The simulation and analysis of high-dimensional problems is often infeasible due to the curse of dimensionality. Using the *tensor-train format* (TT format) [[1](README.md#12-references), [2](README.md#12-references)], **scikit_tt** can be applied to various numerical problems in order to reduce the memory consumption and the computational costs compared to classical approaches significantly. Possible application areas are the computation of low-rank approximations for high-dimensional systems [[3](README.md#12-references)], solving systems of linear equations and eigenvalue problems in the TT format [[4](README.md#12-references)], representing operators based on nearest-neighbor interactions in the TT format [[5](README.md#12-references)], constructing pseudoinverses for tensor-based reformulations of dimensionality reduction methods [[6](README.md#12-references)], and the approximation of transfer operators [[2](README.md#12-references)] as well as governing equations of dynamical systems [[7](README.md#12-references)].
 
 ## Content
 
@@ -19,7 +19,7 @@ The simulation and analysis of high-dimensional problems is often infeasible due
    - [Linear differential equations](README.md#33-linear-differential-equations)
 4. [SLIM decomposition](README.md#4-slim-decomposition)
 5. [Data analysis](README.md#5-data-analysis)
-   - [Tensor-based dynamic mode decomposition (TDMD)](README.md#51-tensor-based-dynamic-mode-decomposition-tdmd)
+   - [Tensor-based dynamic mode decomposition (tDMD)](README.md#51-tensor-based-dynamic-mode-decomposition-tdmd)
    - [Multidimensional approximation of nonlinear dynamical systems (MANDy)](README.md#52-multidimensional-approximation-of-nonlinear-dynamical-systems-mandy)
    - [Approximation of Perron-Frobenius operators](README.md#53-approximation-of-perron-frobenius-operators)
 6. [Models](README.md#6-models)
@@ -258,11 +258,11 @@ The current version of **scikit_tt** is [1.0](https://github.com/PGelss/scikit_t
 
 [2] P. Gelß. "The Tensor-Train Format and Its Applications: Modeling and Analysis of Chemical Reaction Networks, Catalytic Processes, Fluid Flows, and Brownian Dynamics", Freie Universität Berlin (2017)
 
-[3] S. Holtz, T. Rohwedder, R. Schneider, "The Alternating Linear Scheme for Tensor Optimization in the Tensor Train Format", SIAM Journal on Scientific Computing 34 (2) (2012) A683-A713
+[3] P. Gelß, S. Matera, C. Schütte, "Solving the Master Equation without Kinetic Monte Carlo: Tensor Train Approximations for a CO Oxidation Model", Journal of Computational Physics 314 (2016) 489502
 
-[4] P. Gelß, S. Klus, S. Matera, C. Schütte, "Nearest-Neighbor Interaction Systems in the Tensor-Train Format", Journal of Computational Physics 341 (2017) 140-162
+[4] S. Holtz, T. Rohwedder, R. Schneider, "The Alternating Linear Scheme for Tensor Optimization in the Tensor Train Format", SIAM Journal on Scientific Computing 34 (2) (2012) A683-A713
 
-[5] P. Gelß, S. Matera, C. Schütte, "Solving the Master Equation without Kinetic Monte Carlo: Tensor Train Approximations for a CO Oxidation Model", Journal of Computational Physics 314 (2016) 489502
+[5] P. Gelß, S. Klus, S. Matera, C. Schütte, "Nearest-Neighbor Interaction Systems in the Tensor-Train Format", Journal of Computational Physics 341 (2017) 140-162
 
 [6] S. Klus, P. Gelß, S. Peitz, C. Schütte, "Tensor-based Dynamic Mode Decomposition", Nonlinearity 31 (7) (2018) 3359
 
