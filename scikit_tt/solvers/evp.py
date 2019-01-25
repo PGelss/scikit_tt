@@ -181,15 +181,15 @@ def power_method(operator, initial_guess, operator_gevp=None, repeats=10, sigma=
         if operator_gevp is None:
             eigentensor = sle.als(operator_shift, eigentensor, eigentensor)
         else:
-            eigentensor = sle.als(operator_shift, eigentensor, operator_gevp @ eigentensor)
+            eigentensor = sle.als(operator_shift, eigentensor, operator_gevp.dot(eigentensor))
 
         # normalize eigentensor
         eigentensor *= (1 / eigentensor.norm())
 
         # compute eigenvalue
-        eigenvalue = (eigentensor.transpose() @ operator @ eigentensor)
+        eigenvalue = (eigentensor.transpose().dot(operator).dot(eigentensor))
         if operator_gevp is not None:
-            eigenvalue *= 1 / (eigentensor.transpose() @ operator_gevp @ eigentensor)
+            eigenvalue *= 1 / (eigentensor.transpose().dot(operator_gevp).dot(eigentensor))
 
     return eigenvalue, eigentensor
 
