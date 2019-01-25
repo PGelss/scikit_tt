@@ -7,17 +7,26 @@ from scipy import linalg
 class TT(object):
     """Tensor train class
 
-    Tensor trains [1]_ are defined in terms of different attributes. In particular, the attribute 'cores' is a list of
-    4-dimensional tensors representing the corresponding TT cores. There is no distinguish between tensor trains and
-    tensor trains operators, i.e. a classical tensor train is represented by cores with column dimensions equal to 1.
-    An instance of the tensor train class can be initialized from a full tensor representation (in this case, the tensor
-    is decomposed into the TT format) or from a list of cores. For more information on the implemented tensor
-    operations, we refer to [2]_.
+    Tensor trains [1]_ are defined in terms of different attributes. That is, a tensor train with order ``d`` is 
+    given by a list of 4-dimensional tensors
 
-    Parameters
-    ----------
-    x: ndarray or list of ndarrays
-        either a full tensor or a list of TT cores
+        ``[cores[0] , ..., cores[d-1]]``,
+
+    where ``cores[i]`` is an ndarry with dimensions
+
+        ``ranks[i] x row_dims[i] x col_dims[i] x ranks[i+1]``.
+
+    There is no distinguish between tensor trains and tensor trains operators, i.e. a classical tensor train is 
+    represented by cores with column dimensions equal to 1.
+
+    An instance of the tensor train class can be initialized either from a list of cores, i.e. ``t = TT(cores)`` 
+    where ``cores`` is a list as described above, or from a full tensor representation, i.e. ``t = TT(x)`` where 
+    ``x`` is an ndarray with dimensions 
+
+        ``row_dims[0] x ... x row_dims[-1] x col_dims[0] x ... x col_dims[-1]``.
+
+    In the latter case, the tensor is decomposed into the TT format. For more information on the implemented tensor
+    operations, we refer to [2]_.
 
     Attributes
     ----------
@@ -30,16 +39,46 @@ class TT(object):
     ranks: list of ints
         list of the ranks of the tensor train
     cores: list of ndarrays
-        list of the cores of the tensor train (core[i] has dimensions ranks[i] x row_dims[i] x col_dims[i] x ranks[i+1])
+        list of the cores of the tensor train
 
     References
     ----------
     .. [1] I. V. Oseledets, "Tensor-Train Decomposition", SIAM Journal on Scientific Computing 33 (5), 2011
     .. [2] P. Gelß. "The Tensor-Train Format and Its Applications: Modeling and Analysis of Chemical Reaction
            Networks, Catalytic Processes, Fluid Flows, and Brownian Dynamics", Freie Universität Berlin, 2017
+    
+    Examples
+    --------
+
+    Construct tensor train from list of cores:
+
+    >>> import numpy as np
+    >>> from scikit_tt.tensor_train import TT
+    >>>
+    >>> cores = [np.random.rand([1, 2, 3, 4]), np.random.rand([4, 3, 2, 1])]
+    >>> t = TT(cores)
+    >>> print(t)
+    >>> ...
+
+    Construct tensor train from ndarray:
+
+    >>> import numpy as np
+    >>> from scikit_tt.tensor_train import TT
+    >>>
+    >>> x = np.random.rand([1, 2, 3, 4, 5, 6])
+    >>> t = TT(cores)
+    >>> print(t)
+    >>> ...
+
     """
 
     def __init__(self, x):
+        """
+        Parameters
+        ----------
+        x: ndarray or list of ndarrays
+            either a full tensor or a list of TT cores
+        """
 
         # initialize from full array
         # --------------------------
