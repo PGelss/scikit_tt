@@ -31,12 +31,11 @@ class TestODE(TestCase):
         # compute norm of the derivatives at the final 10 time steps
         derivatives = []
         for i in range(10):
-            derivatives.append((operator @ solution[-i - 1]).norm())
+            derivatives.append((operator.dot(solution[-i - 1])).norm())
 
         # check if implicit Euler method converged to stationary distribution
         for i in range(10):
             self.assertLess(derivatives[i], self.tol)
-
 
     def test_implicit_euler(self):
         """test for implicit Euler method"""
@@ -55,8 +54,8 @@ class TestODE(TestCase):
         derivatives_als = []
         derivatives_mals = []
         for i in range(10):
-            derivatives_als.append((operator @ solution_als[-i - 1]).norm())
-            derivatives_mals.append((operator @ solution_mals[-i - 1]).norm())
+            derivatives_als.append((operator.dot(solution_als[-i - 1])).norm())
+            derivatives_mals.append((operator.dot(solution_mals[-i - 1])).norm())
 
         # check if implicit Euler method converged to stationary distribution
         for i in range(10):
@@ -84,8 +83,8 @@ class TestODE(TestCase):
         derivatives_als = []
         derivatives_mals = []
         for i in range(10):
-            derivatives_als.append((operator @ solution_als[-i - 1]).norm())
-            derivatives_mals.append((operator @ solution_mals[-i - 1]).norm())
+            derivatives_als.append((operator.dot(solution_als[-i - 1])).norm())
+            derivatives_mals.append((operator.dot(solution_mals[-i - 1])).norm())
 
         # check if trapezoidal rule converged to stationary distribution
         for i in range(10):
@@ -127,8 +126,8 @@ class TestODE(TestCase):
                                              second_method='trapezoidal_rule', progress=False)
 
         # compute norm of the derivatives at the final time step
-        derivative_ie = (operator @ solution_ie[-1]).norm()
-        derivative_tr = (operator @ solution_tr[-1]).norm()
+        derivative_ie = (operator.dot(solution_ie[-1])).norm()
+        derivative_tr = (operator.dot(solution_tr[-1])).norm()
 
         # check if converged to stationary distribution
         self.assertLess(derivative_ie, self.tol)
