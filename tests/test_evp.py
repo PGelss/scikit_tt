@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from unittest import TestCase
+from scikit_tt.tensor_train import TT
 import scikit_tt.data_driven.perron_frobenius as pf
 import scikit_tt.tensor_train as tt
 import scikit_tt.solvers.evp as evp
@@ -28,6 +29,7 @@ class TestEVP(TestCase):
         directory = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
         transitions = io.loadmat(directory + '/examples/data/TripleWell2D_500.mat')["indices"]
         self.operator_tt = pf.perron_frobenius_2d(transitions, [50, 50], 500)
+        self.operator_gevp = tt.eye(self.operator_tt.row_dims)
 
         # matricize TT operator
         self.operator_mat = self.operator_tt.matricize()
@@ -35,12 +37,84 @@ class TestEVP(TestCase):
         # define initial tensor train for solving the eigenvalue problem
         self.initial_tt = tt.ones(self.operator_tt.row_dims, [1] * self.operator_tt.order, ranks=15).ortho_right()
 
-    def test_als(self):
-        """test for ALS"""
+    def test_als_eig(self):
+        """test for ALS with solver='eig'"""
 
-        # solve eigenvalue problem in TT format
+        # solve eigenvalue problem in TT format (number_ev=1 and operator_gevp is defined as identity tensor)
+        _, eigentensor = evp.als(self.operator_tt, self.initial_tt, operator_gevp=self.operator_gevp, repeats=10)
+        self.assertTrue(isinstance(eigentensor, TT))
+
+        # solve eigenvalue problem in TT format (number_ev=self.number_ev)
         eigenvalues_tt, eigenvectors_tt = evp.als(self.operator_tt, self.initial_tt, number_ev=self.number_ev,
                                                   repeats=10)
+
+        # solve eigenvalue problem in matrix format
+        eigenvalues_mat, eigenvectors_mat = splin.eigs(self.operator_mat, k=self.number_ev)
+        eigenvalues_mat = np.real(eigenvalues_mat)
+        eigenvectors_mat = np.real(eigenvectors_mat)
+        idx = eigenvalues_mat.argsort()[::-1]
+        eigenvalues_mat = eigenvalues_mat[idx]
+        eigenvectors_mat = eigenvectors_mat[:, idx]
+
+        # compute relative error between exact and approximate eigenvalues
+        rel_err_val = []
+        for i in range(self.number_ev):
+            rel_err_val.append(np.abs(eigenvalues_mat[i] - eigenvalues_tt[i]) / eigenvalues_mat[i])
+
+        # compute relative error between exact and approximate eigenvectors
+        rel_err_vec = []
+        for i in range(self.number_ev):
+            norm_1 = np.linalg.norm(eigenvectors_mat[:, i] + eigenvectors_tt[i].matricize())
+            norm_2 = np.linalg.norm(eigenvectors_mat[:, i] - eigenvectors_tt[i].matricize())
+            rel_err_vec.append(np.amin([norm_1, norm_2]) / np.linalg.norm(eigenvectors_mat[:, i]))
+
+        # check if relative errors are smaller than tolerance
+        for i in range(self.number_ev):
+            self.assertLess(rel_err_val[i], self.tol_eigval)
+            self.assertLess(rel_err_vec[i], self.tol_eigvec)
+
+    def test_als_eigs(self):
+        """test for ALS with solver='eigs'"""
+
+        # solve eigenvalue problem in TT format (number_ev=self.number_ev)
+        eigenvalues_tt, eigenvectors_tt = evp.als(self.operator_tt, self.initial_tt, number_ev=self.number_ev,
+                                                  repeats=10, solver='eigs')
+
+        # solve eigenvalue problem in matrix format
+        eigenvalues_mat, eigenvectors_mat = splin.eigs(self.operator_mat, k=self.number_ev)
+        eigenvalues_mat = np.real(eigenvalues_mat)
+        eigenvectors_mat = np.real(eigenvectors_mat)
+        idx = eigenvalues_mat.argsort()[::-1]
+        eigenvalues_mat = eigenvalues_mat[idx]
+        eigenvectors_mat = eigenvectors_mat[:, idx]
+
+        # compute relative error between exact and approximate eigenvalues
+        rel_err_val = []
+        for i in range(self.number_ev):
+            rel_err_val.append(np.abs(eigenvalues_mat[i] - eigenvalues_tt[i]) / eigenvalues_mat[i])
+
+        # compute relative error between exact and approximate eigenvectors
+        rel_err_vec = []
+        for i in range(self.number_ev):
+            norm_1 = np.linalg.norm(eigenvectors_mat[:, i] + eigenvectors_tt[i].matricize())
+            norm_2 = np.linalg.norm(eigenvectors_mat[:, i] - eigenvectors_tt[i].matricize())
+            rel_err_vec.append(np.amin([norm_1, norm_2]) / np.linalg.norm(eigenvectors_mat[:, i]))
+
+        # check if relative errors are smaller than tolerance
+        for i in range(self.number_ev):
+            self.assertLess(rel_err_val[i], self.tol_eigval)
+            self.assertLess(rel_err_vec[i], self.tol_eigvec)
+
+    def test_als_eigh(self):
+        """test for ALS with solver='eigh'"""
+
+        # make problem symmetric
+        self.operator_tt = 0.5*(self.operator_tt + self.operator_tt.transpose())
+        self.operator_mat = 0.5*(self.operator_mat + self.operator_mat.transpose())
+
+        # solve eigenvalue problem in TT format (number_ev=self.number_ev)
+        eigenvalues_tt, eigenvectors_tt = evp.als(self.operator_tt, self.initial_tt, number_ev=self.number_ev,
+                                                  repeats=10, solver='eigh')
 
         # solve eigenvalue problem in matrix format
         eigenvalues_mat, eigenvectors_mat = splin.eigs(self.operator_mat, k=self.number_ev)
@@ -71,6 +145,8 @@ class TestEVP(TestCase):
         """test for inverse power iteration method"""
 
         # solve eigenvalue problem in TT format
+        eigenvalue_tt, eigenvector_tt = evp.power_method(self.operator_tt, self.initial_tt,
+                                                         operator_gevp=self.operator_gevp)
         eigenvalue_tt, eigenvector_tt = evp.power_method(self.operator_tt, self.initial_tt)
 
         # solve eigenvalue problem in matrix format
@@ -80,8 +156,8 @@ class TestEVP(TestCase):
         rel_err_val = np.abs(eigenvalue_mat - eigenvalue_tt) / np.abs(eigenvalue_mat)
 
         # compute relative error between exact and approximate eigenvectors
-        norm_1 = np.linalg.norm(eigenvector_mat + eigenvector_tt.matricize()[:,None])
-        norm_2 = np.linalg.norm(eigenvector_mat - eigenvector_tt.matricize()[:,None])
+        norm_1 = np.linalg.norm(eigenvector_mat + eigenvector_tt.matricize()[:, None])
+        norm_2 = np.linalg.norm(eigenvector_mat - eigenvector_tt.matricize()[:, None])
         rel_err_vec = np.amin([norm_1, norm_2]) / np.linalg.norm(eigenvector_mat)
 
         # check if relative errors are smaller than tolerance
