@@ -39,7 +39,7 @@ def explicit_euler(operator, initial_value, step_sizes, threshold=1e-12, max_ran
 
     for i in range(len(step_sizes)):
         # compute next time step
-        tt_tmp = (tt.eye(operator.row_dims) + step_sizes[i] * operator) @ solution[i]
+        tt_tmp = (tt.eye(operator.row_dims) + step_sizes[i] * operator).dot(solution[i])
 
         # truncate ranks of the solution
         tt_tmp = tt_tmp.ortho(threshold=threshold, max_rank=max_rank)
@@ -80,7 +80,7 @@ def errors_expl_euler(operator, solution, step_sizes):
     # compute relative approximation errors
     for i in range(len(solution) - 1):
         errors.append(
-            (solution[i + 1] - (tt.eye(operator.row_dims) + step_sizes[i] * operator) @ solution[i]).norm() /
+            (solution[i + 1] - (tt.eye(operator.row_dims) + step_sizes[i] * operator).dot(solution[i])).norm() /
             solution[i].norm())
 
     return errors
@@ -174,7 +174,7 @@ def errors_impl_euler(operator, solution, step_sizes):
     # compute relative approximation errors
     for i in range(len(solution) - 1):
         errors.append(
-            ((tt.eye(operator.row_dims) - step_sizes[i] * operator) @ solution[i + 1] - solution[i]).norm() /
+            ((tt.eye(operator.row_dims) - step_sizes[i] * operator).dot(solution[i + 1]) - solution[i]).norm() /
             solution[i].norm())
 
     return errors
@@ -227,11 +227,11 @@ def trapezoidal_rule(operator, initial_value, initial_guess, step_sizes, repeats
         # solve system of linear equations for current time step
         if tt_solver == 'als':
             tt_tmp = sle.als(tt.eye(operator.row_dims) - 0.5 * step_sizes[i] * operator, tt_tmp,
-                             (tt.eye(operator.row_dims) + 0.5 * step_sizes[i] * operator) @ solution[i],
+                             (tt.eye(operator.row_dims) + 0.5 * step_sizes[i] * operator).dot(solution[i]),
                              solver=micro_solver, repeats=repeats)
         if tt_solver == 'mals':
             tt_tmp = sle.mals(tt.eye(operator.row_dims) - 0.5 * step_sizes[i] * operator, tt_tmp,
-                              (tt.eye(operator.row_dims) + 0.5 * step_sizes[i] * operator) @ solution[i],
+                              (tt.eye(operator.row_dims) + 0.5 * step_sizes[i] * operator).dot(solution[i]),
                               solver=micro_solver, repeats=repeats, threshold=threshold, max_rank=max_rank)
 
         # normalize solution
@@ -269,9 +269,9 @@ def errors_trapezoidal(operator, solution, step_sizes):
 
     # compute relative approximation errors
     for i in range(len(solution) - 1):
-        errors.append(((tt.eye(operator.row_dims) - 0.5 * step_sizes[i] * operator) @ solution[i + 1] -
-                       (tt.eye(operator.row_dims) + 0.5 * step_sizes[i] * operator) @ solution[i]).norm() /
-                      ((tt.eye(operator.row_dims) + 0.5 * step_sizes[i] * operator) @ solution[i]).norm())
+        errors.append(((tt.eye(operator.row_dims) - 0.5 * step_sizes[i] * operator).dot(solution[i + 1]) -
+                       (tt.eye(operator.row_dims) + 0.5 * step_sizes[i] * operator).dot(solution[i])).norm() /
+                      ((tt.eye(operator.row_dims) + 0.5 * step_sizes[i] * operator).dot(solution[i])).norm())
 
     return errors
 
@@ -331,7 +331,7 @@ def adaptive_step_size(operator, initial_value, initial_guess, time_end, step_si
     t_2 = []
 
     # set closeness variables
-    closeness_pre = (operator @ initial_value).norm()
+    closeness_pre = (operator.dot(initial_value)).norm()
 
     # define tensor train for solving the systems of linear equations
     t_tmp = initial_guess
@@ -360,12 +360,12 @@ def adaptive_step_size(operator, initial_value, initial_guess, time_end, step_si
                           repeats=repeats)
         if second_method == 'trapezoidal_rule':
             t_2 = sle.als(tt.eye(operator.row_dims) - 0.5 * step_size * operator, t_tmp.copy(),
-                          (tt.eye(operator.row_dims) + 0.5 * step_size * operator) @ solution[-1], solver=solver,
+                          (tt.eye(operator.row_dims) + 0.5 * step_size * operator).dot(solution[-1]), solver=solver,
                           repeats=repeats)
         t_2 = (1 / t_2.norm(p=1)) * t_2
 
         # compute closeness to staionary distribution
-        closeness = (operator @ t_1).norm()
+        closeness = (operator.dot(t_1)).norm()
 
         # compute relative local error and closeness change
         local_error = (t_1 - t_2).norm() / t_1.norm()
