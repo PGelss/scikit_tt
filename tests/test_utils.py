@@ -3,8 +3,8 @@
 import numpy as np
 import scikit_tt.utils as utl
 from unittest import TestCase
-from contextlib import redirect_stdout
-import io
+import sys
+import os
 import time
 
 
@@ -14,9 +14,11 @@ class TestUtils(TestCase):
         """test header"""
 
         # suppress print output
-        text_trap = io.StringIO()
-        with redirect_stdout(text_trap):
-            utl.header(title='test', subtitle='test')
+        self._original_stdout = sys.stdout
+        sys.stdout = open(os.devnull, 'w')
+        utl.header(title='test', subtitle='test')
+        sys.stdout.close()
+        sys.stdout = self._original_stdout
 
     def test_plot_parameters(self):
         """test plot_parameters"""
@@ -27,10 +29,12 @@ class TestUtils(TestCase):
         """test progress"""
 
         # suppress print output
-        text_trap = io.StringIO()
-        with redirect_stdout(text_trap):
-            utl.progress('test', 0)
-            utl.progress('test', 100)
+        self._original_stdout = sys.stdout
+        sys.stdout = open(os.devnull, 'w')
+        utl.progress('test', 0)
+        utl.progress('test', 100)
+        sys.stdout.close()
+        sys.stdout = self._original_stdout
 
     def test_timer(self):
         """test timer"""
