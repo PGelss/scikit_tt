@@ -26,7 +26,7 @@ The simulation and analysis of high-dimensional problems is often infeasible due
 7. [Fractals](README.md#7-fractals)
 8. [Examples](README.md#8-examples)
 9. [Tests](README.md#9-tests)
-10. [Subfunctions and tools](README.md#10-subfunctions-and-tools)
+10. [Utilities](README.md#10-utilities)
 11. [Additional information](README.md#11-additional-information)
     - [Authors & contact](README.md#111-authors--contact)
     - [Built with](README.md#112-built-with)
@@ -216,7 +216,7 @@ test_tdmd ............. unit tests for data_driven/tdmd.py
 test_tensor_train ..... unit tests for tensor_train.py
 ```
 
-## 10. Subfunctions and tools
+## 10. Utilities
 
 In [*utils.py*](scikit_tt/utils.py) we collect routines which are employed at several points in **scikit_tt** for the sake of visualization.
 
