@@ -1144,7 +1144,7 @@ def uniform(row_dims, ranks=1, norm=1):
         ranks = [1] + [ranks for _ in range(len(row_dims) - 1)] + [1]
 
     # compute factor for each core such that tt_uni has given norm
-    factor = (norm / (np.sqrt(np.prod(row_dims)) * np.prod(ranks))) ** (1 / len(row_dims))
+    factor = (norm / (np.sqrt(np.prod(row_dims)) * np.prod(ranks))) ** np.true_divide(1, len(row_dims))
 
     # define TT cores of tt_uni
     cores = [factor * np.ones([ranks[i], row_dims[i], 1, ranks[i + 1]]) for i in range(len(row_dims))]
