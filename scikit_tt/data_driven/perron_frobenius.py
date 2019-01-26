@@ -50,7 +50,7 @@ def perron_frobenius_2d(transitions, states, simulations):
         cores[1][ind_inv[i], transitions[1, i] - 1, transitions[3, i] - 1, 0] += 1
 
     # transpose and normalize operator
-    operator = (1 / simulations) * TT(cores).transpose()
+    operator = (np.true_divide(1, simulations)) * TT(cores).transpose()
 
     return operator
 
@@ -113,6 +113,6 @@ def perron_frobenius_3d(transitions, states, simulations):
         cores[1][ind_1_inv[i], transitions[1, i] - 1, transitions[4, i] - 1, ind_2_inv[i]] += 1
 
     # transpose and normalize operator
-    operator = (1 / simulations) * tt.TT(cores).transpose()
+    operator = (np.true_divide(1, simulations)) * tt.TT(cores).transpose()
 
     return operator
