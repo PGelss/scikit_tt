@@ -30,10 +30,10 @@ class TestEVP(TestCase):
         transitions = io.loadmat(directory + '/examples/data/TripleWell2D_500.mat')["indices"]
 
         # coarse-grain data
-        transitions = np.int64(np.ceil(np.true_divide(transitions, 10)))  
+        transitions = np.int64(np.ceil(np.true_divide(transitions, 5)))  
 
         # generate operators in TT format
-        self.operator_tt = pf.perron_frobenius_2d(transitions, [5, 5], 50000)
+        self.operator_tt = pf.perron_frobenius_2d(transitions, [10, 10], 12500)
         self.operator_gevp = tt.eye(self.operator_tt.row_dims)
 
         # matricize TT operator
