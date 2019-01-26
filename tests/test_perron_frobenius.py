@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import unittest as ut
 from unittest import TestCase
 import scikit_tt.data_driven.perron_frobenius as pf
 import numpy as np
@@ -34,7 +35,7 @@ class TestPF(TestCase):
         for i in range(self.transitions_2d.shape[1]):
             [x_1, y_1, x_2, y_2] = self.transitions_2d[:, i] - 1
             operator_full[x_2, y_2, x_1, y_1] += 1
-        operator_full *= 1 / 500
+        operator_full *= np.true_divide(1, 500)
 
         # compute error
         error = np.abs(operator.full() - operator_full).sum()
@@ -53,10 +54,13 @@ class TestPF(TestCase):
         for i in range(self.transitions_3d.shape[1]):
             [x_1, y_1, z_1, x_2, y_2, z_2] = self.transitions_3d[:, i] - 1
             operator_full[x_2, y_2, z_2, x_1, y_1, z_1] += 1
-        operator_full *= 1 / 12500
+        operator_full *= np.true_divide(1, 12500)
 
         # compute error
         error = np.abs(operator.full() - operator_full).sum()
 
         # check if error is smaller than tolerance         
         self.assertLess(error, self.tol)
+
+if __name__ == '__main__':
+    ut.main()
