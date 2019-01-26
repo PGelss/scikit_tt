@@ -3,6 +3,7 @@
 import numpy as np
 import scikit_tt.tensor_train as tt
 from scikit_tt.tensor_train import TT
+import unittest as ut
 from unittest import TestCase
 
 
@@ -466,3 +467,6 @@ class TestTT(TestCase):
 
         # check if relative error is smaller than tolerance
         self.assertLess(rel_err, self.tol)
+
+if __name__ == '__main__':
+    ut.main()
