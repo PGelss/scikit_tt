@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import unittest as ut
 from unittest import TestCase
 from scikit_tt.tensor_train import TT
 import scikit_tt.data_driven.perron_frobenius as pf
@@ -14,33 +15,40 @@ import os
 class TestEVP(TestCase):
 
     def setUp(self):
-        """Consider the triple-well model for testing the routines in sle.py"""
+        """Consider the triple-well model for testing the routines in evp.py"""
+
+        self = TestEVP
+
+    @classmethod
+    def setUpClass(cls):
+
+        super(TestEVP, cls).setUpClass()
 
         # set tolerance for the error of the eigenvalues
-        self.tol_eigval = 5e-3
+        cls.tol_eigval = 5e-3
 
         # set tolerance for the error of the eigenvectors
-        self.tol_eigvec = 5e-2
+        cls.tol_eigvec = 5e-2
 
         # set number of eigenvalues to compute
-        self.number_ev = 3
+        cls.number_ev = 3
 
         # load data
         directory = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
         transitions = io.loadmat(directory + '/examples/data/TripleWell2D_500.mat')["indices"]
 
         # coarse-grain data
-        transitions = np.int64(np.ceil(np.true_divide(transitions, 5)))  
+        transitions = np.int64(np.ceil(np.true_divide(transitions, 2)))  
 
         # generate operators in TT format
-        self.operator_tt = pf.perron_frobenius_2d(transitions, [10, 10], 12500)
-        self.operator_gevp = tt.eye(self.operator_tt.row_dims)
+        cls.operator_tt = pf.perron_frobenius_2d(transitions, [25, 25], 2000)
+        cls.operator_gevp = tt.eye(cls.operator_tt.row_dims)
 
         # matricize TT operator
-        self.operator_mat = self.operator_tt.matricize()
+        cls.operator_mat = cls.operator_tt.matricize()
 
         # define initial tensor train for solving the eigenvalue problem
-        self.initial_tt = tt.ones(self.operator_tt.row_dims, [1] * self.operator_tt.order, ranks=15).ortho_right()
+        cls.initial_tt = tt.ones(cls.operator_tt.row_dims, [1] * cls.operator_tt.order, ranks=15).ortho_right()
 
     def test_als_eig(self):
         """test for ALS with solver='eig'"""
@@ -55,6 +63,7 @@ class TestEVP(TestCase):
 
         # solve eigenvalue problem in matrix format
         eigenvalues_mat, eigenvectors_mat = splin.eigs(self.operator_mat, k=self.number_ev)
+
         eigenvalues_mat = np.real(eigenvalues_mat)
         eigenvectors_mat = np.real(eigenvectors_mat)
         idx = eigenvalues_mat.argsort()[::-1]
@@ -168,3 +177,6 @@ class TestEVP(TestCase):
         # check if relative errors are smaller than tolerance
         self.assertLess(rel_err_val, self.tol_eigval)
         self.assertLess(rel_err_vec, self.tol_eigvec)
+
+if __name__ == '__main__':
+    ut.main()
