@@ -61,6 +61,10 @@ class TT(object):
         deep copy of a tensor train
     element(t, indices)
         element of t at given indices
+    matricize(t)
+        matricization of a tensor train
+    full(t)
+        convert tensor train to full format
 
     References
     ----------
@@ -359,7 +363,7 @@ class TT(object):
         TypeError
             if tt_mul is not an instance of the TT class
         ValueError
-            if row dimensions of self do not match column dimensions of tt_mul
+            if column dimensions of self do not match row dimensions of tt_mul
         """
 
         if isinstance(tt_mul, TT):
@@ -520,7 +524,7 @@ class TT(object):
 
 
     def full(self):
-        """conversion to full format
+        """Conversion to full format
 
         Returns
         -------
@@ -549,7 +553,7 @@ class TT(object):
         return full_tensor
 
     def matricize(self):
-        """matricization of tensor trains
+        """Matricization of tensor trains
 
         If self is a TT operator, then tt_mat is a matrix. Otherwise, the result is a vector.
 
