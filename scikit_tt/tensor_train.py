@@ -61,10 +61,18 @@ class TT(object):
         deep copy of a tensor train
     element(t, indices)
         element of t at given indices
-    matricize(t)
-        matricization of a tensor train
     full(t)
         convert tensor train to full format
+    matricize(t)
+        matricization of a tensor train
+    ortho_left(t)
+        left-orthonormalization of a tensor train
+    ortho_right(t)
+        right-orthonormalization of a tensor train
+    ortho(t)
+        left- and right-orthonormalization of a tensor train
+    norm(t)
+        norm of a tensor train
 
     References
     ----------
@@ -496,7 +504,7 @@ class TT(object):
                 if len(indices)==2*self.order:
 
                     # check if indices are in range
-                    if np.all([indices[i] < self.row_dims[i] for i in range(self.order)]) and np.all([indices[i+self.order] < self.col_dims[i] for i in range(self.order)]):
+                    if np.all([indices[i] >= 0 for i in range(2*self.order)]) and np.all([indices[i] < self.row_dims[i] for i in range(self.order)]) and np.all([indices[i+self.order] < self.col_dims[i] for i in range(self.order)]):
 
                         # construct matrix for first row and column indices
                         entry = np.squeeze(self.cores[0][:, indices[0], indices[self.order], :]).reshape(1, self.ranks[1])
@@ -594,47 +602,68 @@ class TT(object):
         -------
         tt_ortho: instance of TT class
             left-orthonormalized representation of self
+
+        Raises
+        ------
+        TypeError
+            if start_index or end_index are not integers
+        ValueError
+            if threshold is less than 0
+        ValueError
+            if max_rank is not a positive integer
         """
 
         # set end_index to the index of the penultimate core if not otherwise defined
         if end_index is None:
             end_index = self.order - 2
 
-        # left-orthonormalization
-        # -----------------------
+        if isinstance(start_index, (int, np.integer)) and isinstance(end_index, (int, np.integer)):
 
-        for i in range(start_index, end_index + 1):
+            if isinstance(threshold, (int, np.integer, float, np.float)) and threshold >= 0:
 
-            # apply SVD to ith TT core
-            [u, s, v] = linalg.svd(
-                self.cores[i].reshape(self.ranks[i] * self.row_dims[i] * self.col_dims[i], self.ranks[i + 1]),
-                full_matrices=False, overwrite_a=True, check_finite=False, lapack_driver='gesvd')
+                if (isinstance(max_rank, (int, np.integer)) and max_rank > 0) or max_rank==np.infty:
 
-            # rank reduction
-            if threshold != 0:
-                indices = np.where(s / s[0] > threshold)[0]
-                u = u[:, indices]
-                s = s[indices]
-                v = v[indices, :]
-            if max_rank != np.infty:
-                u = u[:, :np.minimum(u.shape[1], max_rank)]
-                s = s[:np.minimum(s.shape[0], max_rank)]
-                v = v[:np.minimum(v.shape[0], max_rank), :]
+                    for i in range(start_index, end_index + 1):
 
-            # define updated rank and core
-            self.ranks[i + 1] = u.shape[1]
-            self.cores[i] = u.reshape(self.ranks[i], self.row_dims[i], self.col_dims[i], self.ranks[i + 1])
+                        # apply SVD to ith TT core
+                        [u, s, v] = linalg.svd(
+                            self.cores[i].reshape(self.ranks[i] * self.row_dims[i] * self.col_dims[i], self.ranks[i + 1]),
+                            full_matrices=False, overwrite_a=True, check_finite=False, lapack_driver='gesvd')
 
-            # shift non-orthonormal part to next core
-            self.cores[i + 1] = np.diag(s).dot(v).dot(self.cores[i + 1].reshape(self.cores[i + 1].shape[0],
-                                                                           self.row_dims[i + 1] *
-                                                                           self.col_dims[i + 1] *
-                                                                           self.ranks[i + 2]))
-            self.cores[i + 1] = self.cores[i + 1].reshape(self.ranks[i + 1], self.row_dims[i + 1],
-                                                          self.col_dims[i + 1],
-                                                          self.ranks[i + 2])
+                        # rank reduction
+                        if threshold != 0:
+                            indices = np.where(s / s[0] > threshold)[0]
+                            u = u[:, indices]
+                            s = s[indices]
+                            v = v[indices, :]
+                        if max_rank != np.infty:
+                            u = u[:, :np.minimum(u.shape[1], max_rank)]
+                            s = s[:np.minimum(s.shape[0], max_rank)]
+                            v = v[:np.minimum(v.shape[0], max_rank), :]
 
-        return self
+                        # define updated rank and core
+                        self.ranks[i + 1] = u.shape[1]
+                        self.cores[i] = u.reshape(self.ranks[i], self.row_dims[i], self.col_dims[i], self.ranks[i + 1])
+
+                        # shift non-orthonormal part to next core
+                        self.cores[i + 1] = np.diag(s).dot(v).dot(self.cores[i + 1].reshape(self.cores[i + 1].shape[0],
+                                                                                       self.row_dims[i + 1] *
+                                                                                       self.col_dims[i + 1] *
+                                                                                       self.ranks[i + 2]))
+                        self.cores[i + 1] = self.cores[i + 1].reshape(self.ranks[i + 1], self.row_dims[i + 1],
+                                                                      self.col_dims[i + 1],
+                                                                      self.ranks[i + 2])
+
+                    return self
+
+                else:
+                    raise ValueError('Maximum rank must be a positive integer.')
+
+            else:
+                raise ValueError('Threshold must be greater or equal 0.')
+
+        else:
+            raise TypeError('Start and end indices must be integers.')
 
     def ortho_right(self, start_index=None, end_index=1, threshold=0, max_rank=np.infty):
         """right-orthonormalization of tensor trains
@@ -654,45 +683,66 @@ class TT(object):
         -------
         tt_ortho: instance of TT class
             right-orthonormalized representation of self
+
+        Raises
+        ------
+        TypeError
+            if start_index or end_index are not integers
+        ValueError
+            if threshold is less than 0
+        ValueError
+            if max_rank is not a positive integer
         """
 
         # set start_index to the index of the last core if not otherwise defined
         if start_index is None:
             start_index = self.order - 1
 
-        # right-orthonormalization
-        # ------------------------
+        if isinstance(start_index, (int, np.integer)) and isinstance(end_index, (int, np.integer)):
 
-        for i in range(start_index, end_index - 1, -1):
+            if isinstance(threshold, (int, np.integer, float, np.float)) and threshold >= 0:
 
-            # apply SVD to ith TT core
-            [u, s, v] = linalg.svd(
-                self.cores[i].reshape(self.ranks[i], self.row_dims[i] * self.col_dims[i] * self.ranks[i + 1]),
-                full_matrices=False, overwrite_a=True, check_finite=False, lapack_driver='gesvd')
+                if (isinstance(max_rank, (int, np.integer)) and max_rank > 0) or max_rank==np.infty:
 
-            # rank reduction
-            if threshold != 0:
-                indices = np.where(s / s[0] > threshold)[0]
-                u = u[:, indices]
-                s = s[indices]
-                v = v[indices, :]
-            if max_rank != np.infty:
-                u = u[:, :np.minimum(u.shape[1], max_rank)]
-                s = s[:np.minimum(s.shape[0], max_rank)]
-                v = v[:np.minimum(v.shape[0], max_rank), :]
+                    for i in range(start_index, end_index - 1, -1):
 
-            # define updated rank and core
-            self.ranks[i] = v.shape[0]
-            self.cores[i] = v.reshape(self.ranks[i], self.row_dims[i], self.col_dims[i], self.ranks[i + 1])
+                        # apply SVD to ith TT core
+                        [u, s, v] = linalg.svd(
+                            self.cores[i].reshape(self.ranks[i], self.row_dims[i] * self.col_dims[i] * self.ranks[i + 1]),
+                            full_matrices=False, overwrite_a=True, check_finite=False, lapack_driver='gesvd')
 
-            # shift non-orthonormal part to previous core
-            self.cores[i - 1] = self.cores[i - 1].reshape(
-                self.ranks[i - 1] * self.row_dims[i - 1] * self.col_dims[i - 1],
-                self.cores[i - 1].shape[3]).dot(u).dot(np.diag(s))
-            self.cores[i - 1] = self.cores[i - 1].reshape(self.ranks[i - 1], self.row_dims[i - 1],
-                                                          self.col_dims[i - 1], self.ranks[i])
+                        # rank reduction
+                        if threshold != 0:
+                            indices = np.where(s / s[0] > threshold)[0]
+                            u = u[:, indices]
+                            s = s[indices]
+                            v = v[indices, :]
+                        if max_rank != np.infty:
+                            u = u[:, :np.minimum(u.shape[1], max_rank)]
+                            s = s[:np.minimum(s.shape[0], max_rank)]
+                            v = v[:np.minimum(v.shape[0], max_rank), :]
 
-        return self
+                        # define updated rank and core
+                        self.ranks[i] = v.shape[0]
+                        self.cores[i] = v.reshape(self.ranks[i], self.row_dims[i], self.col_dims[i], self.ranks[i + 1])
+
+                        # shift non-orthonormal part to previous core
+                        self.cores[i - 1] = self.cores[i - 1].reshape(
+                            self.ranks[i - 1] * self.row_dims[i - 1] * self.col_dims[i - 1],
+                            self.cores[i - 1].shape[3]).dot(u).dot(np.diag(s))
+                        self.cores[i - 1] = self.cores[i - 1].reshape(self.ranks[i - 1], self.row_dims[i - 1],
+                                                                      self.col_dims[i - 1], self.ranks[i])
+
+                    return self
+
+                else:
+                    raise ValueError('Maximum rank must be a positive integer.')
+
+            else:
+                raise ValueError('Threshold must be greater or equal 0.')
+
+        else:
+            raise TypeError('Start and end indices must be integers.')
 
     def ortho(self, threshold=0, max_rank=np.infty):
         """left- and right-orthonormalization of tensor trains
@@ -708,12 +758,29 @@ class TT(object):
         -------
         tt_ortho: instance of TT class
            right-orthonormalized representation of self
+
+        Raises
+        ------
+        ValueError
+            if threshold is less than 0
+        ValueError
+            if max_rank is not a positive integer
         """
 
-        # left- and right-orthonormalize self
-        self.ortho_left(threshold=threshold, max_rank=max_rank).ortho_right(threshold=threshold, max_rank=max_rank)
+        if isinstance(threshold, (int, np.integer, float, np.float)) and threshold >= 0:
 
-        return self
+            if (isinstance(max_rank, (int, np.integer)) and max_rank > 0) or max_rank==np.infty:
+
+                # left- and right-orthonormalize self
+                self.ortho_left(threshold=threshold, max_rank=max_rank).ortho_right(threshold=threshold, max_rank=max_rank)
+
+                return self
+
+            else:
+                raise ValueError('Maximum rank must be a positive integer.')
+
+        else:
+            raise ValueError('Threshold must be greater or equal 0.')
 
     def norm(self, p=2):
         """norm of tensor trains
@@ -733,6 +800,11 @@ class TT(object):
         -------
         norm: float
             norm of self
+
+        Raises
+        ------
+        ValueError
+            if p is not equal to 1 or 2
         """
 
         norm = None
@@ -746,10 +818,11 @@ class TT(object):
                                                 tt_tensor.ranks[i + 1]) for i in range(tt_tensor.order)]
             tt_tensor = TT(cores)
 
-        # Manhattan norm
-        # --------------
-
         if p == 1:
+
+            # Manhattan norm
+            # --------------
+
             # sum over row axes
             tt_tensor.cores = [
                 np.sum(tt_tensor.cores[i], axis=1).reshape(tt_tensor.ranks[i], 1, 1, tt_tensor.ranks[i + 1]) for i in
@@ -761,17 +834,23 @@ class TT(object):
             # compute single element
             norm = tt_tensor.element([0] * 2 * tt_tensor.order)
 
-        # Euclidean norm
-        # --------------
+            return norm
 
-        if p == 2:
+        elif p == 2:
+
+            # Euclidean norm
+            # --------------
+
             # right-orthonormalize tt_tensor
             tt_tensor = tt_tensor.ortho_right()
 
             # compute norm from first core
             norm = np.linalg.norm(tt_tensor.cores[0].reshape(tt_tensor.row_dims[0] * tt_tensor.ranks[1]))
 
-        return norm
+            return norm
+
+        else:
+            raise ValueError('p must be 1 or 2.')
 
     def tt2qtt(self, row_dims, col_dims, threshold=0):
         """conversion from TT format into QTT format
