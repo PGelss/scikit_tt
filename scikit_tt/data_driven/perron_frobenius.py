@@ -1,6 +1,4 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-
+from __future__ import division
 import numpy as np
 import scikit_tt.tensor_train as tt
 from scikit_tt.tensor_train import TT
@@ -32,7 +30,7 @@ def perron_frobenius_2d(transitions, states, simulations):
     .. [1] P. Gelß. "The Tensor-Train Format and Its Applications: Modeling and Analysis of Chemical Reaction
            Networks, Catalytic Processes, Fluid Flows, and Brownian Dynamics", Freie Universität Berlin, 2017
     """
-    
+
     # find unique indices for transitions in the first dimension
     [ind_unique, ind_inv] = np.unique(transitions[[0, 2], :], axis=1, return_inverse=True)
     rank = ind_unique.shape[1]
@@ -48,9 +46,10 @@ def perron_frobenius_2d(transitions, states, simulations):
         cores[1][ind_inv[i], transitions[1, i] - 1, transitions[3, i] - 1, 0] += 1
 
     # transpose and normalize operator
-    operator = np.true_divide(1, simulations) * TT(cores).transpose()
+    operator = (1 / simulations) * TT(cores).transpose()
 
     return operator
+
 
 def perron_frobenius_3d(transitions, states, simulations):
     """TT approximation of the Perron-Frobenius operator in 3D
@@ -106,6 +105,6 @@ def perron_frobenius_3d(transitions, states, simulations):
         cores[1][ind_1_inv[i], transitions[1, i] - 1, transitions[4, i] - 1, ind_2_inv[i]] += 1
 
     # transpose and normalize operator
-    operator = (np.true_divide(1, simulations)) * tt.TT(cores).transpose()
+    operator = (1 / simulations) * tt.TT(cores).transpose()
 
     return operator
