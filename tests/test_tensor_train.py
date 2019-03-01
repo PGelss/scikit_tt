@@ -384,11 +384,11 @@ class TestTT(TestCase):
 
         # check if orthonormalization fails if maximum rank is not positive
         with self.assertRaises(ValueError):
-            t_col.ortho_left(max_rank=0)
+            t_col.ortho(max_rank=0)
 
         # check if orthonormalization fails if threshold is negative
         with self.assertRaises(ValueError):
-            t_col.ortho_left(threshold=-1)
+            t_col.ortho(threshold=-1)
 
 
     def test_1_norm(self):
