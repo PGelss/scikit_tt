@@ -1,6 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-
 """
 This is an example for the application of the QTT format to Markovian master equations of chemical reaction
 networks. For more details, see [1]_.
@@ -99,7 +96,7 @@ print('CPU time ' + '.' * 24 + ' ' + str("%.2f" % time.elapsed) + 's')
 
 # compute approximation errors
 errors = ode.errors_impl_euler(operator, solution, step_sizes)
-print('Maximum error ' + '.' * 19 + ' ' + str("%.2e" % np.amax(errors)))
+print('Maximum error ' + '.' * 19 + ' ' + str("%.2e" % np.amax(errors)) + '\n')
 
 # convert to TT and compute mean concentrations
 # ---------------------------------------------
@@ -111,7 +108,12 @@ mean_concentrations = mean_concentrations(solution)
 # plot mean concentrations
 # ------------------------
 
-utl.plot_parameters()
+plt.rc('text', usetex=True)
+plt.rc('font', family='serif')
+plt.rcParams["mathtext.fontset"] = "cm"
+plt.rcParams.update({'font.size': 14})
+plt.rcParams.update({'figure.autolayout': True})
+plt.rcParams.update({'axes.grid': True})
 plt.plot(np.insert(np.cumsum(step_sizes), 0, 0), mean_concentrations)
 plt.title('Mean concentrations', y=1.05)
 plt.xlabel(r'$t$')
