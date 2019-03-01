@@ -327,7 +327,7 @@ class TT(object):
             tt_prod.cores[0] *= scalar
 
         else:
-            TypeError('Unsupported parameter.')
+            raise TypeError('Unsupported parameter.')
 
         return tt_prod
 
