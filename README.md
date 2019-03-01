@@ -21,7 +21,7 @@ The simulation and analysis of high-dimensional problems is often infeasible due
 5. [Data analysis](README.md#5-data-analysis)
    - [Tensor-based dynamic mode decomposition (tDMD)](README.md#51-tensor-based-dynamic-mode-decomposition-tdmd)
    - [Multidimensional approximation of nonlinear dynamical systems (MANDy)](README.md#52-multidimensional-approximation-of-nonlinear-dynamical-systems-mandy)
-   - [Ulam's method](README.md#53-ulam--s-method)
+   - [Ulam's method](README.md#53-ulams-method)
 6. [Models](README.md#6-models)
 7. [Examples](README.md#7-examples)
 8. [Tests](README.md#8-tests)
