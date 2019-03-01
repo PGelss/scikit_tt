@@ -14,11 +14,12 @@ import numpy as np
 import scipy.sparse.linalg as splin
 from scikit_tt.tensor_train import TT
 import scikit_tt.tensor_train as tt
-import scikit_tt.data_driven.perron_frobenius as pf
+import scikit_tt.data_driven.ulam as ulam
 import scikit_tt.solvers.evp as evp
 import scikit_tt.utils as utl
 import matplotlib.pyplot as plt
 import scipy.io as io
+import os
 
 utl.header(title='Triple-well potential')
 
@@ -33,14 +34,15 @@ number_ev = 3
 # --------------------------------------------
 
 utl.progress('Load data', 0, dots=39)
-transitions = io.loadmat("data/TripleWell2D_500.mat")["indices"]
+directory = os.path.dirname(os.path.realpath(__file__))
+transitions = io.loadmat(directory + '/data/TripleWell2D_500.mat')["indices"]
 utl.progress('Load data', 100, dots=39)
 
 # construct TT operator
 # ---------------------
 
 utl.progress('Construct operator', 0, dots=30)
-operator = pf.perron_frobenius_2d(transitions, [n_states, n_states], simulations)
+operator = ulam.ulam_2d(transitions, [n_states, n_states], simulations)
 utl.progress('Construct operator', 100, dots=30)
 
 # approximate leading eigenfunctions of the Perron-Frobenius and Koopman operator
@@ -48,9 +50,9 @@ utl.progress('Construct operator', 100, dots=30)
 
 initial = tt.ones(operator.row_dims, [1] * operator.order, ranks=11)
 utl.progress('Approximate eigenfunctions in the TT format', 0, dots=5)
-eigenvalues_pf, eigenfunctions_pf = evp.als(operator, initial, number_ev, 3)
+eigenvalues_pf, eigenfunctions_pf = evp.als(operator, initial, number_ev=number_ev, repeats=3)
 utl.progress('Approximate eigenfunctions in the TT format', 50, dots=5)
-eigenvalues_km, eigenfunctions_km = evp.als(operator.transpose(), initial, number_ev, 2)
+eigenvalues_km, eigenfunctions_km = evp.als(operator.transpose(), initial, number_ev=number_ev, repeats=2)
 utl.progress('Approximate eigenfunctions in the TT format', 100, dots=5)
 
 # compute exact eigenvectors
@@ -100,7 +102,12 @@ print('---------------------------------------------\n')
 
 # plot eigenfunctions and table
 
-utl.plot_parameters()
+plt.rc('text', usetex=True)
+plt.rc('font', family='serif')
+plt.rcParams["mathtext.fontset"] = "cm"
+plt.rcParams.update({'font.size': 14})
+plt.rcParams.update({'figure.autolayout': True})
+plt.rcParams.update({'axes.grid': True})
 
 f = plt.figure(figsize=plt.figaspect(0.65))
 
