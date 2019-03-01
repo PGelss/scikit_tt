@@ -159,7 +159,7 @@ ulam_3d ............... approximate Perron-Frobenius operators for 3-dimensional
 
 ## 6. Models
 
-The construction of several models from various fields is included in [*models.py*](scikit_tt/models.py). As we have demonstrated in [[9](README.md#11-references)], the TT format can naturally be used to create self-similar geometric patterns. 
+The construction of several models from various fields such as heterogeneous catalysis [[3](README.md#11-references)], chemical reaction networks [[2](README.md#11-references)], and fractal geometry [[9](README.md#11-references)] is included in [*models.py*](scikit_tt/models.py). 
 
 ```
 cantor_dust ........... generalization of the Cantor set and the Cantor dust
