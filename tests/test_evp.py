@@ -1,9 +1,7 @@
-# -*- coding: utf-8 -*-
-
 import unittest as ut
 from unittest import TestCase
 from scikit_tt.tensor_train import TT
-import scikit_tt.data_driven.perron_frobenius as pf
+import scikit_tt.data_driven.ulam as ulam
 import scikit_tt.tensor_train as tt
 import scikit_tt.solvers.evp as evp
 import numpy as np
@@ -13,11 +11,6 @@ import os
 
 
 class TestEVP(TestCase):
-
-    def setUp(self):
-        """Consider the triple-well model for testing the routines in evp.py"""
-
-        self = TestEVP
 
     @classmethod
     def setUpClass(cls):
@@ -38,10 +31,10 @@ class TestEVP(TestCase):
         transitions = io.loadmat(directory + '/examples/data/TripleWell2D_500.mat')["indices"]
 
         # coarse-grain data
-        transitions = np.int64(np.ceil(np.true_divide(transitions, 2)))  
+        transitions = np.int64(np.ceil(np.true_divide(transitions, 2)))
 
         # generate operators in TT format
-        cls.operator_tt = pf.perron_frobenius_2d(transitions, [25, 25], 2000)
+        cls.operator_tt = ulam.ulam_2d(transitions, [25, 25], 2000)
         cls.operator_gevp = tt.eye(cls.operator_tt.row_dims)
 
         # matricize TT operator
@@ -123,8 +116,8 @@ class TestEVP(TestCase):
         """test for ALS with solver='eigh'"""
 
         # make problem symmetric
-        self.operator_tt = 0.5*(self.operator_tt + self.operator_tt.transpose())
-        self.operator_mat = 0.5*(self.operator_mat + self.operator_mat.transpose())
+        self.operator_tt = 0.5 * (self.operator_tt + self.operator_tt.transpose())
+        self.operator_mat = 0.5 * (self.operator_mat + self.operator_mat.transpose())
 
         # solve eigenvalue problem in TT format (number_ev=self.number_ev)
         eigenvalues_tt, eigenvectors_tt = evp.als(self.operator_tt, self.initial_tt, number_ev=self.number_ev,
@@ -159,8 +152,7 @@ class TestEVP(TestCase):
         """test for inverse power iteration method"""
 
         # solve eigenvalue problem in TT format
-        eigenvalue_tt, eigenvector_tt = evp.power_method(self.operator_tt, self.initial_tt,
-                                                         operator_gevp=self.operator_gevp)
+        evp.power_method(self.operator_tt, self.initial_tt, operator_gevp=self.operator_gevp)
         eigenvalue_tt, eigenvector_tt = evp.power_method(self.operator_tt, self.initial_tt)
 
         # solve eigenvalue problem in matrix format
@@ -177,6 +169,7 @@ class TestEVP(TestCase):
         # check if relative errors are smaller than tolerance
         self.assertLess(rel_err_val, self.tol_eigval)
         self.assertLess(rel_err_vec, self.tol_eigvec)
+
 
 if __name__ == '__main__':
     ut.main()
