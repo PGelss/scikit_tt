@@ -576,4 +576,4 @@ def __update_core_mals(i, micro_op, micro_rhs, solution, solver, threshold, max_
         if i == 0:
             # last iteration step
             solution.cores[i] = (u.dot(np.diag(s))).reshape(solution.ranks[i], solution.row_dims[i], 1,
-                                                         solution.ranks[i + 1])
+                                                            solution.ranks[i + 1])
