@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 """
 This is a three-dimensional example for the approximation of the Perron-Frobenius operator using the TT format.
 For more details, see [1]_.
@@ -14,13 +12,14 @@ import numpy as np
 import scipy.sparse.linalg as splin
 from scikit_tt.tensor_train import TT
 import scikit_tt.tensor_train as tt
-import scikit_tt.data_driven.perron_frobenius as pf
+import scikit_tt.data_driven.ulam as ulam
 import scikit_tt.solvers.evp as evp
 import scikit_tt.utils as utl
 import matplotlib.pyplot as plt
 # noinspection PyUnresolvedReferences
 from mpl_toolkits.mplot3d import Axes3D
 import scipy.io as io
+import os
 
 utl.header(title='Quadruple-well potential')
 
@@ -36,14 +35,15 @@ number_ev = 3
 
 
 utl.progress('Load data', 0, dots=39)
-transitions = io.loadmat("data/QuadrupleWell3D_25x25x25_100.mat")["indices"]  # load data
+directory = os.path.dirname(os.path.realpath(__file__))
+transitions = io.loadmat(directory + '/data/QuadrupleWell3D_25x25x25_100.mat')["indices"]
 utl.progress('Load data', 100, dots=39)
 
 # construct TT operator
 # ---------------------
 
 utl.progress('Construct operator', 0, dots=30)
-operator = pf.perron_frobenius_3d(transitions, [n_states] * 3, simulations)
+operator = ulam.ulam_3d(transitions, [n_states] * 3, simulations)
 utl.progress('Construct operator', 100, dots=30)
 
 # approximate leading eigenfunctions
@@ -51,7 +51,7 @@ utl.progress('Construct operator', 100, dots=30)
 
 utl.progress('Approximate eigenfunctions in the TT format', 0, dots=5)
 initial = tt.uniform(operator.row_dims, ranks=[1, 20, 10, 1])
-eigenvalues, eigenfunctions = evp.als(operator, initial, number_ev, 2)
+eigenvalues, eigenfunctions = evp.als(operator, initial, number_ev=number_ev, repeats=2)
 utl.progress('Approximate eigenfunctions in the TT format', 100, dots=5)
 
 # compute exact eigenvectors
@@ -98,7 +98,12 @@ print('---------------------------------------------\n')
 # plot eigenfunctions
 # -------------------
 
-utl.plot_parameters()
+plt.rc('text', usetex=True)
+plt.rc('font', family='serif')
+plt.rcParams["mathtext.fontset"] = "cm"
+plt.rcParams.update({'font.size': 14})
+plt.rcParams.update({'figure.autolayout': True})
+plt.rcParams.update({'axes.grid': True})
 f = plt.figure(figsize=plt.figaspect(0.35))
 for i in range(number_ev):
     indices = np.where(abs(eigentensors_tt[i] / np.amax(abs(eigentensors_tt[i]))) > 0.001)
