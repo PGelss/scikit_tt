@@ -113,7 +113,12 @@ for i in range(len(thresholds)):
     sys.stdout.write('\n')
 print(' ')
 
-utl.plot_parameters(font_size=10)
+plt.rc('text', usetex=True)
+plt.rc('font', family='serif')
+plt.rcParams["mathtext.fontset"] = "cm"
+plt.rcParams.update({'font.size': 10})
+plt.rcParams.update({'figure.autolayout': True})
+plt.rcParams.update({'axes.grid': True})
 plt.rcParams.update({'axes.grid': False})
 f = plt.figure(figsize=plt.figaspect(1.75))
 for i in range(len(modes)):
