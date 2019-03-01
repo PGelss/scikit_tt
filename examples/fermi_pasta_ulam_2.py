@@ -16,6 +16,51 @@ import scikit_tt.utils as utl
 import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm
 
+def fermi_pasta_ulam(number_of_oscillators, number_of_snapshots):
+    """Fermi–Pasta–Ulam problem.
+
+    Generate data for the Fermi–Pasta–Ulam problem represented by the differential equation
+
+        d^2/dt^2 x_i = (x_i+1 - 2x_i + x_i-1) + 0.7((x_i+1 - x_i)^3 - (x_i-x_i-1)^3).
+
+    See [1]_ for details.
+
+    Parameters
+    ----------
+    number_of_oscillators: int
+        number of oscillators
+    number_of_snapshots: int
+        number of snapshots
+
+    Returns
+    -------
+    snapshots: ndarray(number_of_oscillators, number_of_snapshots)
+        snapshot matrix containing random displacements of the oscillators in [-0.1,0.1]
+    derivatives: ndarray(number_of_oscillators, number_of_snapshots)
+        matrix containing the corresponding derivatives
+
+    References
+    ----------
+    .. [1] P. Gelß, S. Klus, J. Eisert, C. Schütte, "Multidimensional Approximation of Nonlinear Dynamical Systems",
+           arXiv:1809.02448, 2018
+    """
+
+    # define random snapshot matrix
+    snapshots = 0.2 * np.random.rand(number_of_oscillators, number_of_snapshots) - 0.1
+
+    # compute derivatives
+    derivatives = np.zeros((number_of_oscillators, number_of_snapshots))
+    for j in range(number_of_snapshots):
+        derivatives[0, j] = snapshots[1, j] - 2 * snapshots[0, j] + 0.7 * (
+                (snapshots[1, j] - snapshots[0, j]) ** 3 - snapshots[0, j] ** 3)
+        for i in range(1, number_of_oscillators - 1):
+            derivatives[i, j] = snapshots[i + 1, j] - 2 * snapshots[i, j] + snapshots[i - 1, j] + 0.7 * (
+                    (snapshots[i + 1, j] - snapshots[i, j]) ** 3 - (snapshots[i, j] - snapshots[i - 1, j]) ** 3)
+        derivatives[-1, j] = - 2 * snapshots[-1, j] + snapshots[-2, j] + 0.7 * (
+                -snapshots[-1, j] ** 3 - (snapshots[-1, j] - snapshots[-2, j]) ** 3)
+
+    return snapshots, derivatives
+
 utl.header(title='MANDy - Fermi-Pasta-Ulam problem', subtitle='Example 2')
 
 # model parameters
@@ -47,7 +92,7 @@ for i in range(d_min, d_max + 1):
 
     # generate data
     utl.progress('Generate test data', 0, dots=22)
-    [x, y] = mdl.fermi_pasta_ulam(i, snapshots_max)
+    [x, y] = fermi_pasta_ulam(i, snapshots_max)
     utl.progress('Generate test data', 100, dots=22)
 
     for j in range(snapshots_min, snapshots_max + snapshots_step, snapshots_step):
@@ -68,7 +113,12 @@ for i in range(d_min, d_max + 1):
 # plot results
 # ------------
 
-utl.plot_parameters()
+plt.rc('text', usetex=True)
+plt.rc('font', family='serif')
+plt.rcParams["mathtext.fontset"] = "cm"
+plt.rcParams.update({'font.size': 14})
+plt.rcParams.update({'figure.autolayout': True})
+plt.rcParams.update({'axes.grid': True})
 plt.figure(dpi=300)
 plt.imshow(rel_errors, cmap='jet', norm=LogNorm())
 plt.colorbar(aspect=12)
