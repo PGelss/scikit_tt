@@ -7,7 +7,7 @@
 
 ## Short description
 
-The simulation and analysis of high-dimensional problems is often infeasible due to the curse of dimensionality. Using the *tensor-train format* (TT format) [[1](README.md#12-references), [2](README.md#12-references)], **scikit-tt** can be applied to various numerical problems in order to reduce the memory consumption and the computational costs compared to classical approaches significantly. Possible application areas are the computation of low-rank approximations for high-dimensional systems [[3](README.md#12-references)], solving systems of linear equations and eigenvalue problems in the TT format [[4](README.md#12-references)], representing operators based on nearest-neighbor interactions in the TT format [[5](README.md#12-references)], constructing pseudoinverses for tensor-based reformulations of dimensionality reduction methods [[6](README.md#12-references)], and the approximation of transfer operators [[2](README.md#12-references)] as well as governing equations of dynamical systems [[7](README.md#12-references)].
+The simulation and analysis of high-dimensional problems is often infeasible due to the curse of dimensionality. Using the *tensor-train format* (TT format) [[1](README.md#11-references), [2](README.md#11-references)], **scikit-tt** can be applied to various numerical problems in order to reduce the memory consumption and the computational costs compared to classical approaches significantly. Possible application areas are the computation of low-rank approximations for high-dimensional systems [[3](README.md#11-references)], solving systems of linear equations and eigenvalue problems in the TT format [[4](README.md#11-references)], representing operators based on nearest-neighbor interactions in the TT format [[5](README.md#11-references)], constructing pseudoinverses for tensor-based reformulations of dimensionality reduction methods [[6](README.md#11-references)], and the approximation of transfer operators [[2](README.md#11-references)] as well as governing equations of dynamical systems [[7](README.md#11-references)].
 
 ## Content
 
@@ -87,7 +87,7 @@ Different methods for solving systems of linear equations, eigenvalue problems, 
 
 ### 3.1 Systems of linear equations
 
-In order to approximate the solution of a system of linear equations in the TT format, a series of low-dimensional problems can be solved by fixing certain components of the tensor network. For this purpose, the *alternating linear scheme* (ALS) and the *modified alternating linear scheme* (MALS) [[3](README.md#12-references)] are implemented in [*sle.py*](scikit_tt/solvers/sle.py).
+In order to approximate the solution of a system of linear equations in the TT format, a series of low-dimensional problems can be solved by fixing certain components of the tensor network. For this purpose, the *alternating linear scheme* (ALS) and the *modified alternating linear scheme* (MALS) [[3](README.md#11-references)] are implemented in [*sle.py*](scikit_tt/solvers/sle.py).
 
 ```
 als ................... alternating linear scheme for systems of linear equations in the TT format
@@ -96,7 +96,7 @@ mals .................. modified ALS for systems of linear equations in the TT f
 
 ### 3.2 Generalized eigenvalue problems
 
-Besides power iteration methods [[8](README.md#12-references)], ALS and MALS can also be used to find approximations of eigenvalues and corresponding eigentensors of TT operators. The basic procedures of ALS and MALS - implemented in [*evp.py*](scikit_tt/solvers/evp.py) - for (generalized) eigenvalue problems are similar to the ones for systems of linear equations. The main difference is the type of optimization problem which has to be solved in the iteration steps. See [[3](README.md#12-references)] for details.
+Besides power iteration methods [[8](README.md#11-references)], ALS and MALS can also be used to find approximations of eigenvalues and corresponding eigentensors of TT operators. The basic procedures of ALS and MALS - implemented in [*evp.py*](scikit_tt/solvers/evp.py) - for (generalized) eigenvalue problems are similar to the ones for systems of linear equations. The main difference is the type of optimization problem which has to be solved in the iteration steps. See [[3](README.md#11-references)] for details.
 
 ```
 als ................... ALS for generalized eigenvalue problems in the TT format
@@ -119,7 +119,7 @@ adaptive_step_size .... adaptive step size method for linear differential equati
 
 ## 4. SLIM decomposition
 
-The SLIM decomposition is a specific form of TT decompositions which represent tensors networks with a certain structure. For instance, tensor operators corresponding to nearest-neighbor interaction systems can be systematicly decomposed into a tensor-train operator using the algorithms in [*slim.py*](scikit_tt/slim.py). See [[5](README.md#12-references)] for details.
+The SLIM decomposition is a specific form of TT decompositions which represent tensors networks with a certain structure. For instance, tensor operators corresponding to nearest-neighbor interaction systems can be systematicly decomposed into a tensor-train operator using the algorithms in [*slim.py*](scikit_tt/slim.py). See [[5](README.md#11-references)] for details.
 
 ```
 slim_mme .............. SLIM decomposition for Markov generators
@@ -132,7 +132,7 @@ slim_mme_hom .......... SLIM decomposition for homogeneous Markov generators
 
 ### 5.1 Tensor-based dynamic mode decomposition (tDMD)
 
-tDMD is an extension of the classical dynamic mode decomposition which exploits the TT format to compute DMD modes and eigenvalues. The algorithms below can be found in [*tdmd.py*](scikit_tt/data_driven/tdmd.py). See [[6](README.md#12-references)] for details.
+tDMD is an extension of the classical dynamic mode decomposition which exploits the TT format to compute DMD modes and eigenvalues. The algorithms below can be found in [*tdmd.py*](scikit_tt/data_driven/tdmd.py). See [[6](README.md#11-references)] for details.
 
 ```
 tdmd_exact ............ exact tDMD algorithm
@@ -141,7 +141,7 @@ tdmd_standard ......... standard tDMD algorithm
 
 ### 5.2 Multidimensional approximation of nonlinear dynamical systems (MANDy)
 
-MANDy combines the data-driven recovery of dynamical systems with tensor decompositions. The methods implemented in [*mandy.py*](scikit_tt/data_driven/mandy.py) can be used for the recovery of unknown governing equations from measurement data only. See [[7](README.md#12-references)] for details.
+MANDy combines the data-driven recovery of dynamical systems with tensor decompositions. The methods implemented in [*mandy.py*](scikit_tt/data_driven/mandy.py) can be used for the recovery of unknown governing equations from measurement data only. See [[7](README.md#11-references)] for details.
 
 ```
 mandy_cm .............. MANDy using coordinate-major decompositions
@@ -150,7 +150,7 @@ mandy_fm .............. MANDy using function-major decompositions
 
 ### 5.3 Ulam's method
 
-Given transitions of particles in a 2- or 3-dimensional potentials, **scikit-tt** can be used to approximate the corresponding Perron-Frobenius operator in TT format. The algorithms can be found in [*ulam.py*](scikit_tt/data_driven/ulam.py). See [[2](README.md#12-references)] for details.
+Given transitions of particles in a 2- or 3-dimensional potentials, **scikit-tt** can be used to approximate the corresponding Perron-Frobenius operator in TT format. The algorithms can be found in [*ulam.py*](scikit_tt/data_driven/ulam.py). See [[2](README.md#11-references)] for details.
 
 ```
 ulam_2d ............... approximate Perron-Frobenius operators for 2-dimensional systems
@@ -159,7 +159,7 @@ ulam_3d ............... approximate Perron-Frobenius operators for 3-dimensional
 
 ## 6. Models
 
-The construction of several models from various fields is included in [*models.py*](scikit_tt/models.py). As we have demonstrated in [[9](README.md#12-references)], the TT format can naturally be used to create self-similar geometric patterns. 
+The construction of several models from various fields is included in [*models.py*](scikit_tt/models.py). As we have demonstrated in [[9](README.md#11-references)], the TT format can naturally be used to create self-similar geometric patterns. 
 
 ```
 cantor_dust ........... generalization of the Cantor set and the Cantor dust
@@ -176,7 +176,7 @@ vicsek_fractal ........ generalization of the Vicsek fractal
 
 ## 7. Examples
 
-Numerical experiments from different application areas are included in **scikit-tt**. For instance, the application of the TT format to chemical master equations [[2](README.md#12-references)], heterogeneous catalytic processes [[3](README.md#12-references)], fluid dynamics [[6](README.md#12-references)], and dynamical systems [[6](README.md#12-references), [7](README.md#12-references)] can be found in the directory [*examples*](examples/).
+Numerical experiments from different application areas are included in **scikit-tt**. For instance, the application of the TT format to chemical master equations [[2](README.md#11-references)], heterogeneous catalytic processes [[3](README.md#11-references)], fluid dynamics [[6](README.md#11-references)], and dynamical systems [[6](README.md#11-references), [7](README.md#11-references)] can be found in the directory [*examples*](examples/).
 
 ```
 co_oxidation .......... compute stationary distributions of a catalytic process
