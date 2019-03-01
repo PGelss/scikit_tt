@@ -19,6 +19,56 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as pat
 
 
+def kuramoto(theta_init, frequencies, time, number_of_snapshots):
+    """Kuramoto model
+
+    Generate data for the Kuramoto model represented by the differential equation
+
+        d/dt x_i = w_i + (2/d) * (sin(x_1 - x_i) + ... + sin(x_d - x_i)) + 0.2 * sin(x_i).
+
+    See [1]_ and [2]_ for details.
+
+    Parameters
+    ----------
+    theta_init: ndarray
+        initial distribution of the oscillators
+    frequencies: ndarray
+        natural frequencies of the oscillators
+    time: float
+        integration time for BDF method
+    number_of_snapshots: int
+        number of snapshots
+
+    Returns
+    -------
+    snapshots: ndarray(number_of_oscillators, number_of_snapshots)
+        snapshot matrix containing random displacements of the oscillators in [-0.1,0.1]
+    derivatives: ndarray(number_of_oscillators, number_of_snapshots)
+        matrix containing the corresponding derivatives
+
+    References
+    ----------
+    .. [1] P. Gelß, S. Klus, J. Eisert, C. Schütte, "Multidimensional Approximation of Nonlinear Dynamical Systems",
+           arXiv:1809.02448, 2018
+    .. [2] J. A. Acebrón, L. L. Bonilla, C. J. Pérez Vicente, F. Ritort, R. Spigler, "The Kuramoto model: A simple
+           paradigm for synchronization phenomena", Rev. Mod. Phys. 77, pp. 137-185 , 2005
+    """
+
+    number_of_oscillators = len(theta_init)
+
+    def kuramoto_ode(_, theta):
+        [theta_i, theta_j] = np.meshgrid(theta, theta)
+        return frequencies + 2 / number_of_oscillators * np.sin(theta_j - theta_i).sum(0) + 0.2 * np.sin(theta)
+
+    sol = spint.solve_ivp(kuramoto_ode, [0, time], theta_init, method='BDF',
+                          t_eval=np.linspace(0, time, number_of_snapshots))
+    snapshots = sol.y
+    derivatives = np.zeros([number_of_oscillators, number_of_snapshots])
+    for i in range(number_of_snapshots):
+        derivatives[:, i] = kuramoto_ode(0, snapshots[:, i])
+    return snapshots, derivatives
+
+
 def reconstruction():
     """Reconstruction of the dynamics of the Kuramoto model"""
 
@@ -80,7 +130,7 @@ utl.progress('Construct exact solution in TT format', 100)
 
 # generate data
 utl.progress('Generate test data', 0, dots=22)
-[x, y] = mdl.kuramoto(x_0, w, time, m)
+[x, y] = kuramoto(x_0, w, time, m)
 utl.progress('Generate test data', 100, dots=22)
 
 # apply MANDy (function-major)
@@ -109,7 +159,7 @@ m = 6
 
 # generate new data
 utl.progress('\Generate test data', 0, dots=22)
-[x, _] = mdl.kuramoto(x_0, w, time, m)
+[x, _] = kuramoto(x_0, w, time, m)
 utl.progress('Generate test data', 100, dots=22)
 
 # reconstruct data
@@ -124,7 +174,12 @@ print(' ')
 # plot results
 # ------------
 
-utl.plot_parameters()
+plt.rc('text', usetex=True)
+plt.rc('font', family='serif')
+plt.rcParams["mathtext.fontset"] = "cm"
+plt.rcParams.update({'font.size': 14})
+plt.rcParams.update({'figure.autolayout': True})
+plt.rcParams.update({'axes.grid': True})
 
 pos = np.zeros([2, 10])
 pos2 = np.zeros([2, 10])
