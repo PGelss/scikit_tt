@@ -129,7 +129,12 @@ mean_concentrations = mean_concentrations(solution)
 # plot mean concentrations
 # ------------------------
 
-utl.plot_parameters()
+plt.rc('text', usetex=True)
+plt.rc('font', family='serif')
+plt.rcParams["mathtext.fontset"] = "cm"
+plt.rcParams.update({'font.size': 14})
+plt.rcParams.update({'figure.autolayout': True})
+plt.rcParams.update({'axes.grid': True})
 plt.plot(np.insert(np.cumsum(step_sizes), 0, 0), mean_concentrations)
 plt.title('Mean concentrations', y=1.05)
 plt.xlabel(r'$t$')
