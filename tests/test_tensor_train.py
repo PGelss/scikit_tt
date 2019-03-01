@@ -13,7 +13,7 @@ class TestTT(TestCase):
         """Generate random parameters for a tensor train"""
 
         # set tolerance for relative errors
-        self.tol = 1e-10
+        self.tol = 1e-8
 
         # set threshold and maximum rank for orthonormalization
         self.threshold = 1e-14
@@ -48,7 +48,7 @@ class TestTT(TestCase):
 
         # check if construction fails if ranks are inconsistent
         with self.assertRaises(ValueError):
-            TT([np.random.rand(1,2,3,3), np.random.rand(4,3,2,1)])
+            TT([np.random.rand(1, 2, 3, 3), np.random.rand(4, 3, 2, 1)])
 
         # check if construction fails if cores are not 4-dimensional
         with self.assertRaises(ValueError):
@@ -302,6 +302,19 @@ class TestTT(TestCase):
         self.assertEqual(err, 0)
         self.assertLess(rel_err, self.tol)
 
+        # check if orthonormalization fails if maximum rank is not positive
+        with self.assertRaises(ValueError):
+            t_col.ortho_left(max_rank=0)
+
+        # check if orthonormalization fails if threshold is negative
+        with self.assertRaises(ValueError):
+            t_col.ortho_left(threshold=-1)
+
+        # check if orthonormalization fails if start and end indices are not integers
+        with self.assertRaises(TypeError):
+            t_col.ortho_left(start_index="a")
+            t_col.ortho_left(end_index="b")
+
     def test_right_orthonormalization(self):
         """test right-orthonormalization"""
 
@@ -329,6 +342,19 @@ class TestTT(TestCase):
         self.assertEqual(err, 0)
         self.assertLess(rel_err, self.tol)
 
+        # check if orthonormalization fails if maximum rank is not positive
+        with self.assertRaises(ValueError):
+            t_col.ortho_right(max_rank=0)
+
+        # check if orthonormalization fails if threshold is negative
+        with self.assertRaises(ValueError):
+            t_col.ortho_right(threshold=-1)
+
+        # check if orthonormalization fails if start and end indices are not integers
+        with self.assertRaises(TypeError):
+            t_col.ortho_right(start_index="a")
+            t_col.ortho_right(end_index="b")
+
     def test_orthonormalization(self):
         """test orthonormalization"""
 
@@ -355,6 +381,15 @@ class TestTT(TestCase):
         # check if t_right is right-orthonormal and equal to t_col
         self.assertEqual(err, 0)
         self.assertLess(rel_err, self.tol)
+
+        # check if orthonormalization fails if maximum rank is not positive
+        with self.assertRaises(ValueError):
+            t_col.ortho_left(max_rank=0)
+
+        # check if orthonormalization fails if threshold is negative
+        with self.assertRaises(ValueError):
+            t_col.ortho_left(threshold=-1)
+
 
     def test_1_norm(self):
         """test 1-norm"""
@@ -533,6 +568,7 @@ class TestTT(TestCase):
 
         # check if relative error is smaller than tolerance
         self.assertLess(rel_err, self.tol)
+
 
 if __name__ == '__main__':
     ut.main()
