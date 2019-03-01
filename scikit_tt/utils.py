@@ -3,7 +3,6 @@
 
 import time as _time
 import sys
-import matplotlib.pyplot as plt
 
 
 def header(title=None, subtitle=None):
@@ -29,23 +28,6 @@ def header(title=None, subtitle=None):
         print('    ' + subtitle)
     print(' ')
     print(' ')
-
-
-def plot_parameters(font_size=14):
-    """Customized plot parameters
-
-    Parameters
-    ----------
-    font_size: int
-        default font size for title, labels, etc.
-    """
-
-    plt.rc('text', usetex=True)
-    plt.rc('font', family='serif')
-    plt.rcParams["mathtext.fontset"] = "cm"
-    plt.rcParams.update({'font.size': font_size})
-    plt.rcParams.update({'figure.autolayout': True})
-    plt.rcParams.update({'axes.grid': True})
 
 
 def progress(text, percent, dots=3, show=True):
