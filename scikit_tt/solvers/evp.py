@@ -124,9 +124,9 @@ def als(operator, initial_guess, operator_gevp=None, number_ev=1, repeats=1, sol
         eigentensors = TT([solution.cores[0][:, :, :, :, 0]] + solution.cores[1:])
         eigenvalues = eigenvalues[0]
     else:
-        eigentensors = [None] * number_ev
+        eigentensors = []
         for i in range(number_ev):
-            eigentensors[i] = TT([solution.cores[0][:, :, :, :, i]] + solution.cores[1:])
+            eigentensors.append(TT([solution.cores[0][:, :, :, :, i]] + solution.cores[1:]))
 
     return eigenvalues, eigentensors
 
