@@ -2,6 +2,7 @@
 
 from unittest import TestCase
 import numpy as np
+import scipy.integrate as spint
 import scikit_tt.models as mdl
 import scikit_tt.data_driven.mandy as mandy
 
@@ -33,10 +34,31 @@ class TestMANDy(TestCase):
         self.fpu_xi_exact = mdl.fpu_coefficients(self.fpu_d)
         self.kuramoto_xi_exact = mdl.kuramoto_coefficients(self.kuramoto_d, self.kuramoto_w)
 
-        # generate test data
-        [self.fpu_x, self.fpu_y] = mdl.fermi_pasta_ulam(self.fpu_d, self.fpu_m)
-        [self.kuramoto_x, self.kuramoto_y] = mdl.kuramoto(self.kuramoto_x_0, self.kuramoto_w, self.kuramoto_t,
-                                                          self.kuramoto_m)
+        # generate test data for FPU
+        self.fpu_x = 0.2 * np.random.rand(self.fpu_d, self.fpu_m) - 0.1
+        self.fpu_y = np.zeros((self.fpu_d, self.fpu_m))
+        for j in range(self.fpu_m):
+            self.fpu_y[0, j] = self.fpu_x[1, j] - 2 * self.fpu_x[0, j] + 0.7 * (
+                    (self.fpu_x[1, j] - self.fpu_x[0, j]) ** 3 - self.fpu_x[0, j] ** 3)
+            for i in range(1, self.fpu_d - 1):
+                self.fpu_y[i, j] = self.fpu_x[i + 1, j] - 2 * self.fpu_x[i, j] + self.fpu_x[i - 1, j] + 0.7 * (
+                        (self.fpu_x[i + 1, j] - self.fpu_x[i, j]) ** 3 - (self.fpu_x[i, j] - self.fpu_x[i - 1, j]) ** 3)
+                self.fpu_y[-1, j] = - 2 * self.fpu_x[-1, j] + self.fpu_x[-2, j] + 0.7 * (
+                        -self.fpu_x[-1, j] ** 3 - (self.fpu_x[-1, j] - self.fpu_x[-2, j]) ** 3)
+
+        # generate test data for Kuramoto
+        number_of_oscillators = len(self.kuramoto_x_0)
+
+        def kuramoto_ode(_, theta):
+            [theta_i, theta_j] = np.meshgrid(theta, theta)
+            return self.kuramoto_w + 2 / number_of_oscillators * np.sin(theta_j - theta_i).sum(0) + 0.2 * np.sin(theta)
+
+        sol = spint.solve_ivp(kuramoto_ode, [0, self.kuramoto_t], self.kuramoto_x_0, method='BDF',
+                              t_eval=np.linspace(0, self.kuramoto_t, self.kuramoto_m))
+        self.kuramoto_x = sol.y
+        self.kuramoto_y = np.zeros([number_of_oscillators, self.kuramoto_m])
+        for i in range(self.kuramoto_m):
+            self.kuramoto_y[:, i] = kuramoto_ode(0, self.kuramoto_x[:, i])
 
     def test_mandy_cm(self):
         """test coordinate-major approach"""
