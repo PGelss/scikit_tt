@@ -13,7 +13,11 @@ class TestTT(TestCase):
         """Generate random parameters for a tensor train"""
 
         # set tolerance for relative errors
-        self.tol = 10e-10
+        self.tol = 1e-10
+
+        # set threshold and maximum rank for orthonormalization
+        self.threshold = 1e-14
+        self.max_rank = 50
 
         # generate random order in [3,5]
         self.order = np.random.randint(3, 6)
@@ -30,7 +34,7 @@ class TestTT(TestCase):
                       for i in range(self.order)]
 
         # construct tensor train
-        self.t = TT(self.cores)
+        self.t = TT(self.cores, threshold=self.threshold, max_rank=self.max_rank)
 
     def test_construction_from_cores(self):
         """test tensor train class for list of cores"""
@@ -42,6 +46,14 @@ class TestTT(TestCase):
         self.assertEqual(self.t.col_dims, self.col_dims)
         self.assertEqual(self.t.cores, self.cores)
 
+        # check if construction fails if ranks are inconsistent
+        with self.assertRaises(ValueError):
+            TT([np.random.rand(1,2,3,3), np.random.rand(4,3,2,1)])
+
+        # check if construction fails if cores are not 4-dimensional
+        with self.assertRaises(ValueError):
+            TT([np.random.rand(1, 2, 3), np.random.rand(3, 3, 2, 1)])
+
     def test_representation(self):
         """test string representation of tensor trains"""
 
@@ -50,6 +62,32 @@ class TestTT(TestCase):
 
         # check if string is not empty
         self.assertIsNotNone(string)
+
+    def test_element(self):
+        """test element extraction"""
+
+        # indices of last entry
+        indices = self.row_dims + self.col_dims
+
+        # check if element extraction fails if indices are out of range
+        with self.assertRaises(IndexError):
+            indices[0] += 1
+            self.t.element(indices)
+
+        # check if element extraction fails if number of indices is not correct
+        with self.assertRaises(ValueError):
+            self.t.element(indices[1:])
+
+        # check if element extraction fails if an index is not an integer
+        with self.assertRaises(TypeError):
+            # noinspection PyTypeChecker
+            indices[0] = None
+            self.t.element(indices)
+
+        # check if element extraction fails if input is not a list of integers
+        with self.assertRaises(TypeError):
+            # noinspection PyTypeChecker
+            self.t.element("a")
 
     def test_conversion(self):
         """test conversion to full format and element extraction"""
@@ -110,6 +148,12 @@ class TestTT(TestCase):
         # check if relative error is smaller than tolerance
         self.assertLess(rel_err, self.tol)
 
+        # check if addition fails when inputs do not have the same dimensions
+        with self.assertRaises(ValueError):
+            cores = self.t.cores
+            cores[0] = np.random.rand(self.ranks[0], self.row_dims[0] + 1, self.col_dims[0], self.ranks[1])
+            self.t + TT(cores)
+
         # check if addition fails when input is not a tensor train
         with self.assertRaises(TypeError):
             self.t + 0
@@ -121,7 +165,7 @@ class TestTT(TestCase):
         c = 10 * np.random.rand(1)[0]
 
         # multiply tensor train with scalar value, convert to full array, and reshape to vector
-        t_tmp = TT.__mul__(self.t, c)
+        t_tmp = c * self.t
         t_tmp = t_tmp.full().flatten()
 
         # convert t to full array and reshape to vector
@@ -132,6 +176,10 @@ class TestTT(TestCase):
 
         # check if error is smaller than tolerance
         self.assertLess(err, self.tol)
+
+        # check if multiplication fails when input is neither integer, float, nor complex
+        with self.assertRaises(TypeError):
+            self.t * "a"
 
     def test_transpose(self):
         """test transpose of tensor trains"""
@@ -170,6 +218,12 @@ class TestTT(TestCase):
         # check if relative error is smaller than tolerance
         self.assertLess(rel_err, self.tol)
 
+        # check if multiplication fails when dimensions do not match
+        with self.assertRaises(ValueError):
+            cores = self.t.cores
+            cores[0] = np.random.rand(self.ranks[0], self.row_dims[0] + 1, self.col_dims[0], self.ranks[1])
+            self.t.transpose().dot(TT(cores))
+
         # check if multiplication fails when input is not a tensor train
         with self.assertRaises(TypeError):
             self.t.dot(0)
@@ -181,7 +235,7 @@ class TestTT(TestCase):
         t_full = self.t.full()
 
         # construct tensor train
-        t_tmp = TT(t_full)
+        t_tmp = TT(t_full, threshold=self.threshold, max_rank=self.max_rank)
 
         # compute difference, convert to full format, and flatten
         t_diff = (self.t - t_tmp).full().flatten()
@@ -191,6 +245,14 @@ class TestTT(TestCase):
 
         # check if relative error is smaller than tolerance
         self.assertLess(rel_err, self.tol)
+
+        # check if construction fails if number of dimensions is not a multiple of 2
+        with self.assertRaises(ValueError):
+            TT(np.random.rand(1, 2, 3))
+
+        # check if construction fails if input is neither a list of cores nor an ndarray
+        with self.assertRaises(TypeError):
+            TT(None)
 
     def test_operator(self):
         """test operator check"""
@@ -329,6 +391,10 @@ class TestTT(TestCase):
 
         # check if relative error is smaller than tolerance
         self.assertLess(rel_err, self.tol)
+
+        # check if norm computation fails if p is neither 1 nor 2
+        with self.assertRaises(ValueError):
+            self.t.norm(p=3)
 
     def test_qtt2tt_tt2qtt(self):
         """test qtt2tt and tt2qtt"""
