@@ -1,10 +1,51 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+
+from __future__ import division
 import numpy as np
-import scipy.integrate as spint
 from scikit_tt.tensor_train import TT
 import scikit_tt.slim as slim
+
+
+def cantor_dust(dimension, level):
+    """Construction of a (multidimensional) Cantor dust
+
+    Generate a binary tensor representing a Cantor dust, see [1]_, by exploiting the
+    tensor-train format and Kronecker products.
+
+    Parameters
+    ----------
+    dimension: int
+        dimension of the Cantor dust
+    level: int
+        level of the fractal construction to generate
+
+    Returns
+    -------
+    fractal: ndarray
+        tensor representing the Cantor dust
+
+    References
+    ----------
+    .. [1] P. Gelß, C. Schütte, "Tensor-generated fractals: Using tensor decompositions for
+           creating self-similar patterns", arXiv:1812.00814, 2018
+    """
+
+    # construct generating tensor
+    cores = []
+    for _ in range(dimension):
+        cores.append(np.zeros([1, 3, 1, 1]))
+        cores[-1][0, :, 0, 0] = [1, 0, 1]
+    generator = TT(cores)
+    generator = generator.full().reshape(generator.row_dims)
+
+    # construct fractal in the form of a binary tensor
+    fractal = generator
+    for i in range(2, level + 1):
+        fractal = np.kron(fractal, generator)
+    fractal = fractal.astype(int)
+
+    return fractal
 
 
 def co_oxidation(order, k_ad_co, cyclic=True):
@@ -62,52 +103,6 @@ def co_oxidation(order, k_ad_co, cyclic=True):
     operator = slim.slim_mme_hom(state_space, single_cell_reactions, two_cell_reactions, cyclic=cyclic)
 
     return operator
-
-
-def fermi_pasta_ulam(number_of_oscillators, number_of_snapshots):
-    """Fermi–Pasta–Ulam problem.
-
-    Generate data for the Fermi–Pasta–Ulam problem represented by the differential equation
-
-        d^2/dt^2 x_i = (x_i+1 - 2x_i + x_i-1) + 0.7((x_i+1 - x_i)^3 - (x_i-x_i-1)^3).
-
-    See [1]_ for details.
-
-    Parameters
-    ----------
-    number_of_oscillators: int
-        number of oscillators
-    number_of_snapshots: int
-        number of snapshots
-
-    Returns
-    -------
-    snapshots: ndarray(number_of_oscillators, number_of_snapshots)
-        snapshot matrix containing random displacements of the oscillators in [-0.1,0.1]
-    derivatives: ndarray(number_of_oscillators, number_of_snapshots)
-        matrix containing the corresponding derivatives
-
-    References
-    ----------
-    .. [1] P. Gelß, S. Klus, J. Eisert, C. Schütte, "Multidimensional Approximation of Nonlinear Dynamical Systems",
-           arXiv:1809.02448, 2018
-    """
-
-    # define random snapshot matrix
-    snapshots = 0.2 * np.random.rand(number_of_oscillators, number_of_snapshots) - 0.1
-
-    # compute derivatives
-    derivatives = np.zeros((number_of_oscillators, number_of_snapshots))
-    for j in range(number_of_snapshots):
-        derivatives[0, j] = snapshots[1, j] - 2 * snapshots[0, j] + 0.7 * (
-                (snapshots[1, j] - snapshots[0, j]) ** 3 - snapshots[0, j] ** 3)
-        for i in range(1, number_of_oscillators - 1):
-            derivatives[i, j] = snapshots[i + 1, j] - 2 * snapshots[i, j] + snapshots[i - 1, j] + 0.7 * (
-                    (snapshots[i + 1, j] - snapshots[i, j]) ** 3 - (snapshots[i, j] - snapshots[i - 1, j]) ** 3)
-        derivatives[-1, j] = - 2 * snapshots[-1, j] + snapshots[-2, j] + 0.7 * (
-                -snapshots[-1, j] ** 3 - (snapshots[-1, j] - snapshots[-2, j]) ** 3)
-
-    return snapshots, derivatives
 
 
 def fpu_coefficients(d):
@@ -181,56 +176,6 @@ def fpu_coefficients(d):
     return coefficient_tensor
 
 
-def kuramoto(theta_init, frequencies, time, number_of_snapshots):
-    """Kuramoto model
-
-    Generate data for the Kuramoto model represented by the differential equation
-
-        d/dt x_i = w_i + (2/d) * (sin(x_1 - x_i) + ... + sin(x_d - x_i)) + 0.2 * sin(x_i).
-
-    See [1]_ and [2]_ for details.
-
-    Parameters
-    ----------
-    theta_init: ndarray
-        initial distribution of the oscillators
-    frequencies: ndarray
-        natural frequencies of the oscillators
-    time: float
-        integration time for BDF method
-    number_of_snapshots: int
-        number of snapshots
-
-    Returns
-    -------
-    snapshots: ndarray(number_of_oscillators, number_of_snapshots)
-        snapshot matrix containing random displacements of the oscillators in [-0.1,0.1]
-    derivatives: ndarray(number_of_oscillators, number_of_snapshots)
-        matrix containing the corresponding derivatives
-
-    References
-    ----------
-    .. [1] P. Gelß, S. Klus, J. Eisert, C. Schütte, "Multidimensional Approximation of Nonlinear Dynamical Systems",
-           arXiv:1809.02448, 2018
-    .. [2] J. A. Acebrón, L. L. Bonilla, C. J. Pérez Vicente, F. Ritort, R. Spigler, "The Kuramoto model: A simple
-           paradigm for synchronization phenomena", Rev. Mod. Phys. 77, pp. 137-185 , 2005
-    """
-
-    number_of_oscillators = len(theta_init)
-
-    def kuramoto_ode(_, theta):
-        [theta_i, theta_j] = np.meshgrid(theta, theta)
-        return frequencies + 2 / number_of_oscillators * np.sin(theta_j - theta_i).sum(0) + 0.2 * np.sin(theta)
-
-    sol = spint.solve_ivp(kuramoto_ode, [0, time], theta_init, method='BDF',
-                          t_eval=np.linspace(0, time, number_of_snapshots))
-    snapshots = sol.y
-    derivatives = np.zeros([number_of_oscillators, number_of_snapshots])
-    for i in range(number_of_snapshots):
-        derivatives[:, i] = kuramoto_ode(0, snapshots[:, i])
-    return snapshots, derivatives
-
-
 def kuramoto_coefficients(d, w):
     """Construction of the exact coefficient tensor for the application of MANDy to the Kuramoto model using the basis
     set {1, x, x^2, x^3}. See [1]_ for details.
@@ -270,6 +215,111 @@ def kuramoto_coefficients(d, w):
         cores[2][2 * q + 2, q, 0, 0] = 1
     coefficient_tensor = TT(cores)
     return coefficient_tensor
+
+
+def multisponge(dimension, level):
+    """Construction of a multisponge
+
+    Generate a binary tensor representing a multisponge fractal (e.g., Sierpinski carpet,
+    Menger sponge, etc.), see [1]_, by exploiting the tensor-train format and Kronecker
+    products.
+
+    Parameters
+    ----------
+    dimension: int (>1)
+        dimension of the multisponge
+    level: int
+        level of the fractal construction to generate
+
+    Returns
+    -------
+    fractal: ndarray
+        tensor representing the multisponge fractal
+
+    References
+    ----------
+    .. [1] P. Gelß, C. Schütte, "Tensor-generated fractals: Using tensor decompositions for
+           creating self-similar patterns", arXiv:1812.00814, 2018
+    """
+
+    if dimension > 1:
+
+        # construct generating tensor
+        cores = [np.zeros([1, 3, 1, 2])]
+        cores[0][0, :, 0, 0] = [1, 1, 1]
+        cores[0][0, :, 0, 1] = [1, 0, 1]
+        for _ in range(1, dimension - 1):
+            cores.append(np.zeros([2, 3, 1, 2]))
+            cores[-1][0, :, 0, 0] = [1, 0, 1]
+            cores[-1][1, :, 0, 0] = [0, 1, 0]
+            cores[-1][1, :, 0, 1] = [1, 0, 1]
+        cores.append(np.zeros([2, 3, 1, 1]))
+        cores[-1][0, :, 0, 0] = [1, 0, 1]
+        cores[-1][1, :, 0, 0] = [0, 1, 0]
+        generator = TT(cores)
+        generator = generator.full().reshape(generator.row_dims)
+
+        # construct fractal in the form of a binary tensor
+        fractal = generator
+        for i in range(2, level + 1):
+            fractal = np.kron(fractal, generator)
+        fractal = fractal.astype(int)
+
+    else:
+
+        raise ValueError('dimension must be larger than 1')
+
+    return fractal
+
+
+def rgb_fractal(matrix_r, matrix_g, matrix_b, level):
+    """Construction of an RGB fractal
+
+    Generate a 3-dimensional tensor representing an RGB fractal, see [1]_, by exploiting
+    the tensor-train format.
+
+    Parameters
+    ----------
+    matrix_r: ndarray
+        matrix representing red primaries
+    matrix_g: ndarray
+        matrix representing green primaries
+    matrix_b: ndarray
+        matrix representing blue primaries
+    level: int
+        level of the fractal construction to generate
+
+    Returns
+    -------
+    fractal: ndarray
+        tensor representing the RGB fractal
+
+    References
+    ----------
+    .. [1] P. Gelß, C. Schütte, "Tensor-generated fractals: Using tensor decompositions for
+           creating self-similar patterns", arXiv:1812.00814, 2018
+    """
+
+    # dimension of RGB matrices
+    n = matrix_r.shape[0]
+
+    # construct RGB fractal
+    cores = [np.zeros([1, n, n, 3])]
+    cores[0][0, :, :, 0] = matrix_r
+    cores[0][0, :, :, 1] = matrix_g
+    cores[0][0, :, :, 2] = matrix_b
+    for _ in range(1, level):
+        cores.append(np.zeros([3, n, n, 3]))
+        cores[-1][0, :, :, 0] = matrix_r
+        cores[-1][1, :, :, 1] = matrix_g
+        cores[-1][2, :, :, 2] = matrix_b
+    cores.append(np.zeros([3, 3, 1, 1]))
+    cores[-1][0, :, 0, 0] = [1, 0, 0]
+    cores[-1][1, :, 0, 0] = [0, 1, 0]
+    cores[-1][2, :, 0, 0] = [0, 0, 1]
+    fractal = TT(cores).full().reshape([n ** level, 3, n ** level]).transpose([0, 2, 1])
+
+    return fractal
 
 
 def signaling_cascade(d):
@@ -320,6 +370,70 @@ def signaling_cascade(d):
 
     # define TT operator
     operator = TT(cores)
+
+    return operator
+
+
+def toll_station(number_of_lanes, number_of_cars):
+    """"Toll station
+
+    Model for a quasi-realistic traffic problem
+
+    Arguments
+    ---------
+    number_of_lanes:
+    number_of_cars:
+
+    Returns
+    -------
+    operator: instance of TT class
+        TT operator of the process
+
+
+    References
+    ----------
+    .. [1] P. Gelß, "The Tensor-Train Format and Its Applications", dissertation, FU Berlin, 2017
+    """
+
+    theta_in = np.sqrt(2.5)
+    theta_out_left = 1
+    theta_out_right = np.sqrt(0.5)
+    nu_out_left = -1.5
+    nu_out_right = 1.5
+    change_rate = 5
+
+    def f_in(t):
+        return (1 / np.sqrt(2 * np.pi * theta_in ** 2)) * np.exp(-0.5 * t / theta_in ** 2) + 0.05
+
+    def f_out(t):
+        return (1 / np.sqrt(2 * np.pi * theta_out_left ** 2)) * np.exp(
+            -0.5 * (t - nu_out_left) ** 2 / theta_out_left ** 2) + (
+                           1 / np.sqrt(2 * np.pi * theta_out_right ** 2)) * np.exp(
+            -0.5 * (t - nu_out_right) ** 2 / theta_out_right ** 2)
+
+    # define state space
+    state_space = [number_of_cars + 1] * number_of_lanes
+
+    # define single-cell reactions
+    single_cell_reactions = []
+    for i in range(number_of_lanes):
+        scr_lane = []
+        for j in range(number_of_cars):
+            position = -2 + 0.5 * i
+            scr_lane.append([j, j + 1, f_in(position)])
+            scr_lane.append([j + 1, j, f_out(position)])
+        single_cell_reactions.append(scr_lane)
+
+    two_cell_reactions = []
+    for i in range(number_of_lanes - 1):
+        tcr_lane = []
+        for j in range(number_of_cars):
+            for k in range(j + 1):
+                tcr_lane.append([j + 1, j, k, k + 1, change_rate])
+                tcr_lane.append([k, k + 1, j + 1, j, change_rate])
+        two_cell_reactions.append(tcr_lane)
+
+    operator = slim.slim_mme(state_space, single_cell_reactions, two_cell_reactions)
 
     return operator
 
@@ -377,3 +491,57 @@ def two_step_destruction(k_1, k_2, m):
     operator = TT(cores)
 
     return operator
+
+
+def vicsek_fractal(dimension, level):
+    """Construction of a Vicsek fractal
+
+    Generate a binary tensor representing a Vicsek fractal, see [1]_, by exploiting the
+    tensor-train format and Kronecker products.
+
+    Parameters
+    ----------
+    dimension: int (>1)
+        dimension of the Vicsek fractal
+    level: int
+        level of the fractal construction to generate
+
+    Returns
+    -------
+    fractal: ndarray
+        tensor representing the Vicsek fractal
+
+    References
+    ----------
+    .. [1] P. Gelß, C. Schütte, "Tensor-generated fractals: Using tensor decompositions for
+           creating self-similar patterns", arXiv:1812.00814, 2018
+    """
+
+    if dimension > 1:
+
+        # construct generating tensor
+        cores = [np.zeros([1, 3, 1, 2])]
+        cores[0][0, :, 0, 0] = [1, 1, 1]
+        cores[0][0, :, 0, 1] = [0, 1, 0]
+        for _ in range(1, dimension - 1):
+            cores.append(np.zeros([2, 3, 1, 2]))
+            cores[-1][0, :, 0, 0] = [0, 1, 0]
+            cores[-1][1, :, 0, 0] = [1, 0, 1]
+            cores[-1][1, :, 0, 1] = [0, 1, 0]
+        cores.append(np.zeros([2, 3, 1, 1]))
+        cores[-1][0, :, 0, 0] = [0, 1, 0]
+        cores[-1][1, :, 0, 0] = [1, 0, 1]
+        generator = TT(cores)
+        generator = generator.full().reshape(generator.row_dims)
+
+        # construct fractal in the form of a binary tensor
+        fractal = generator
+        for i in range(2, level + 1):
+            fractal = np.kron(fractal, generator)
+        fractal = fractal.astype(int)
+
+    else:
+
+        raise ValueError('dimension must be larger than 1')
+
+    return fractal
