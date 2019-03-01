@@ -11,7 +11,7 @@ References
 """
 
 import numpy as np
-import scikit_tt.fractals as frac
+import scikit_tt.models as mdl
 import scikit_tt.utils as utl
 import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap
@@ -97,7 +97,7 @@ utl.progress('Generating multisponges', 0, dots=6)
 multisponge = []
 for i in range(2, 4):
     for j in range(1, 4):
-        multisponge.append(frac.multisponge(i, j))
+        multisponge.append(mdl.multisponge(i, j))
         utl.progress('Generating multisponges', 100 * ((i - 2) * 3 + j) / 6, dots=6)
 
 # Cantor dusts
@@ -107,7 +107,7 @@ utl.progress('Generating Cantor dusts', 0, dots=6)
 cantor_dust = []
 for i in range(1, 4):
     for j in range(1, 4):
-        cantor_dust.append(frac.cantor_dust(i, j))
+        cantor_dust.append(mdl.cantor_dust(i, j))
         utl.progress('Generating Cantor dusts', 100 * ((i - 1) * 3 + j) / 9, dots=6)
 
 # Vicsek fractals
@@ -117,7 +117,7 @@ utl.progress('Generating Vicsek fractals', 0)
 vicsek = []
 for i in range(2, 4):
     for j in range(1, 4):
-        vicsek.append(frac.vicsek_fractal(i, j))
+        vicsek.append(mdl.vicsek_fractal(i, j))
         utl.progress('Generating Vicsek fractals', 100 * ((i - 2) * 3 + j) / 6)
 
 # RGB fractals
@@ -131,14 +131,14 @@ rgb_fractals = []
 matrix_r = np.array([[0.5, 1, 0.5], [1, 0.5, 1], [0.5, 1, 0.5]])
 matrix_g = np.array([[0.75, 1, 0.75], [1, 1, 1], [0.75, 1, 0.75]])
 matrix_b = np.array([[1, 0.75, 1], [0.75, 1, 0.75], [1, 0.75, 1]])
-rgb_fractals.append(frac.rgb_fractal(matrix_r, matrix_g, matrix_b, level))
+rgb_fractals.append(mdl.rgb_fractal(matrix_r, matrix_g, matrix_b, level))
 
 utl.progress('Generating RGB fractals', 33.3, dots=6)
 
 matrix_r = np.array([[0.5, 0.75, 0.75, 0.5], [0.75, 1, 1, 0.75], [0.75, 1, 1, 0.75], [0.5, 0.75, 0.75, 0.5]])
 matrix_g = np.array([[1, 0.5, 0.5, 1], [0.5, 0.75, 0.75, 0.5], [0.5, 0.75, 0.75, 0.5], [1, 0.5, 0.5, 1]])
 matrix_b = np.array([[0.75, 1, 1, 0.75], [1, 0.5, 0.5, 1], [1, 0.5, 0.5, 1], [0.75, 1, 1, 0.75]])
-rgb_fractals.append(frac.rgb_fractal(matrix_r, matrix_g, matrix_b, level))
+rgb_fractals.append(mdl.rgb_fractal(matrix_r, matrix_g, matrix_b, level))
 
 utl.progress('Generating RGB fractals', 66.6, dots=6)
 
@@ -149,7 +149,7 @@ matrix_g = np.array([[0.25, 0.25, 0.5, 0.25, 0.25], [0.25, 0.5, 1, 0.5, 0.25], [
 matrix_b = np.array(
     [[0.25, 0.25, 0.25, 0.25, 0.25], [0.25, 0.25, 0.5, 0.25, 0.25], [0.25, 0.5, 1, 0.5, 0.25], [0.5, 1, 1, 1, 0.5],
      [1, 1, 0.5, 1, 1]])
-rgb_fractals.append(frac.rgb_fractal(matrix_r, matrix_g, matrix_b, level))
+rgb_fractals.append(mdl.rgb_fractal(matrix_r, matrix_g, matrix_b, level))
 
 utl.progress('Generating RGB fractals', 100, dots=6)
 
@@ -158,7 +158,13 @@ print(' ')
 # plot fractals
 # -------------
 
-utl.plot_parameters()
+plt.rc('text', usetex=True)
+plt.rc('font', family='serif')
+plt.rcParams["mathtext.fontset"] = "cm"
+plt.rcParams.update({'font.size': 10})
+plt.rcParams.update({'figure.autolayout': True})
+plt.rcParams.update({'axes.grid': True})
+plt.rcParams.update({'axes.grid': False})
 
 utl.progress('Plotting patterns', 0, dots=12)
 
