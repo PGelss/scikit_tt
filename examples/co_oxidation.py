@@ -78,7 +78,7 @@ p_CO_exp = [-4, -3.5, -3, -2.5, -2, -1.5, -1, -0.5, 0, 0.1, 0.2, 0.3, 0.4, 0.5, 
 
 # TT ranks for approximations
 #           - EVP -           |            - IEM -
-R = [3, 4, 5, 5, 6, 6, 9, 11] + [12]
+R = [3, 4, 5, 5, 6, 6, 9, 12] + [12]
 
 # TODO: FIND FURTHER RANKS
 
@@ -100,7 +100,7 @@ for i in range(8):
     operator = mdl.co_oxidation(20, 10 ** (8 + p_CO_exp[i])).ortho_left().ortho_right()
     initial_guess = tt.ones(operator.row_dims, [1] * operator.order, ranks=R[i]).ortho_left().ortho_right()
     with utl.timer() as time:
-        eigenvalues, solution = evp.als(tt.eye(operator.row_dims) + operator, initial_guess, repeats=10, solver='eigs')
+        eigenvalues, solution = evp.als(tt.eye(operator.row_dims) + operator, initial_guess, repeats=20, solver='eigs')
         solution = (1 / solution.norm(p=1)) * solution
 
     # compute turn-over frequency of CO2 desorption
@@ -141,7 +141,13 @@ print('----------------------------------------------------------')
 # plot turn-over frequency
 # ------------------------
 
-utl.plot_parameters()
+
+plt.rc('text', usetex=True)
+plt.rc('font', family='serif')
+plt.rcParams["mathtext.fontset"] = "cm"
+plt.rcParams.update({'font.size': 14})
+plt.rcParams.update({'figure.autolayout': True})
+plt.rcParams.update({'axes.grid': True})
 plt.plot(p_CO_exp[:len(tof)], tof)
 plt.yscale('log')
 plt.title(r'CPU times for $d = 10$', y=1.03)
@@ -152,4 +158,5 @@ plt.xticks([-4, -3, -2, -1, 0, 1, 2],
            (r'$10^{-4}$', r'$10^{-3}$', r'$10^{-2}$', r'$10^{-1}$', r'$10^{0}$', r'$10^{1}$', r'$10^{2}$'))
 plt.xlim(-4, 2)
 plt.ylim(10 ** -4, 10 ** 6)
-plt.show()
+plt.savefig("foo.pdf")
+#plt.show()
