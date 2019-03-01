@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import division
 from unittest import TestCase
 import numpy as np
 import scipy.integrate as spint
