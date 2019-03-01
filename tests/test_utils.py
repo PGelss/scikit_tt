@@ -20,11 +20,6 @@ class TestUtils(TestCase):
         sys.stdout.close()
         sys.stdout = self._original_stdout
 
-    def test_plot_parameters(self):
-        """test plot_parameters"""
-
-        utl.plot_parameters()
-
     def test_progress(self):
         """test progress"""
 
@@ -39,7 +34,7 @@ class TestUtils(TestCase):
     def test_timer(self):
         """test timer"""
 
+        # wait for 1 second
         with utl.timer() as timer:
             time.sleep(1)
-
         self.assertLess(np.abs(timer.elapsed - 1), 0.1)
