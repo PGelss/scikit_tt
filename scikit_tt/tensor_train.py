@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import numpy as np
 from scipy import linalg
 
@@ -845,7 +843,7 @@ class TT(object):
             tt_tensor = tt_tensor.ortho_right()
 
             # compute norm from first core
-            norm = np.linalg.norm(tt_tensor.cores[0].reshape(tt_tensor.row_dims[0] * tt_tensor.ranks[1]))
+            norm = np.linalg.norm(tt_tensor.cores[0].reshape(tt_tensor.row_dims[0] * tt_tensor.col_dims[0] * tt_tensor.ranks[1]))
 
             return norm
 
