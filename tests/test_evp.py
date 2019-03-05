@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import unittest as ut
 from unittest import TestCase
 from scikit_tt.tensor_train import TT
