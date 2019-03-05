@@ -156,7 +156,7 @@ class TestModels(TestCase):
         op = mdl.co_oxidation(self.order, self.k_ad_co, cyclic=True)
 
         # check if stochastic
-        self.assertLess((tt.ones([1]*op.order, op.col_dims) @ op).norm(), self.tol)
+        self.assertLess((tt.ones([1]*op.order, op.col_dims).dot(op)).norm(), self.tol)
 
     def test_signaling_cascade(self):
         """tests for signaling cascade"""
@@ -165,7 +165,7 @@ class TestModels(TestCase):
         op = mdl.signaling_cascade(self.order)
 
         # check if stochastic
-        self.assertLess((tt.ones([1]*op.order, op.col_dims) @ op).norm(), self.tol)
+        self.assertLess((tt.ones([1]*op.order, op.col_dims).dot(op)).norm(), self.tol)
 
     def test_toll_station(self):
         """tests for toll station"""
@@ -174,7 +174,7 @@ class TestModels(TestCase):
         op = mdl.toll_station(self.number_of_lanes, self.number_of_cars)
 
         # check if stochastic
-        self.assertLess((tt.ones([1]*op.order, op.col_dims) @ op).norm(), self.tol)
+        self.assertLess((tt.ones([1]*op.order, op.col_dims).dot(op)).norm(), self.tol)
 
     def test_two_step(self):
         """tests for two-setp destruction"""
@@ -183,4 +183,4 @@ class TestModels(TestCase):
         op = mdl.two_step_destruction(self.k_1, self.k_2, self.k_3, self.m)
 
         # check if stochastic
-        self.assertLess((tt.ones([1]*op.order, op.col_dims) @ op).norm(), self.tol)
+        self.assertLess((tt.ones([1]*op.order, op.col_dims).dot(op)).norm(), self.tol)
