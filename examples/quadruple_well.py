@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 """
 This is a three-dimensional example for the approximation of the Perron-Frobenius operator using the TT format.
 For more details, see [1]_.
