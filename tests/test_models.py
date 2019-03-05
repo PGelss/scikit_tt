@@ -1,4 +1,5 @@
 import numpy as np
+import scikit_tt.tensor_train as tt
 import scikit_tt.models as mdl
 from unittest import TestCase
 
@@ -10,6 +11,9 @@ class TestModels(TestCase):
 
         # define parameters
         # -----------------
+
+        # set tolerance
+        self.tol = 1e-1
 
         # set order
         self.order = 3
@@ -23,6 +27,7 @@ class TestModels(TestCase):
         # set parameters for two-step destruction
         self.k_1 = 1
         self.k_2 = 2
+        self.k_3 = 1
         self.m = 3
 
         # set parameters for toll station model
@@ -136,12 +141,44 @@ class TestModels(TestCase):
         with self.assertRaises(ValueError):
             mdl.vicsek_fractal(1, 1)
 
-    def test_models(self):
-        """tests for model constructions"""
+    def test_fpu_kuramoto(self):
+        """tests for Fermi-Pasta-Ulam and Kuramoto model"""
 
-        mdl.co_oxidation(self.order, self.k_ad_co, cyclic=True)
         mdl.fpu_coefficients(self.order)
         mdl.kuramoto_coefficients(self.order, self.frequencies)
-        mdl.signaling_cascade(self.order)
-        mdl.toll_station(self.number_of_lanes, self.number_of_cars)
-        mdl.two_step_destruction(self.k_1, self.k_2, self.m)
+
+    def test_co_oxidation(self):
+        """tests for CO oxidation"""
+
+        # construct operator
+        op = mdl.co_oxidation(self.order, self.k_ad_co, cyclic=True)
+
+        # check if stochastic
+        self.assertLess((tt.ones([1]*op.order, op.col_dims) @ op).norm(), self.tol)
+
+    def test_signaling_cascade(self):
+        """tests for signaling cascade"""
+
+        # construct operator
+        op = mdl.signaling_cascade(self.order)
+
+        # check if stochastic
+        self.assertLess((tt.ones([1]*op.order, op.col_dims) @ op).norm(), self.tol)
+
+    def test_toll_station(self):
+        """tests for toll station"""
+
+        # construct operator
+        op = mdl.toll_station(self.number_of_lanes, self.number_of_cars)
+
+        # check if stochastic
+        self.assertLess((tt.ones([1]*op.order, op.col_dims) @ op).norm(), self.tol)
+
+    def test_two_step(self):
+        """tests for two-setp destruction"""
+
+        # construct operator
+        op = mdl.two_step_destruction(self.k_1, self.k_2, self.k_3, self.m)
+
+        # check if stochastic
+        self.assertLess((tt.ones([1]*op.order, op.col_dims) @ op).norm(), self.tol)
