@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 """
 This is an example for the application of the TT and QTT format to Markovian master equations of chemical reaction
 networks. For more details, see [1]_.
