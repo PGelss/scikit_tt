@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import numpy as np
 import scikit_tt.tensor_train as tt
 import scikit_tt.models as mdl
