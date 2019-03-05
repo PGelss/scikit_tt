@@ -1,6 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-
 import scikit_tt.tensor_train as tt
 import scikit_tt.utils as utl
 from scikit_tt.solvers import sle
@@ -338,6 +335,7 @@ def adaptive_step_size(operator, initial_value, initial_guess, time_end, step_si
 
     # set time and step size
     time = 0
+    time_steps = [0]
     step_size = step_size_first
 
     # begin integration
@@ -383,10 +381,11 @@ def adaptive_step_size(operator, initial_value, initial_guess, time_end, step_si
             time = np.min([time + step_size, time_end])
             step_size = np.amin([step_size_new, time_end - time, step_size_max])
             solution.append(t_1.copy())
+            time_steps.append(time)
             t_tmp = t_1
             utl.progress('Running adaptive step size method', 100 * time / time_end, show=progress)
             closeness_pre = closeness
         else:
             step_size = step_size_new
 
-    return solution
+    return solution, time_steps
