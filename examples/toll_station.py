@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 """
 This is an example for the application of the TT format to a nearest-neighbor interaction system. For more details, see
 [1]_.
