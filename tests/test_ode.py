@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from unittest import TestCase
 import scikit_tt.models as mdl
 import scikit_tt.tensor_train as tt
@@ -66,7 +64,7 @@ class TestODE(TestCase):
         """test for trapezoidal rule"""
 
         # compute numerical solution of the ODE
-        operator = mdl.two_step_destruction(1, 2, 2)
+        operator = mdl.two_step_destruction(1, 2, 1, 2)
         initial_value = tt.zeros([2 ** 2, 2 ** (2 + 1), 2 ** 2, 2 ** 2], [1] * 4)
         initial_value.cores[0][0, -1, 0, 0] = 1
         initial_value.cores[1][0, -2, 0, 0] = 1
@@ -120,9 +118,9 @@ class TestODE(TestCase):
         operator = mdl.signaling_cascade(2).tt2qtt([[2] * 6] * 2, [[2] * 6] * 2)
         initial_value = tt.unit(operator.row_dims, [0] * operator.order)
         initial_guess = tt.ones(operator.row_dims, [1] * operator.order, ranks=self.rank).ortho_right()
-        solution_ie = ode.adaptive_step_size(operator, initial_value, initial_guess, 300, step_size_first=1,
+        solution_ie, _ = ode.adaptive_step_size(operator, initial_value, initial_guess, 300, step_size_first=1,
                                              second_method='two_step_Euler', progress=False)
-        solution_tr = ode.adaptive_step_size(operator, initial_value, initial_guess, 300, step_size_first=1,
+        solution_tr, _ = ode.adaptive_step_size(operator, initial_value, initial_guess, 300, step_size_first=1,
                                              second_method='trapezoidal_rule', progress=False)
 
         # compute norm of the derivatives at the final time step
