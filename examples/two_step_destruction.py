@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 """
 This is an example for the application of the QTT format to Markovian master equations of chemical reaction
 networks. For more details, see [1]_.
@@ -66,7 +68,7 @@ max_rank = 25
 # construct operator in TT format and convert to QTT format
 # ---------------------------------------------------------
 
-operator = mdl.two_step_destruction(1, 2, m).tt2qtt([[2] * m] + [[2] * (m + 1)] + [[2] * m] + [[2] * m],
+operator = mdl.two_step_destruction(1, 2, 1, m).tt2qtt([[2] * m] + [[2] * (m + 1)] + [[2] * m] + [[2] * m],
                                                     [[2] * m] + [[2] * (m + 1)] + [[2] * m] + [[2] * m],
                                                     threshold=10 ** -14)
 
