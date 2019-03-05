@@ -197,7 +197,6 @@ Modules containing unit tests are provided in the directory [*tests*](tests/).
 
 ```
 test_evp .............. unit tests for solvers/evp.py
-test_fractals.......... unit tests for fractals.py
 test_mandy ............ unit tests for data_driven/mandy.py
 test_ode .............. unit tests for solvers/ode.py
 test_sle .............. unit tests for solvers/sle.py
@@ -212,7 +211,7 @@ test_ulam ............. unit tests for data_driven/ulam.py
 In [*utils.py*](scikit_tt/utils.py) we collect routines which are employed at several points in **scikit-tt**.
 
 ```
-header ................ ASCII header for scikit_tt
+header ................ ASCII header for scikit-tt
 progress .............. show progress in percent
 timer ................. measure CPU time
 ```
