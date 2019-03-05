@@ -123,7 +123,7 @@ for i in range(8, len(R)):
     initial_value = tt.unit(operator.row_dims, [1] * operator.order)
     initial_guess = tt.ones(operator.row_dims, [1] * operator.order, ranks=R[i]).ortho_left().ortho_right()
     with utl.timer() as time:
-        solution = ode.adaptive_step_size(operator, initial_value, initial_guess, 100, progress=False)
+        solution, _ = ode.adaptive_step_size(operator, initial_value, initial_guess, 100, progress=False)
 
     # compute turn-over frequency of CO2 desorption
     tof.append(two_cell_tof(solution[-1], [2, 1], 1.7e5))
@@ -158,5 +158,4 @@ plt.xticks([-4, -3, -2, -1, 0, 1, 2],
            (r'$10^{-4}$', r'$10^{-3}$', r'$10^{-2}$', r'$10^{-1}$', r'$10^{0}$', r'$10^{1}$', r'$10^{2}$'))
 plt.xlim(-4, 2)
 plt.ylim(10 ** -4, 10 ** 6)
-plt.savefig("foo.pdf")
-#plt.show()
+plt.show()
