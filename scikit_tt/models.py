@@ -1,11 +1,8 @@
-# -*- coding: utf-8 -*-
-
-
 from __future__ import division
 import numpy as np
 from scikit_tt.tensor_train import TT
 import scikit_tt.slim as slim
-
+import matplotlib.pyplot as plt
 
 def cantor_dust(dimension, level):
     """Construction of a (multidimensional) Cantor dust
@@ -351,6 +348,10 @@ def signaling_cascade(d):
     i_mat = np.eye(64)
     m_mat = np.eye(64, k=-1) - np.eye(64)
 
+    # make operator stochastic
+    s_mat_0[-1, -1] = -0.07 * 63
+    m_mat [-1, -1] = 0
+
     # define TT cores
     cores = [np.zeros([1, 64, 64, 3])]
     cores[0][0, :, :, 0] = s_mat_0
@@ -403,7 +404,7 @@ def toll_station(number_of_lanes, number_of_cars):
     change_rate = 5
 
     def f_in(t):
-        return (1 / np.sqrt(2 * np.pi * theta_in ** 2)) * np.exp(-0.5 * t / theta_in ** 2) + 0.05
+        return (1 / np.sqrt(2 * np.pi * theta_in ** 2)) * np.exp(-0.5 * t ** 2 / theta_in ** 2) + 0.05
 
     def f_out(t):
         return (1 / np.sqrt(2 * np.pi * theta_out_left ** 2)) * np.exp(
@@ -419,7 +420,7 @@ def toll_station(number_of_lanes, number_of_cars):
     for i in range(number_of_lanes):
         scr_lane = []
         for j in range(number_of_cars):
-            position = -2 + 0.5 * i
+            position = -2 + 4/(number_of_lanes-1) * i
             scr_lane.append([j, j + 1, f_in(position)])
             scr_lane.append([j + 1, j, f_out(position)])
         single_cell_reactions.append(scr_lane)
@@ -433,12 +434,12 @@ def toll_station(number_of_lanes, number_of_cars):
                 tcr_lane.append([k, k + 1, j + 1, j, change_rate])
         two_cell_reactions.append(tcr_lane)
 
-    operator = slim.slim_mme(state_space, single_cell_reactions, two_cell_reactions)
+    operator = slim.slim_mme(state_space, single_cell_reactions, two_cell_reactions, threshold=1e-14)
 
     return operator
 
 
-def two_step_destruction(k_1, k_2, m):
+def two_step_destruction(k_1, k_2, k_3, m):
     """"Two-step destruction
 
     Model for a two-step mechanism for the destruction of molecules. For a detailed description of the process and the
@@ -450,6 +451,8 @@ def two_step_destruction(k_1, k_2, m):
         rate constant for the first reaction
     k_2: float
         rate constant for the second reaction
+    k_3: float
+        rate constant for the third reaction
     m: int
         exponent determining the maximum number of molecules
 
@@ -471,21 +474,25 @@ def two_step_destruction(k_1, k_2, m):
     # define TT cores
     cores = [np.zeros([r[i], n[i], n[i], r[i + 1]]) for i in range(4)]
     cores[0][0, :, :, 0] = np.eye(n[0])
-    cores[0][0, :, :, 1] = k_1 * np.eye(n[0], k=1).dot(np.diag(np.arange(n[0])))
-    cores[0][0, :, :, 2] = -k_1 * np.diag(np.arange(n[0]))
-    cores[1][0, :, :, 0] = np.eye(n[1])
-    cores[1][0, :, :, 1] = k_2 * np.eye(n[1], k=1).dot(np.diag(np.arange(n[1])))
+    cores[0][0, :, :, 1] = -k_1 * np.diag(np.arange(n[0]))
+    cores[0][0, :, :, 2] = k_1 * np.eye(n[0], k=1).dot(np.diag(np.arange(n[0])))
+    cores[1][0, :, :, 0] = k_2 * np.eye(n[1], k=1).dot(np.diag(np.arange(n[1])))
+    cores[1][0, :, :, 1] = np.eye(n[1])
     cores[1][0, :, :, 2] = -k_2 * np.diag(np.arange(n[1]))
-    cores[1][1, :, :, 3] = np.eye(n[1], k=1).dot(np.diag(np.arange(n[1])))
-    cores[1][2, :, :, 4] = np.diag(np.arange(n[1]))
-    cores[2][0, :, :, 0] = np.eye(n[2])
-    cores[2][1, :, :, 1] = np.eye(n[2], k=1).dot(np.diag(np.arange(n[2])))
+    cores[1][1, :, :, 3] = np.diag(np.arange(n[1]))
+    cores[1][2, :, :, 4] = np.eye(n[1], k=1).dot(np.diag(np.arange(n[1])))
+    cores[2][0, :, :, 0] = np.eye(n[2], k=1).dot(np.diag(np.arange(n[2])))
+    cores[2][1, :, :, 1] = np.eye(n[2])
     cores[2][2, :, :, 2] = np.diag(np.arange(n[2]))
-    cores[2][3, :, :, 2] = np.eye(n[2], k=-1)
-    cores[2][4, :, :, 2] = np.eye(n[2])
-    cores[3][0, :, :, 0] = (np.eye(n[3], k=1) - np.eye(n[3])).dot(np.diag(np.arange(n[3])))
-    cores[3][1, :, :, 0] = np.eye(n[3], k=-1)
+    cores[2][3, :, :, 2] = np.eye(n[2])
+    cores[2][4, :, :, 2] = np.eye(n[2], k=-1)
+    cores[3][0, :, :, 0] = np.eye(n[3], k=-1)
+    cores[3][1, :, :, 0] = k_3 * np.eye(n[3], k=1).dot(np.diag(np.arange(n[3]))) - k_3 * np.diag(np.arange(n[3]))  
     cores[3][2, :, :, 0] = np.eye(n[3])
+
+    # make operator a stochastic tensor
+    cores[2][4, -1, -1, 2] = 1
+    cores[3][0, -1, -1, 0] = 1
 
     # define operator
     operator = TT(cores)
