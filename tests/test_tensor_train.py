@@ -471,7 +471,6 @@ class TestTT(TestCase):
         self.assertLess(rel_err_col, self.tol)
         self.assertLess(rel_err, self.tol)
 
-
     def test_qtt2tt_tt2qtt(self):
         """test qtt2tt and tt2qtt"""
 
