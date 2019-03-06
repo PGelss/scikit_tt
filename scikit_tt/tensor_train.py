@@ -419,25 +419,54 @@ class TT(object):
 
         return tt_prod
 
-    def transpose(self):
+    def transpose(self, cores=None):
         """Transpose of tensor trains
+
+        Parameters
+        ----------
+        cores: list of ints
+            cores which should be transposed, if cores=None (default), all cores are transposed
 
         Returns
         -------
         tt_transpose: instance of TT class
             transpose of self
+
+        Examples
+        --------
+        >>> import scikit_tt.tensor_train as tt
+        >>> t = tt.ones([1, 2, 3], [4, 5, 6], ranks=[1, 7, 8, 1])
+        >>> t.transpose()
+
+        Tensor train with order    = 3,
+                          row_dims = [4, 5, 6],
+                          col_dims = [1, 2, 3],
+                          ranks    = [1, 7, 8, 1]
+
+        >>> t.transpose(cores=[0, 1])
+
+        Tensor train with order    = 3,
+                          row_dims = [4, 5, 3],
+                          col_dims = [1, 2, 6],
+                          ranks    = [1, 7, 8, 1]
         """
+
+        # define list of core numbers
+        if cores is None:
+            cores = np.arange(0, self.order)
 
         # copy self
         tt_transpose = self.copy()
 
         for i in range(self.order):
-            # permute second and third dimension of each core
-            tt_transpose.cores[i] = np.transpose(tt_transpose.cores[i], [0, 2, 1, 3])
 
-            # interchange row and column dimensions
-            tt_transpose.row_dims[i] = self.col_dims[i]
-            tt_transpose.col_dims[i] = self.row_dims[i]
+            if np.isin(i, cores):
+                # permute second and third dimension of each core
+                tt_transpose.cores[i] = np.transpose(tt_transpose.cores[i], [0, 2, 1, 3])
+
+                # interchange row and column dimensions
+                tt_transpose.row_dims[i] = self.col_dims[i]
+                tt_transpose.col_dims[i] = self.row_dims[i]
 
         return tt_transpose
 
@@ -574,16 +603,22 @@ class TT(object):
             matricization of self
         """
 
-        # copy self
-        tt_mat = self.copy()
+        # reshape first core
+        tt_mat = self.cores[0].reshape(self.row_dims[0], self.col_dims[0], self.ranks[1])
 
-        # conversion to full format and reshape into matrix
+        for i in range(1, self.order):
+
+            # contract tt_mat with next TT core, permute and reshape
+            tt_mat = np.tensordot(tt_mat, self.cores[i], axes=(2,0))
+            tt_mat = tt_mat.transpose([0, 2, 1, 3, 4]).reshape(np.prod(self.row_dims[:i + 1]), np.prod(self.col_dims[:i + 1]), self.ranks[i + 1])
+
+        # reshape into vector or matrix
         m = np.prod(self.row_dims)
         n = np.prod(self.col_dims)
         if n == 1:
-            tt_mat = tt_mat.full().reshape(m)
+            tt_mat = tt_mat.reshape(m)
         else:
-            tt_mat = tt_mat.full().reshape(m, n)
+            tt_mat = tt_mat.reshape(m, n)
 
         return tt_mat
 
