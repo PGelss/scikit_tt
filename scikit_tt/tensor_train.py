@@ -129,10 +129,11 @@ class TT(object):
         if isinstance(x, list):
 
             # check if orders of list elements are correct
-            if np.all([x[i].ndim==4 for i in range(len(x))]):
+            if np.all([x[i].ndim == 4 for i in range(len(x))]):
 
                 # check if ranks are correct
-                if np.all([x[0].shape[0]==1] + [x[i].shape[3]==x[i+1].shape[0] for i in range(len(x)-1)] + [x[-1].shape[3]==1]):
+                if np.all([x[0].shape[0] == 1] + [x[i].shape[3] == x[i + 1].shape[0] for i in range(len(x) - 1)] +
+                          [x[-1].shape[3] == 1]):
 
                     # define order, row dimensions, column dimensions, ranks, and cores
                     self.order = len(x)
@@ -142,7 +143,7 @@ class TT(object):
                     self.cores = x
 
                     # rank reduction
-                    if threshold!=0 or max_rank!=np.infty:
+                    if threshold != 0 or max_rank != np.infty:
                         self.ortho(threshold=threshold, max_rank=max_rank)
 
                 else:
@@ -150,12 +151,12 @@ class TT(object):
 
             else:
                 raise ValueError('List elements must be 4-dimensional arrays.')
-         
+
         # initialize from full array   
         elif isinstance(x, np.ndarray):
 
             # check if order of ndarray is a multiple of 2
-            if np.mod(x.ndim,2)==0:
+            if np.mod(x.ndim, 2) == 0:
 
                 # define order, row dimensions, column dimensions, ranks, and cores
                 order = len(x.shape) // 2
@@ -246,7 +247,7 @@ class TT(object):
         if isinstance(tt_add, TT):
 
             # check if row and column dimension are equal
-            if self.row_dims==tt_add.row_dims and self.col_dims==tt_add.col_dims:
+            if self.row_dims == tt_add.row_dims and self.col_dims == tt_add.col_dims:
 
                 # define order, ranks, and cores
                 order = self.order
@@ -262,9 +263,8 @@ class TT(object):
                     cores[i][0:self.ranks[i], :, :, 0:self.ranks[i + 1]] = self.cores[i]
 
                     # insert core of tt_add
-
-                    cores[i][ranks[i] - tt_add.ranks[i]:ranks[i], :, :, ranks[i + 1] - tt_add.ranks[i + 1]:ranks[i + 1]] = \
-                        tt_add.cores[i]
+                    cores[i][ranks[i] - tt_add.ranks[i]:ranks[i], :, :,
+                             ranks[i + 1] - tt_add.ranks[i + 1]:ranks[i + 1]] = tt_add.cores[i]
 
                 # define tt_sum
                 tt_sum = TT(cores)
@@ -322,7 +322,7 @@ class TT(object):
 
         # check if scalar is int, float, or complex
         if isinstance(scalar, (int, np.integer, float, np.float, complex, np.complex)):
-        
+
             # multiply first core by scalar
             tt_prod.cores[0] *= scalar
 
@@ -377,12 +377,13 @@ class TT(object):
         if isinstance(tt_mul, TT):
 
             # check if dimensions match
-            if self.col_dims==tt_mul.row_dims:
+            if self.col_dims == tt_mul.row_dims:
 
                 # multiply TT cores
-                cores = [np.tensordot(self.cores[i], tt_mul.cores[i], axes=(2, 1)).transpose([0, 3, 1, 4, 2, 5]).reshape(
-                    self.ranks[i] * tt_mul.ranks[i], self.row_dims[i], tt_mul.col_dims[i],
-                    self.ranks[i + 1] * tt_mul.ranks[i + 1]) for i in range(self.order)]
+                cores = [
+                    np.tensordot(self.cores[i], tt_mul.cores[i], axes=(2, 1)).transpose([0, 3, 1, 4, 2, 5]).reshape(
+                        self.ranks[i] * tt_mul.ranks[i], self.row_dims[i], tt_mul.col_dims[i],
+                        self.ranks[i + 1] * tt_mul.ranks[i + 1]) for i in range(self.order)]
 
                 # define product tensor
                 tt_prod = TT(cores)
@@ -494,25 +495,28 @@ class TT(object):
             if one or more indices are out of range
         """
 
-
         if isinstance(indices, list):
 
             # check is all indices are ints
             if np.all([isinstance(indices[i], (int, np.integer)) for i in range(len(indices))]):
 
                 # check if length of indices is correct
-                if len(indices)==2*self.order:
+                if len(indices) == 2 * self.order:
 
                     # check if indices are in range
-                    if np.all([indices[i] >= 0 for i in range(2*self.order)]) and np.all([indices[i] < self.row_dims[i] for i in range(self.order)]) and np.all([indices[i+self.order] < self.col_dims[i] for i in range(self.order)]):
+                    if np.all([indices[i] >= 0 for i in range(2 * self.order)]) and np.all(
+                            [indices[i] < self.row_dims[i] for i in range(self.order)]) and np.all(
+                            [indices[i + self.order] < self.col_dims[i] for i in range(self.order)]):
 
                         # construct matrix for first row and column indices
-                        entry = np.squeeze(self.cores[0][:, indices[0], indices[self.order], :]).reshape(1, self.ranks[1])
+                        entry = np.squeeze(self.cores[0][:, indices[0], indices[self.order], :]).reshape(1,
+                                                                                                         self.ranks[1])
 
                         # multiply with respective matrices for the following indices
                         for i in range(1, self.order):
-                            entry = entry.dot(np.squeeze(self.cores[i][:, indices[i], indices[self.order + i], :]).reshape(
-                                self.ranks[i], self.ranks[i + 1]))
+                            entry = entry.dot(
+                                np.squeeze(self.cores[i][:, indices[i], indices[self.order + i], :]).reshape(
+                                    self.ranks[i], self.ranks[i + 1]))
 
                         entry = entry[0, 0]
 
@@ -530,7 +534,6 @@ class TT(object):
         else:
             raise TypeError('Unsupported parameter.')
 
-
     def full(self):
         """Conversion to full format
 
@@ -546,8 +549,8 @@ class TT(object):
         for i in range(1, self.order):
             # contract full_tensor with next TT core and reshape
             full_tensor = full_tensor.dot(self.cores[i].reshape(self.ranks[i],
-                                                              self.row_dims[i] * self.col_dims[i] * self.ranks[
-                                                                  i + 1]))
+                                                                self.row_dims[i] * self.col_dims[i] * self.ranks[
+                                                                    i + 1]))
             full_tensor = full_tensor.reshape(np.prod(self.row_dims[:i + 1]) * np.prod(self.col_dims[:i + 1]),
                                               self.ranks[i + 1])
 
@@ -621,13 +624,14 @@ class TT(object):
 
             if isinstance(threshold, (int, np.integer, float, np.float)) and threshold >= 0:
 
-                if (isinstance(max_rank, (int, np.integer)) and max_rank > 0) or max_rank==np.infty:
+                if (isinstance(max_rank, (int, np.integer)) and max_rank > 0) or max_rank == np.infty:
 
                     for i in range(start_index, end_index + 1):
 
                         # apply SVD to ith TT core
                         [u, s, v] = linalg.svd(
-                            self.cores[i].reshape(self.ranks[i] * self.row_dims[i] * self.col_dims[i], self.ranks[i + 1]),
+                            self.cores[i].reshape(self.ranks[i] * self.row_dims[i] * self.col_dims[i],
+                                                  self.ranks[i + 1]),
                             full_matrices=False, overwrite_a=True, check_finite=False, lapack_driver='gesvd')
 
                         # rank reduction
@@ -647,9 +651,9 @@ class TT(object):
 
                         # shift non-orthonormal part to next core
                         self.cores[i + 1] = np.diag(s).dot(v).dot(self.cores[i + 1].reshape(self.cores[i + 1].shape[0],
-                                                                                       self.row_dims[i + 1] *
-                                                                                       self.col_dims[i + 1] *
-                                                                                       self.ranks[i + 2]))
+                                                                                            self.row_dims[i + 1] *
+                                                                                            self.col_dims[i + 1] *
+                                                                                            self.ranks[i + 2]))
                         self.cores[i + 1] = self.cores[i + 1].reshape(self.ranks[i + 1], self.row_dims[i + 1],
                                                                       self.col_dims[i + 1],
                                                                       self.ranks[i + 2])
@@ -702,13 +706,14 @@ class TT(object):
 
             if isinstance(threshold, (int, np.integer, float, np.float)) and threshold >= 0:
 
-                if (isinstance(max_rank, (int, np.integer)) and max_rank > 0) or max_rank==np.infty:
+                if (isinstance(max_rank, (int, np.integer)) and max_rank > 0) or max_rank == np.infty:
 
                     for i in range(start_index, end_index - 1, -1):
 
                         # apply SVD to ith TT core
                         [u, s, v] = linalg.svd(
-                            self.cores[i].reshape(self.ranks[i], self.row_dims[i] * self.col_dims[i] * self.ranks[i + 1]),
+                            self.cores[i].reshape(self.ranks[i],
+                                                  self.row_dims[i] * self.col_dims[i] * self.ranks[i + 1]),
                             full_matrices=False, overwrite_a=True, check_finite=False, lapack_driver='gesvd')
 
                         # rank reduction
@@ -769,10 +774,11 @@ class TT(object):
 
         if isinstance(threshold, (int, np.integer, float, np.float)) and threshold >= 0:
 
-            if (isinstance(max_rank, (int, np.integer)) and max_rank > 0) or max_rank==np.infty:
+            if (isinstance(max_rank, (int, np.integer)) and max_rank > 0) or max_rank == np.infty:
 
                 # left- and right-orthonormalize self
-                self.ortho_left(threshold=threshold, max_rank=max_rank).ortho_right(threshold=threshold, max_rank=max_rank)
+                self.ortho_left(threshold=threshold, max_rank=max_rank).ortho_right(threshold=threshold,
+                                                                                    max_rank=max_rank)
 
                 return self
 
@@ -783,60 +789,86 @@ class TT(object):
             raise ValueError('Threshold must be greater or equal 0.')
 
     def norm(self, p=2):
-        """norm of tensor trains
+        """Norm of tensor trains.
 
-        If self is a TT operator, the cores will be reshaped, i.e., the modes of each core are converted from
-        (r x m x n x r') to (r x m*n x 1 x r'). For the Manhattan norm, it is assumed that all entries of the tensor
-        train are non-negative.
+        Counterpart of matrix and vector norms. This function is able to return four different norms of tensor trains.
 
         Parameters
         ----------
         p: int
-            if p = 1 compute Manhattan norm (all entries of self should be positive and all column dimensions have to be
-            equal to 1)
-            if p = 2 (default) compute Euclidean norm of self (all column dimensions have to be equal to 1)
+            order of the norm
 
         Returns
         -------
         norm: float
             norm of self
 
+        Notes
+        -----
+        The following norms can be calculated:
+
+        ==== ====================== ===============================
+        p    norm for tensor trains norm for tensor-train operators
+        ==== ====================== ===============================
+        1    Manhattan norm         maximum absolute column sum
+        2    Eucildean norm         Frobenius norm
+        ==== ====================== ===============================
+
+        For the Manhattan norm, it is assumed that all entries of the tensor train are non-negative. The same holds for
+        TT operators when computing the maximum column sum.
+
         Raises
         ------
         ValueError
             if p is not equal to 1 or 2
-        """
 
-        norm = None
+        Examples
+        --------
+        >>> import scikit_tt.tensor_train as tt
+        >>> t = tt.ones([2, 2, 2], [3, 3, 3], ranks=4)
+        >>> t.norm(p=1)
+        128.0
+        >>> t.norm(p=2)
+        235.15101530718508
+        """
 
         # copy self
         tt_tensor = self.copy()
 
-        # reshape cores if self is a TT operator
-        if self.isoperator():
-            cores = [tt_tensor.cores[i].reshape(tt_tensor.ranks[i], tt_tensor.row_dims[i] * tt_tensor.col_dims[i], 1,
-                                                tt_tensor.ranks[i + 1]) for i in range(tt_tensor.order)]
-            tt_tensor = TT(cores)
-
         if p == 1:
 
-            # Manhattan norm
-            # --------------
+            # Manhattan norm and maximum absolute column sum
+            # ----------------------------------------------
+
+            # transpose if necessary
+            if all([i == 1 for i in self.row_dims]):
+                tt_tensor = tt_tensor.transpose()
 
             # sum over row axes
             tt_tensor.cores = [
-                np.sum(tt_tensor.cores[i], axis=1).reshape(tt_tensor.ranks[i], 1, 1, tt_tensor.ranks[i + 1]) for i in
+                np.sum(tt_tensor.cores[i], axis=1).reshape(tt_tensor.ranks[i], 1, tt_tensor.col_dims[i],
+                                                           tt_tensor.ranks[i + 1]) for i in
                 range(tt_tensor.order)]
 
             # define new row dimensions
-            tt_tensor.row_dims = [1] * tt_tensor.order  # define new row dimensions
+            tt_tensor.row_dims = [1] * tt_tensor.order
 
-            # compute single element
-            norm = tt_tensor.element([0] * 2 * tt_tensor.order)
+            # matricize tensor train
+            tt_tensor = tt_tensor.matricize()
+
+            # compute norm
+            norm = np.max(tt_tensor)
 
             return norm
 
         elif p == 2:
+
+            # reshape cores if self is a TT operator
+            if self.isoperator():
+                cores = [
+                    tt_tensor.cores[i].reshape(tt_tensor.ranks[i], tt_tensor.row_dims[i] * tt_tensor.col_dims[i], 1,
+                                               tt_tensor.ranks[i + 1]) for i in range(tt_tensor.order)]
+                tt_tensor = TT(cores)
 
             # Euclidean norm
             # --------------
@@ -845,7 +877,8 @@ class TT(object):
             tt_tensor = tt_tensor.ortho_right()
 
             # compute norm from first core
-            norm = np.linalg.norm(tt_tensor.cores[0].reshape(tt_tensor.row_dims[0] * tt_tensor.col_dims[0] * tt_tensor.ranks[1]))
+            norm = np.linalg.norm(
+                tt_tensor.cores[0].reshape(tt_tensor.row_dims[0] * tt_tensor.col_dims[0] * tt_tensor.ranks[1]))
 
             return norm
 
