@@ -263,8 +263,11 @@ class TT(object):
                     cores[i][0:self.ranks[i], :, :, 0:self.ranks[i + 1]] = self.cores[i]
 
                     # insert core of tt_add
-                    cores[i][ranks[i] - tt_add.ranks[i]:ranks[i], :, :,
-                             ranks[i + 1] - tt_add.ranks[i + 1]:ranks[i + 1]] = tt_add.cores[i]
+                    r_1 = ranks[i] - tt_add.ranks[i]
+                    r_2 = ranks[i]
+                    r_3 = ranks[i + 1] - tt_add.ranks[i + 1]
+                    r_4 = ranks[i + 1]
+                    cores[i][r_1:r_2, :, :, r_3:r_4] = tt_add.cores[i]
 
                 # define tt_sum
                 tt_sum = TT(cores)
@@ -533,9 +536,9 @@ class TT(object):
                 if len(indices) == 2 * self.order:
 
                     # check if indices are in range
-                    if np.all([indices[i] >= 0 for i in range(2 * self.order)]) and np.all(
-                            [indices[i] < self.row_dims[i] for i in range(self.order)]) and np.all(
-                            [indices[i + self.order] < self.col_dims[i] for i in range(self.order)]):
+                    if np.all([indices[i] >= 0 for i in range(2 * self.order)]) and \
+                            np.all([indices[i] < self.row_dims[i] for i in range(self.order)]) and \
+                            np.all([indices[i + self.order] < self.col_dims[i] for i in range(self.order)]):
 
                         # construct matrix for first row and column indices
                         entry = np.squeeze(self.cores[0][:, indices[0], indices[self.order], :]).reshape(1,
@@ -607,10 +610,10 @@ class TT(object):
         tt_mat = self.cores[0].reshape(self.row_dims[0], self.col_dims[0], self.ranks[1])
 
         for i in range(1, self.order):
-
             # contract tt_mat with next TT core, permute and reshape
-            tt_mat = np.tensordot(tt_mat, self.cores[i], axes=(2,0))
-            tt_mat = tt_mat.transpose([0, 2, 1, 3, 4]).reshape(np.prod(self.row_dims[:i + 1]), np.prod(self.col_dims[:i + 1]), self.ranks[i + 1])
+            tt_mat = np.tensordot(tt_mat, self.cores[i], axes=(2, 0))
+            tt_mat = tt_mat.transpose([0, 2, 1, 3, 4]).reshape(np.prod(self.row_dims[:i + 1]),
+                                                               np.prod(self.col_dims[:i + 1]), self.ranks[i + 1])
 
         # reshape into vector or matrix
         m = np.prod(self.row_dims)
