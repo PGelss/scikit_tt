@@ -390,46 +390,87 @@ class TestTT(TestCase):
         with self.assertRaises(ValueError):
             t_col.ortho(threshold=-1)
 
-
     def test_1_norm(self):
         """test 1-norm"""
 
-        # construct non-operator tensor train
+        # construct tensor train without negative entries
         cores = [np.abs(self.cores[i][:, :, 0:1, :]) for i in range(self.order)]
-        t_col = TT(cores)
+        tt_col = TT(cores)
 
-        # convert to full array and flatten
-        t_full = t_col.full().flatten()
+        # transpose
+        tt_row = tt_col.transpose()
+
+        # convert to full matrix
+        tt_mat = tt_col.matricize()
 
         # compute norms
-        norm_tt = t_col.norm(p=1)
-        norm_full = np.linalg.norm(t_full, 1)
+        norm_tt_row = tt_row.norm(p=1)
+        norm_tt_col = tt_col.norm(p=1)
+        norm_full = np.linalg.norm(tt_mat, 1)
+
+        # compute relative errors
+        rel_err_row = (norm_tt_row - norm_full) / norm_full
+        rel_err_col = (norm_tt_col - norm_full) / norm_full
+
+        # construct tensor-train operator without negative entries
+        cores = [np.abs(self.cores[i][:, :, :, :]) for i in range(self.order)]
+        tt_op = TT(cores)
+
+        # convert to full matrix
+        tt_mat = tt_op.matricize()
+
+        # compute norms
+        norm_tt = tt_op.norm(p=1)
+        norm_full = np.linalg.norm(tt_mat, 1)
 
         # compute relative error
         rel_err = (norm_tt - norm_full) / norm_full
 
-        # check if relative error is smaller than tolerance
+        # check if relative errors are smaller than tolerance
+        self.assertLess(rel_err_row, self.tol)
+        self.assertLess(rel_err_col, self.tol)
         self.assertLess(rel_err, self.tol)
 
     def test_2_norm(self):
         """test 2-norm"""
 
-        # convert to full array and flatten
-        t_full = self.t.full().flatten()
+        # construct tensor train
+        cores = [self.cores[i][:, :, 0:1, :] for i in range(self.order)]
+        tt_col = TT(cores)
+
+        # transpose
+        tt_row = tt_col.transpose()
+
+        # convert to full matrix
+        tt_mat = tt_col.matricize()
 
         # compute norms
-        norm_tt = self.t.norm()
-        norm_full = np.linalg.norm(t_full)
+        norm_tt_row = tt_row.norm(p=2)
+        norm_tt_col = tt_col.norm(p=2)
+        norm_full = np.linalg.norm(tt_mat, 2)
+
+        # compute relative errors
+        rel_err_row = (norm_tt_row - norm_full) / norm_full
+        rel_err_col = (norm_tt_col - norm_full) / norm_full
+
+        # define tensor-train operator
+        tt_op = self.t
+
+        # convert to full matrix
+        tt_mat = tt_op.matricize()
+
+        # compute norms
+        norm_tt = tt_op.norm(p=2)
+        norm_full = np.linalg.norm(tt_mat, 'fro')
 
         # compute relative error
         rel_err = (norm_tt - norm_full) / norm_full
 
-        # check if relative error is smaller than tolerance
+        # check if relative errors are smaller than tolerance
+        self.assertLess(rel_err_row, self.tol)
+        self.assertLess(rel_err_col, self.tol)
         self.assertLess(rel_err, self.tol)
 
-        # check if norm computation fails if p is neither 1 nor 2
-        with self.assertRaises(ValueError):
-            self.t.norm(p=3)
 
     def test_qtt2tt_tt2qtt(self):
         """test qtt2tt and tt2qtt"""
