@@ -17,11 +17,11 @@ import scikit_tt.solvers.ode as ode
 import scikit_tt.utils as utl
 import numpy as np
 import matplotlib.pyplot as plt
+# noinspection PyUnresolvedReferences
 from mpl_toolkits.mplot3d import Axes3D
 
 
 def average_numbers_of_cars(series):
-
     # define array
     average_noc = np.zeros([len(series), series[0].order])
 
@@ -72,10 +72,8 @@ initial_guess = tt.ones(operator.col_dims, [1] * operator.order, ranks=10).ortho
 # solve Markovian master equation
 # -------------------------------
 
-with utl.timer() as time:
-    solution, time_steps = ode.adaptive_step_size(operator, initial_distribution, initial_guess, integration_time, 
-                                                  step_size_first=1e-1, closeness_min=1e-10, error_tol=1e-1)
-print('CPU time ' + '.' * 28 + ' ' + str("%.2f" % time.elapsed) + 's\n')
+solution, time_steps = ode.adaptive_step_size(operator, initial_distribution, initial_guess, integration_time,
+                                              step_size_first=1e-1, closeness_min=1e-10, error_tol=1e-1)
 
 # plot average numbers of cars per lane and time
 # ----------------------------------------------
@@ -88,7 +86,7 @@ plt.rcParams.update({'figure.autolayout': True})
 plt.rcParams.update({'axes.grid': True})
 fig = plt.figure()
 ax = fig.gca(projection='3d')
-X,Y = np.meshgrid(np.arange(1,number_of_lanes+1),time_steps)
+X, Y = np.meshgrid(np.arange(1, number_of_lanes + 1), time_steps)
 ax.plot_surface(X, Y, average_numbers_of_cars(solution))
 ax.view_init(30, 120)
 plt.title('Average numbers of cars', y=1.05)
@@ -98,8 +96,7 @@ ax.set_zlabel('Cars')
 ax.set_xlim(0, number_of_lanes)
 ax.set_ylim(0, integration_time)
 ax.set_zlim(0, initial_number_of_cars + 0.25)
-ax.set_xticks(np.arange(0,number_of_lanes + 5,5))
-ax.set_yticks(np.arange(0,integration_time + 10,10))
-ax.set_zticks(np.arange(0,initial_number_of_cars + 1))
+ax.set_xticks(np.arange(0, number_of_lanes + 5, 5))
+ax.set_yticks(np.arange(0, integration_time + 10, 10))
+ax.set_zticks(np.arange(0, initial_number_of_cars + 1))
 plt.show()
-

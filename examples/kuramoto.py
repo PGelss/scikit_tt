@@ -17,6 +17,7 @@ import scikit_tt.models as mdl
 import scikit_tt.utils as utl
 import matplotlib.pyplot as plt
 import matplotlib.patches as pat
+import time as _time
 
 
 def kuramoto(theta_init, frequencies, time, number_of_snapshots):
@@ -120,34 +121,30 @@ threshold = 0
 # recovering of the dynamics
 # --------------------------
 
-print('Recovering of the dynamics')
-print('-' * 50)
+print('Recovering of the dynamics:\n')
 
-# construct exact solution in TT and matrix format
-utl.progress('Construct exact solution in TT format', 0)
+# construct exact solution in TT format
 xi_exact = mdl.kuramoto_coefficients(d, w)
-utl.progress('Construct exact solution in TT format', 100)
 
 # generate data
-utl.progress('Generate test data', 0, dots=22)
+start_time = utl.progress('Generate test data', 0)
 [x, y] = kuramoto(x_0, w, time, m)
-utl.progress('Generate test data', 100, dots=22)
+utl.progress('Generate test data', 100, cpu_time=_time.time() - start_time)
 
 # apply MANDy (function-major)
-utl.progress('Running MANDy (eps=' + str(threshold) + ')', 0, dots=20 - len(str(threshold)))
+start_time = utl.progress('Running MANDy (eps=' + str(threshold) + ')', 0)
 with utl.timer() as time:
     xi = mandy.mandy_fm(x, y, psi, threshold=threshold)
-utl.progress('Running MANDy (eps=' + str(threshold) + ')', 100, dots=20 - len(str(threshold)))
+utl.progress('Running MANDy (eps=' + str(threshold) + ')', 100, cpu_time=_time.time() - start_time)
 
 # CPU time and relative error
-print('CPU time ' + '.' * 32 + ' ' + str("%.2f" % time.elapsed))
-print('Relative error ' + '.' * 26 + ' ' + str("%.2e" % ((xi - xi_exact).norm() / xi_exact.norm())))
+print('CPU time: ' + str("%.2f" % time.elapsed))
+print('Relative error: ' + str("%.2e" % ((xi - xi_exact).norm() / xi_exact.norm())))
 
 # comparison of approximate and real dynamics
 # -------------------------------------------
 
-print('\nComparison of approximate and real dynamics')
-print('-' * 50)
+print('\nComparison of approximate and real dynamics:\n')
 
 # convert xi to full format
 xi = xi.full().reshape(np.prod(xi.row_dims[:-1]), xi.row_dims[-1])
@@ -158,17 +155,17 @@ time = 100
 m = 6
 
 # generate new data
-utl.progress('\Generate test data', 0, dots=22)
+start_time = utl.progress('\Generate test data', 0)
 [x, _] = kuramoto(x_0, w, time, m)
-utl.progress('Generate test data', 100, dots=22)
+utl.progress('Generate test data', 100, cpu_time=_time.time() - start_time)
 
 # reconstruct data
-utl.progress('Reconstruct test data', 0, dots=19)
+start_time = utl.progress('Reconstruct test data', 0)
 x_reconstructed = reconstruction()
-utl.progress('Reconstruct test data', 100, dots=19)
+utl.progress('Reconstruct test data', 100, cpu_time=_time.time() - start_time)
 
 # relative error
-print('Relative error ' + '.' * 26 + ' ' + str("%.2e" % (np.linalg.norm(x - x_reconstructed) / np.linalg.norm(x))))
+print('Relative error: ' + str("%.2e" % (np.linalg.norm(x - x_reconstructed) / np.linalg.norm(x))))
 print(' ')
 
 # plot results

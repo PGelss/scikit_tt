@@ -9,6 +9,7 @@ from scikit_tt.tensor_train import TT
 import scikit_tt.data_driven.tdmd as tdmd
 import matplotlib.pyplot as plt
 import scikit_tt.utils as utl
+import time as _time
 
 
 # noinspection PyTupleAssignmentBalance
@@ -46,7 +47,7 @@ number_of_snapshots = data.shape[-1] - 1
 # thresholds for orthonormalizations
 thresholds = [0, 1e-7, 1e-5, 1e-3]
 
-utl.progress('applying TDMD for different thresholds', 0)
+start_time = utl.progress('applying TDMD for different thresholds', 0)
 
 # construct x and y tensors and convert to TT format
 x = TT(data[:, :, 0:number_of_snapshots, None, None, None])
@@ -63,12 +64,13 @@ for i in range(len(thresholds)):
     # convert to full format for comparison and plotting
     modes_tdmd[i] = modes_tdmd[i].full()[:, :, :, 0, 0, 0]
 
-    utl.progress('applying TDMD for different thresholds', 100 * (i + 1) / (len(thresholds)))
+    utl.progress('applying TDMD for different thresholds', 100 * (i + 1) / (len(thresholds)),
+                 cpu_time=_time.time() - start_time)
 
 # matrix-based approach
 # ---------------------
 
-utl.progress('applying classical DMD', 0, dots=19)
+start_time = utl.progress('applying classical DMD', 0)
 
 # construct tensors
 x = data[:, :, 0:number_of_snapshots].reshape(data.shape[0] * data.shape[1], number_of_snapshots)
@@ -80,7 +82,7 @@ eigenvalues_dmd, modes_dmd = dmd_exact(x, y)
 # reshape result for comparison
 modes_dmd = modes_dmd.reshape([data.shape[0], data.shape[1], number_of_snapshots])
 
-utl.progress('applying classical DMD', 100, dots=19)
+utl.progress('applying classical DMD', 100, cpu_time=_time.time() - start_time)
 
 # select modes
 modes = [3, 11, 25]

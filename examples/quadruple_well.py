@@ -22,6 +22,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import scipy.io as io
 import os
+import time as _time
 
 utl.header(title='Quadruple-well potential')
 
@@ -35,36 +36,33 @@ number_ev = 3
 # load data obtained by applying Ulam's method
 # --------------------------------------------
 
-
-utl.progress('Load data', 0, dots=39)
 directory = os.path.dirname(os.path.realpath(__file__))
 transitions = io.loadmat(directory + '/data/QuadrupleWell3D_25x25x25_100.mat')["indices"]
-utl.progress('Load data', 100, dots=39)
 
 # construct TT operator
 # ---------------------
 
-utl.progress('Construct operator', 0, dots=30)
+start_time = utl.progress('Construct operator', 0)
 operator = ulam.ulam_3d(transitions, [n_states] * 3, simulations)
-utl.progress('Construct operator', 100, dots=30)
+utl.progress('Construct operator', 100, cpu_time=_time.time() - start_time)
 
 # approximate leading eigenfunctions
 # ----------------------------------
 
-utl.progress('Approximate eigenfunctions in the TT format', 0, dots=5)
+start_time = utl.progress('Approximate eigenfunctions in the TT format', 0)
 initial = tt.uniform(operator.row_dims, ranks=[1, 20, 10, 1])
 eigenvalues, eigenfunctions = evp.als(operator, initial, number_ev=number_ev, repeats=2)
-utl.progress('Approximate eigenfunctions in the TT format', 100, dots=5)
+utl.progress('Approximate eigenfunctions in the TT format', 100, cpu_time=_time.time() - start_time)
 
 # compute exact eigenvectors
 # --------------------------
 
-utl.progress('Compute exact eigenfunctions in matrix format', 0)
+start_time = utl.progress('Compute exact eigenfunctions in matrix format', 0)
 eigenvalues_exact, eigenfunctions_exact = splin.eigs(operator.matricize(), k=number_ev)
 idx = eigenvalues_exact.argsort()[::-1]
 eigenvalues_exact = eigenvalues_exact[idx]
 eigenfunctions_exact = eigenfunctions_exact[:, idx]
-utl.progress('Compute exact eigenfunctions in matrix format', 100)
+utl.progress('Compute exact eigenfunctions in matrix format', 100, cpu_time=_time.time() - start_time)
 
 # convert results to matrices
 # ----------------------------------

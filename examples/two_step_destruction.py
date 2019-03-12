@@ -69,8 +69,8 @@ max_rank = 25
 # ---------------------------------------------------------
 
 operator = mdl.two_step_destruction(1, 2, 1, m).tt2qtt([[2] * m] + [[2] * (m + 1)] + [[2] * m] + [[2] * m],
-                                                    [[2] * m] + [[2] * (m + 1)] + [[2] * m] + [[2] * m],
-                                                    threshold=10 ** -14)
+                                                       [[2] * m] + [[2] * (m + 1)] + [[2] * m] + [[2] * m],
+                                                       threshold=10 ** -14)
 
 # initial distribution in TT format and convert to QTT format
 # -----------------------------------------------------------
@@ -91,14 +91,13 @@ initial_guess = tt.uniform([2] * (4 * m + 1), ranks=qtt_rank).ortho_right()
 # solve Markovian master equation in QTT format
 # ---------------------------------------------
 
-with utl.timer() as time:
-    solution = ode.implicit_euler(operator, initial_distribution, initial_guess, step_sizes, tt_solver='mals',
-                                  threshold=1e-10, max_rank=max_rank)
-print('CPU time ' + '.' * 24 + ' ' + str("%.2f" % time.elapsed) + 's')
+
+solution = ode.implicit_euler(operator, initial_distribution, initial_guess, step_sizes, tt_solver='mals',
+                              threshold=1e-10, max_rank=max_rank)
 
 # compute approximation errors
 errors = ode.errors_impl_euler(operator, solution, step_sizes)
-print('Maximum error ' + '.' * 19 + ' ' + str("%.2e" % np.amax(errors)) + '\n')
+print('Maximum error: ' + str("%.2e" % np.amax(errors)) + '\n')
 
 # convert to TT and compute mean concentrations
 # ---------------------------------------------

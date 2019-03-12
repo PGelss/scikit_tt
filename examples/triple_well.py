@@ -20,6 +20,7 @@ import scikit_tt.utils as utl
 import matplotlib.pyplot as plt
 import scipy.io as io
 import os
+import time as _time
 
 utl.header(title='Triple-well potential')
 
@@ -33,34 +34,32 @@ number_ev = 3
 # load data obtained by applying Ulam's method
 # --------------------------------------------
 
-utl.progress('Load data', 0, dots=39)
 directory = os.path.dirname(os.path.realpath(__file__))
 transitions = io.loadmat(directory + '/data/TripleWell2D_500.mat')["indices"]
-utl.progress('Load data', 100, dots=39)
 
 # construct TT operator
 # ---------------------
 
-utl.progress('Construct operator', 0, dots=30)
+start_time = utl.progress('Construct operator', 0)
 operator = ulam.ulam_2d(transitions, [n_states, n_states], simulations)
-utl.progress('Construct operator', 100, dots=30)
+utl.progress('Construct operator', 100, cpu_time=_time.time() - start_time)
 
 # approximate leading eigenfunctions of the Perron-Frobenius and Koopman operator
 # -------------------------------------------------------------------------------
 
 initial = tt.ones(operator.row_dims, [1] * operator.order, ranks=11)
-utl.progress('Approximate eigenfunctions in the TT format', 0, dots=5)
+start_time = utl.progress('Approximate eigenfunctions in the TT format', 0)
 eigenvalues_pf, eigenfunctions_pf = evp.als(operator, initial, number_ev=number_ev, repeats=3)
-utl.progress('Approximate eigenfunctions in the TT format', 50, dots=5)
+utl.progress('Approximate eigenfunctions in the TT format', 50, cpu_time=_time.time() - start_time)
 eigenvalues_km, eigenfunctions_km = evp.als(operator.transpose(), initial, number_ev=number_ev, repeats=2)
-utl.progress('Approximate eigenfunctions in the TT format', 100, dots=5)
+utl.progress('Approximate eigenfunctions in the TT format', 100, cpu_time=_time.time() - start_time)
 
 # compute exact eigenvectors
 # --------------------------
 
-utl.progress('Compute exact eigenfunctions in matrix format', 0)
+start_time = utl.progress('Compute exact eigenfunctions in matrix format', 0)
 eigenvalues_pf_exact, eigenfunctions_pf_exact = splin.eigs(operator.matricize(), k=number_ev)
-utl.progress('Compute exact eigenfunctions in matrix format', 100)
+utl.progress('Compute exact eigenfunctions in matrix format', 100, cpu_time=_time.time() - start_time)
 
 # convert results to matrices
 # ---------------------------

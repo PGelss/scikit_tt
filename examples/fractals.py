@@ -17,6 +17,7 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap
 # noinspection PyUnresolvedReferences
 from mpl_toolkits.mplot3d import axes3d
+import time as _time
 
 
 def plot1d(vector):
@@ -93,37 +94,37 @@ utl.header(title='Tensor-generated fractals')
 # multisponges
 # ------------
 
-utl.progress('Generating multisponges', 0, dots=6)
+start_time = utl.progress('Generating multisponges', 0)
 multisponge = []
 for i in range(2, 4):
     for j in range(1, 4):
         multisponge.append(mdl.multisponge(i, j))
-        utl.progress('Generating multisponges', 100 * ((i - 2) * 3 + j) / 6, dots=6)
+        utl.progress('Generating multisponges', 100 * ((i - 2) * 3 + j) / 6, cpu_time=_time.time() - start_time)
 
 # Cantor dusts
 # ------------
 
-utl.progress('Generating Cantor dusts', 0, dots=6)
+start_time = utl.progress('Generating Cantor dusts', 0)
 cantor_dust = []
 for i in range(1, 4):
     for j in range(1, 4):
         cantor_dust.append(mdl.cantor_dust(i, j))
-        utl.progress('Generating Cantor dusts', 100 * ((i - 1) * 3 + j) / 9, dots=6)
+        utl.progress('Generating Cantor dusts', 100 * ((i - 1) * 3 + j) / 9, cpu_time=_time.time() - start_time)
 
 # Vicsek fractals
 # ---------------
 
-utl.progress('Generating Vicsek fractals', 0)
+start_time = utl.progress('Generating Vicsek fractals', 0)
 vicsek = []
 for i in range(2, 4):
     for j in range(1, 4):
         vicsek.append(mdl.vicsek_fractal(i, j))
-        utl.progress('Generating Vicsek fractals', 100 * ((i - 2) * 3 + j) / 6)
+        utl.progress('Generating Vicsek fractals', 100 * ((i - 2) * 3 + j) / 6, cpu_time=_time.time() - start_time)
 
 # RGB fractals
 # ------------
 
-utl.progress('Generating RGB fractals', 0, dots=6)
+start_time = utl.progress('Generating RGB fractals', 0)
 
 level = 5
 rgb_fractals = []
@@ -133,14 +134,14 @@ matrix_g = np.array([[0.75, 1, 0.75], [1, 1, 1], [0.75, 1, 0.75]])
 matrix_b = np.array([[1, 0.75, 1], [0.75, 1, 0.75], [1, 0.75, 1]])
 rgb_fractals.append(mdl.rgb_fractal(matrix_r, matrix_g, matrix_b, level))
 
-utl.progress('Generating RGB fractals', 33.3, dots=6)
+utl.progress('Generating RGB fractals', 33.3, cpu_time=_time.time() - start_time)
 
 matrix_r = np.array([[0.5, 0.75, 0.75, 0.5], [0.75, 1, 1, 0.75], [0.75, 1, 1, 0.75], [0.5, 0.75, 0.75, 0.5]])
 matrix_g = np.array([[1, 0.5, 0.5, 1], [0.5, 0.75, 0.75, 0.5], [0.5, 0.75, 0.75, 0.5], [1, 0.5, 0.5, 1]])
 matrix_b = np.array([[0.75, 1, 1, 0.75], [1, 0.5, 0.5, 1], [1, 0.5, 0.5, 1], [0.75, 1, 1, 0.75]])
 rgb_fractals.append(mdl.rgb_fractal(matrix_r, matrix_g, matrix_b, level))
 
-utl.progress('Generating RGB fractals', 66.6, dots=6)
+utl.progress('Generating RGB fractals', 66.6, cpu_time=_time.time() - start_time)
 
 matrix_r = np.array([[0.25, 0.5, 1, 0.5, 0.25], [0.5, 1, 1, 1, 0.5], [1, 1, 0.5, 1, 1], [0.5, 0.5, 0.25, 0.5, 0.5],
                      [0.5, 0.25, 0.25, 0.25, 0.5]])
@@ -151,7 +152,7 @@ matrix_b = np.array(
      [1, 1, 0.5, 1, 1]])
 rgb_fractals.append(mdl.rgb_fractal(matrix_r, matrix_g, matrix_b, level))
 
-utl.progress('Generating RGB fractals', 100, dots=6)
+utl.progress('Generating RGB fractals', 100, cpu_time=_time.time() - start_time)
 
 print(' ')
 
@@ -166,7 +167,7 @@ plt.rcParams.update({'figure.autolayout': True})
 plt.rcParams.update({'axes.grid': True})
 plt.rcParams.update({'axes.grid': False})
 
-utl.progress('Plotting patterns', 0, dots=12)
+start_time = utl.progress('Plotting patterns', 0)
 
 # multisponges
 f = plt.figure(figsize=plt.figaspect(0.65))
@@ -182,7 +183,7 @@ for i in range(3, 6):
         plt.title('Menger sponge', y=1.1)
 plt.show()
 
-utl.progress('Plotting patterns', 25, dots=12)
+utl.progress('Plotting patterns', 25, cpu_time=_time.time() - start_time)
 
 # Cantor dusts
 f = plt.figure(figsize=plt.figaspect(1))
@@ -203,7 +204,7 @@ for i in range(6, 9):
         plt.title('Cantor dust (3D)', y=1.1)
 plt.show()
 
-utl.progress('Plotting patterns', 50, dots=12)
+utl.progress('Plotting patterns', 50, cpu_time=_time.time() - start_time)
 
 # Vicsek fractals
 f = plt.figure(figsize=plt.figaspect(0.65))
@@ -219,7 +220,7 @@ for i in range(3, 6):
         plt.title('Vicsek fractal (3D)', y=1.1)
 plt.show()
 
-utl.progress('Plotting patterns', 75, dots=12)
+utl.progress('Plotting patterns', 75, cpu_time=_time.time() - start_time)
 
 # RGB fractals
 f = plt.figure(figsize=plt.figaspect(0.45))
@@ -230,5 +231,5 @@ for i in range(3):
         plt.title('RGB fractals', y=1.1)
 plt.show()
 
-utl.progress('Plotting patterns', 100, dots=12)
+utl.progress('Plotting patterns', 100, cpu_time=_time.time() - start_time)
 print(' ')

@@ -87,11 +87,8 @@ initial_guess = tt.ones(operator.col_dims, [1] * order, ranks=tt_rank).ortho_rig
 # solve Markovian master equation in TT format
 # --------------------------------------------
 
-print('TT approach')
-print('-----------\n')
-with utl.timer() as time:
-    solution = ode.trapezoidal_rule(operator, initial_distribution, initial_guess, step_sizes)
-print('CPU time ' + '.' * 19 + ' ' + str("%.2f" % time.elapsed) + 's\n')
+print('TT approach:\n')
+solution = ode.trapezoidal_rule(operator, initial_distribution, initial_guess, step_sizes)
 
 # operator in QTT format
 # ----------------------
@@ -113,11 +110,8 @@ initial_guess = tt.ones(operator.col_dims, [1] * operator.order, ranks=qtt_rank)
 # solve Markovian master equation in QTT format
 # ---------------------------------------------
 
-print('\nQTT approach')
-print('------------\n')
-with utl.timer() as time:
-    solution = ode.trapezoidal_rule(operator, initial_distribution, initial_guess, step_sizes)
-print('CPU time ' + '.' * 19 + ' ' + str("%.2f" % time.elapsed) + 's\n')
+print('\nQTT approach:\n')
+solution = ode.trapezoidal_rule(operator, initial_distribution, initial_guess, step_sizes)
 
 # convert to TT and compute mean concentrations
 # ---------------------------------------------

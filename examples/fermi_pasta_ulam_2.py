@@ -15,6 +15,8 @@ import scikit_tt.models as mdl
 import scikit_tt.utils as utl
 import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm
+import time as _time
+
 
 def fermi_pasta_ulam(number_of_oscillators, number_of_snapshots):
     """Fermi–Pasta–Ulam problem.
@@ -61,6 +63,7 @@ def fermi_pasta_ulam(number_of_oscillators, number_of_snapshots):
 
     return snapshots, derivatives
 
+
 utl.header(title='MANDy - Fermi-Pasta-Ulam problem', subtitle='Example 2')
 
 # model parameters
@@ -86,28 +89,30 @@ for i in range(d_min, d_max + 1):
     print('-' * (24 + len(str(i))) + '\n')
 
     # construct exact solution in TT and matrix format
-    utl.progress('Construct exact solution in TT format', 0, dots=3)
+    start_time = utl.progress('Construct exact solution in TT format', 0)
     xi_exact = mdl.fpu_coefficients(i)
-    utl.progress('Construct exact solution in TT format', 100, dots=3)
+    utl.progress('Construct exact solution in TT format', 100, cpu_time=_time.time() - start_time)
 
     # generate data
-    utl.progress('Generate test data', 0, dots=22)
+    start_time = utl.progress('Generate test data', 0)
     [x, y] = fermi_pasta_ulam(i, snapshots_max)
-    utl.progress('Generate test data', 100, dots=22)
+    utl.progress('Generate test data', 100, cpu_time=_time.time() - start_time)
 
+    start_time = utl.progress('Running MANDy', 0)
     for j in range(snapshots_min, snapshots_max + snapshots_step, snapshots_step):
         # storing indices
         ind_1 = rel_errors.shape[0] - 1 - int((j - snapshots_min) / snapshots_step)
         ind_2 = int((i - d_min))
 
-        utl.progress('Running MANDy', 100 * (rel_errors.shape[0] - ind_1 - 1) / rel_errors.shape[0], dots=27)
+        utl.progress('Running MANDy', 100 * (rel_errors.shape[0] - ind_1 - 1) / rel_errors.shape[0],
+                     cpu_time=_time.time() - start_time)
 
         # approximate coefficient tensor
         xi = mandy.mandy_cm(x[:, :j], y[:, :j], psi, threshold=1e-10)
         rel_errors[ind_1, ind_2] = (xi - xi_exact).norm() / xi_exact.norm()
         del xi
 
-    utl.progress('Running MANDy', 100, dots=27)
+    utl.progress('Running MANDy', 100, cpu_time=_time.time() - start_time)
     print(' ')
 
 # plot results
