@@ -2,6 +2,7 @@ import scikit_tt.tensor_train as tt
 import scikit_tt.utils as utl
 from scikit_tt.solvers import sle
 import numpy as np
+import time as _time
 
 
 def explicit_euler(operator, initial_value, step_sizes, threshold=1e-12, max_rank=50, progress=True):
@@ -28,6 +29,9 @@ def explicit_euler(operator, initial_value, step_sizes, threshold=1e-12, max_ran
         numerical solution of the differential equation
     """
 
+    # return current time
+    start_time = utl.progress('Running explicit Euler method', 0, show=progress)
+
     # define solution
     solution = [initial_value]
 
@@ -48,7 +52,8 @@ def explicit_euler(operator, initial_value, step_sizes, threshold=1e-12, max_ran
         solution.append(tt_tmp.copy())
 
         # print progress
-        utl.progress('Running explicit Euler method', 100 * i / (len(step_sizes) - 1), show=progress)
+        utl.progress('Running explicit Euler method', 100 * (i + 1) / len(step_sizes), show=progress,
+                     cpu_time=_time.time() - start_time)
 
     return solution
 
@@ -116,6 +121,9 @@ def implicit_euler(operator, initial_value, initial_guess, step_sizes, repeats=1
         numerical solution of the differential equation
     """
 
+    # return current time
+    start_time = utl.progress('Running implicit Euler method', 0, show=progress)
+
     # define solution
     solution = [initial_value]
 
@@ -142,7 +150,8 @@ def implicit_euler(operator, initial_value, initial_guess, step_sizes, repeats=1
         solution.append(tt_tmp.copy())
 
         # print progress
-        utl.progress('Running implicit Euler method', 100 * i / (len(step_sizes) - 1), show=progress)
+        utl.progress('Running implicit Euler method', 100 * (i + 1) / len(step_sizes), show=progress,
+                     cpu_time=_time.time() - start_time)
 
     return solution
 
@@ -210,6 +219,9 @@ def trapezoidal_rule(operator, initial_value, initial_guess, step_sizes, repeats
         numerical solution of the differential equation
     """
 
+    # return current time
+    start_time = utl.progress('Running trapezoidal rule', 0, show=progress)
+
     # define solution
     solution = [initial_value]
 
@@ -238,7 +250,8 @@ def trapezoidal_rule(operator, initial_value, initial_guess, step_sizes, repeats
         solution.append(tt_tmp.copy())
 
         # print progress
-        utl.progress('Running trapezoidal rule', 100 * i / (len(step_sizes) - 1), show=progress)
+        utl.progress('Running trapezoidal rule', 100 * (i + 1) / len(step_sizes), show=progress,
+                     cpu_time=_time.time() - start_time)
 
     return solution
 
@@ -321,6 +334,9 @@ def adaptive_step_size(operator, initial_value, initial_guess, time_end, step_si
         numerical solution of the differential equation
     """
 
+    # return current time
+    start_time = utl.progress('Running adaptive step size method', 0, show=progress)
+
     # define solution
     solution = [initial_value]
 
@@ -383,7 +399,8 @@ def adaptive_step_size(operator, initial_value, initial_guess, time_end, step_si
             solution.append(t_1.copy())
             time_steps.append(time)
             t_tmp = t_1
-            utl.progress('Running adaptive step size method', 100 * time / time_end, show=progress)
+            utl.progress('Running adaptive step size method', 100 * time / time_end, show=progress,
+                         cpu_time=_time.time() - start_time)
             closeness_pre = closeness
         else:
             step_size = step_size_new
