@@ -27,6 +27,7 @@ class TestUtils(TestCase):
         self._original_stdout = sys.stdout
         sys.stdout = open(os.devnull, 'w')
         utl.progress('test', 0)
+        utl.progress('test', 50)
         utl.progress('test', 100)
         sys.stdout.close()
         sys.stdout = self._original_stdout
