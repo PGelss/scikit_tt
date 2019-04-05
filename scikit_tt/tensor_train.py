@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*- 
 
+import scikit_tt.utils as utl
+import time as _time
 import numpy as np
 from scipy import linalg
 
@@ -104,7 +106,7 @@ class TT(object):
 
     """
 
-    def __init__(self, x, threshold=0, max_rank=np.infty):
+    def __init__(self, x, threshold=0, max_rank=np.infty, progress=False, string=None):
         """
         Parameters
         ----------
@@ -158,6 +160,11 @@ class TT(object):
             # check if order of ndarray is a multiple of 2
             if np.mod(x.ndim, 2) == 0:
 
+                # show progress
+                if string is None:
+                    string = 'HOSVD'
+                start_time = utl.progress(string, 0, show=progress)
+
                 # define order, row dimensions, column dimensions, ranks, and cores
                 order = len(x.shape) // 2
                 row_dims = x.shape[:order]
@@ -197,11 +204,17 @@ class TT(object):
                     # set new residual tensor
                     y = np.diag(s).dot(v)
 
+                    # show progress
+                    utl.progress(string, 100 * (i + 1) / (order), cpu_time=_time.time() - start_time, show=progress)
+
                 # define last TT core
                 cores.append(np.reshape(y, [ranks[-2], row_dims[-1], col_dims[-1], 1]))
 
                 # initialize tensor train
                 self.__init__(cores)
+
+                # show progress
+                utl.progress(string, 100, cpu_time=_time.time() - start_time, show=progress)
 
             else:
                 raise ValueError('Number of dimensions must be a multiple of 2.')
