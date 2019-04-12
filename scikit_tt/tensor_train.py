@@ -122,7 +122,7 @@ class TT(object):
         TypeError
             if x is neither a list of ndarray nor a single ndarray
         ValueError
-            if list elements of x are not 4-dimensional tensors or shapes do not match#
+            if list elements of x are not 4-dimensional tensors or shapes do not match
         ValueError
             if number of dimensions of the ndarray x is not a multiple of 2
         """
@@ -134,14 +134,13 @@ class TT(object):
             if np.all([x[i].ndim == 4 for i in range(len(x))]):
 
                 # check if ranks are correct
-                if np.all([x[0].shape[0] == 1] + [x[i].shape[3] == x[i + 1].shape[0] for i in range(len(x) - 1)] +
-                          [x[-1].shape[3] == 1]):
+                if np.all([x[i].shape[3] == x[i + 1].shape[0] for i in range(len(x) - 1)]):
 
                     # define order, row dimensions, column dimensions, ranks, and cores
                     self.order = len(x)
                     self.row_dims = [x[i].shape[1] for i in range(self.order)]
                     self.col_dims = [x[i].shape[2] for i in range(self.order)]
-                    self.ranks = [x[i].shape[0] for i in range(self.order)] + [1]
+                    self.ranks = [x[i].shape[0] for i in range(self.order)] + [x[-1].shape[3]]
                     self.cores = x
 
                     # rank reduction
@@ -205,7 +204,7 @@ class TT(object):
                     y = np.diag(s).dot(v)
 
                     # show progress
-                    utl.progress(string, 100 * (i + 1) / (order), cpu_time=_time.time() - start_time, show=progress)
+                    utl.progress(string, 100 * (i + 1) / order, cpu_time=_time.time() - start_time, show=progress)
 
                 # define last TT core
                 cores.append(np.reshape(y, [ranks[-2], row_dims[-1], col_dims[-1], 1]))
@@ -1076,6 +1075,78 @@ class TT(object):
 
         return tt_tensor
 
+    def svd(self, index, threshold=0, ortho_l=True, ortho_r=True):
+        """Computation of a global SVD of a tensor train.
+
+        Construct a singular value decomposition of a (non-operator) tensor train t in the form of tensor networks u, s,
+        and v such that, by contraction, t=u*diag(s)*v. See [1]_ and [2]_ for details.
+
+        Parameters
+        ----------
+        index: int
+            the cores 0 to index-1 represent the row dimensions and index to order-1 the column dimensions of the
+            unfolded version of self
+        threshold: float, optional
+            threshold for reduced SVD decompositions, default is 0
+        ortho_l: bool, optional
+            whether to apply left-orthonormalization or not, default is True
+        ortho_r: bool, optional
+            whether to apply right-orthonormalization or not, default is True
+
+        Returns
+        -------
+        u: instance of TT class
+            left-orthonormal part of the global SVD
+        s: ndarray
+            vector of singular values of the global SVD
+        v: instance of TT class
+            right-orthonormal part of the global SVD
+
+        References
+        ----------
+        .. [1] P. Gelß. "The Tensor-Train Format and Its Applications: Modeling and Analysis of Chemical Reaction
+               Networks, Catalytic Processes, Fluid Flows, and Brownian Dynamics", Freie Universität Berlin, 2017
+        .. [2] S. Klus, P. Gelß, S. Peitz, C. Schütte, "Tensor-based Dynamic Mode Decomposition", Nonlinearity 31 (7),
+               2018
+        """
+
+        # copy self
+        t = self.copy()
+
+        # left-orthonormalize cores 0 to index-2
+        if ortho_l is True:
+            t = t.ortho_left(end_index=index - 2, threshold=threshold)
+
+        # right-orthonormalize cores index to order -1
+        if ortho_r is True:
+            t = t.ortho_right(end_index=index, threshold=threshold)
+
+        # decompose (index-1)th core
+        [u, s, v] = linalg.svd(t.cores[index - 1].reshape(t.ranks[index - 1] * t.row_dims[index - 1], t.ranks[index]),
+                               full_matrices=False, overwrite_a=True, check_finite=False, lapack_driver='gesvd')
+
+        # rank reduction
+        if threshold != 0:
+            indices = np.where(s / s[0] > threshold)[0]
+            u = u[:, indices]
+            s = s[indices]
+            v = v[indices, :]
+
+        # set new rank
+        t.ranks[index] = u.shape[1]
+
+        # update (index-1)th core
+        t.cores[index - 1] = u.reshape(t.ranks[index - 1], t.row_dims[index - 1], 1, t.ranks[index])
+
+        # update (index)th core
+        t.cores[index] = np.tensordot(v, t.cores[index], axes=(1, 0))
+
+        # contruct orthonormal parts of the global SVD
+        u = TT(t.cores[:index])
+        v = TT(t.cores[index:])
+
+        return u, s, v
+
     def pinv(self, index, threshold=0, ortho_l=True, ortho_r=True):
         """Computation of the pseudoinverse of a tensor train
 
@@ -1094,6 +1165,11 @@ class TT(object):
         ortho_r: bool, optional
             whether to apply right-orthonormalization or not, default is True
 
+        Returns
+        -------
+        p_inv: instance of TT class
+            pseudoinverse of a given tensor train
+
         References
         ----------
         .. [1] P. Gelß. "The Tensor-Train Format and Its Applications: Modeling and Analysis of Chemical Reaction
@@ -1104,37 +1180,17 @@ class TT(object):
                arXiv:1809.02448, 2018
         """
 
-        # copy self
-        p_inv = self.copy()
+        # compute gloabl SVD of self
+        u, s, v = TT.svd(self, index, threshold=threshold, ortho_l=ortho_l, ortho_r=ortho_r)
 
-        # left-orthonormalize cores 0 to index-2
-        if ortho_l is True:
-            p_inv = p_inv.ortho_left(end_index=index - 2, threshold=threshold)
+        # define core list
+        cores = u.cores + v.cores
 
-        # right-orthonormalize cores index to order -1
-        if ortho_r is True:
-            p_inv = p_inv.ortho_right(end_index=index, threshold=threshold)
+        # contract s with (index)th core
+        cores[index] = np.tensordot(np.diag(np.reciprocal(s)), cores[index], axes=(1, 0))
 
-        # decompose (index-1)th core
-        [u, s, v] = linalg.svd(
-            p_inv.cores[index - 1].reshape(p_inv.ranks[index - 1] * p_inv.row_dims[index - 1], p_inv.ranks[index]),
-            full_matrices=False, overwrite_a=True, check_finite=False, lapack_driver='gesvd')
-
-        # rank reduction
-        if threshold != 0:
-            indices = np.where(s / s[0] > threshold)[0]
-            u = u[:, indices]
-            s = s[indices]
-            v = v[indices, :]
-
-        # set new rank
-        p_inv.ranks[index] = u.shape[1]
-
-        # update (index-1)th core
-        p_inv.cores[index - 1] = u.reshape(p_inv.ranks[index - 1], p_inv.row_dims[index - 1], 1, p_inv.ranks[index])
-
-        # update (index)th core
-        p_inv.cores[index] = np.tensordot(np.diag(np.reciprocal(s)).dot(v), p_inv.cores[index], axes=(1, 0))
+        # define tensor train
+        p_inv = TT(cores)
 
         return p_inv
 
