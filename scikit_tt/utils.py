@@ -50,9 +50,6 @@ def progress(str_text, percent, cpu_time=0, show=True, width=47):
         width of the progress bar, default is 47
     """
 
-    if percent == 0:
-        return time.time()
-
     if show:
         os.system('setterm -cursor off')
         len_text = len(str_text)
@@ -86,6 +83,9 @@ def progress(str_text, percent, cpu_time=0, show=True, width=47):
         if percent == 100:
             sys.stdout.write(4 * '\n')
             os.system('setterm -cursor on')
+
+    if percent == 0:
+        return time.time()
 
 
 class timer(object):
