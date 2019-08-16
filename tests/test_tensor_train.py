@@ -220,7 +220,7 @@ class TestTT(TestCase):
 
         # check if multiplication fails when dimensions do not match
         with self.assertRaises(ValueError):
-            t_tmp = t_tmp.copy()
+            t_tmp = self.t.copy()
             t_tmp.cores[0] = np.random.rand(self.ranks[0], self.row_dims[0] + 1, self.col_dims[0], self.ranks[1])
             self.t.transpose().dot(t_tmp)
 
