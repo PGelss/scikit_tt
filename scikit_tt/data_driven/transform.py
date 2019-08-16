@@ -594,7 +594,7 @@ def hocur(x, basis_list, ranks, repeats=1, multiplier=10, progress=True, string=
     return psi
 
 
-def __first_col_inds(dimensions: list, ranks: list, multiplier):
+def __first_col_inds(dimensions, ranks, multiplier):
     """Create random column indices
 
     Parameters
