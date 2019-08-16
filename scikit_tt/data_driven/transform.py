@@ -7,7 +7,7 @@ import time as _time
 from scikit_tt.tensor_train import TT
 
 
-def constant_function_callback(t):
+def __constant_function_callback(t):
     """Constant function.
 
     Parameters
@@ -40,12 +40,12 @@ def constant_function(index):
         constant function
     """
 
-    f = lambda t: constant_function_callback(t[index])
+    f = lambda t: __constant_function_callback(t[index])
 
     return f
 
 
-def indicator_function_callback(t, a, b):
+def __indicator_function_callback(t, a, b):
     """Indicator function of an interval on the real line.
 
     Parameters
@@ -86,12 +86,12 @@ def indicator_function(index, a, b):
         indicator function
     """
 
-    f = lambda t: indicator_function_callback(t[index], a, b)
+    f = lambda t: __indicator_function_callback(t[index], a, b)
 
     return f
 
 
-def gauss_function_callback(t, mean, variance):
+def __gauss_function_callback(t, mean, variance):
     """Gauss function.
 
     Parameters
@@ -132,12 +132,12 @@ def gauss_function(index, mean, variance):
         Gauss function
     """
 
-    f = lambda t: gauss_function_callback(t[index], mean, variance)
+    f = lambda t: __gauss_function_callback(t[index], mean, variance)
 
     return f
 
 
-def periodic_gauss_function_callback(t, mean, variance):
+def __periodic_gauss_function_callback(t, mean, variance):
     """Periodic Gauss function.
 
     Parameters
@@ -178,7 +178,7 @@ def periodic_gauss_function(index, mean, variance):
             Gauss function
         """
 
-    f = lambda t: periodic_gauss_function_callback(t[index], mean, variance)
+    f = lambda t: __periodic_gauss_function_callback(t[index], mean, variance)
 
     return f
 
