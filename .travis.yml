@@ -4,8 +4,8 @@ python:
   - "3.5"
   - "3.6"
 install:
+  - pip install matplotlib==2.2.2
   - pip install --upgrade pip
-  - pip install scipy
   - pip install pytest pytest-cov -U
   - python setup.py develop
 script:
