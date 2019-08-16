@@ -241,6 +241,7 @@ timer .................... measure CPU time
   - email: p.gelss@fu-berlin.de
 * **Dr. Stefan Klus** - _initial work_ - CRC 1114, Freie Universität Berlin, Germany
 * **Martin Scherer** - _development advisor_ - Computational Molecular Biology, Freie Universität Berlin, Germany
+* **Dr. Feliks Nüske** - _development of tEDMD_ - Department of Chemistry, Rice University, Houston, Texas
 
 ### 10.2 Built with
 
