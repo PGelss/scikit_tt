@@ -1,0 +1,145 @@
+# -*- coding: utf-8 -*-
+
+import scikit_tt.data_driven.transform as tdt
+import numpy as np
+from scipy import linalg
+
+
+def amuset(data_matrix, x_indices, y_indices, basis_list, threshold=1e-2, max_rank=1000, method='HOSVD', multiplier=2,
+           progress=False):
+    """AMUSEt (AMUSE on tensors).
+
+    Apply tEDMD to a given data matrix by using AMUSEt (either with HOSVD or HOCUR). This procedure is a tensor-based
+    version of AMUSE using the tensor-train format. For more details, see [1]_.
+
+    Parameters
+    ----------
+    data_matrix: ndarray
+        snapshot matrix
+    x_indices: ndarray or list of ndarrays
+        index sets for snapshot matrix x
+    y_indices: ndarray or list of ndarrays
+        index sets for snapshot matrix y
+    basis_list: list of lists of lambda functions
+        list of basis functions in every mode
+    threshold: float, optional
+        threshold for SVD/HOSVD, default is 1e-2
+    max_rank: int, optional
+        maximum ranks for HOSVD as well as HOCUR, default is 1000
+    method: string, optional
+        used method, either 'HOSVD' or 'HOCUR', default is 'HOSVD'
+    multiplier: int
+        multiplier for HOCUR
+    progress: boolean, optional
+        whether to show progress bar, default is False
+
+    Returns
+    -------
+    eigenvalues: ndarray or list of ndarrays
+        tEDMD eigenvalues
+    eigentensors: instance of TT class or list of instances of TT class
+        tEDMD eigentensors in TT format
+
+    References
+    ----------
+    ..[1] F. Nüske, P. Gelß, S. Klus, C. Clementi. "Tensor-based EDMD for the Koopman analysis of high-dimensional
+          systems", arXiv:1908.04741, 2019
+    """
+
+    # define quantities
+    eigenvalues = []
+    eigentensors = []
+    psi = []
+
+    if method is 'HOSVD':
+        # construct transformed data tensor in TT format using direct approach
+        psi = tdt.basis_decomposition(data_matrix, basis_list)
+
+    if method is 'HOCUR':
+        # construct transformed data tensor in TT format using HOCUR
+        psi = tdt.hocur(data_matrix, basis_list, max_rank, repeats=1, multiplier=multiplier, progress=progress)
+
+    # left-orthonormalization
+    psi = psi.ortho_left(threshold=threshold, max_rank=max_rank, progress=progress)
+
+    # extract last core
+    last_core = psi.cores[-1]
+
+    # convert x_indices and y_indices to lists
+    if not isinstance(x_indices, list):
+        x_indices = [x_indices]
+        y_indices = [y_indices]
+
+    # loop over all index sets
+    for i in range(len(x_indices)):
+        # compute reduced matrix
+        matrix, u, s, v = _reduced_matrix(last_core, x_indices[i], y_indices[i], threshold, max_rank)
+
+        # solve reduced eigenvalue problem
+        eigenvalues_reduced, eigenvectors_reduced = np.linalg.eig(matrix)
+        idx = (np.abs(eigenvalues_reduced - 1)).argsort()
+        eigenvalues_reduced = np.real(eigenvalues_reduced[idx])
+        eigenvectors_reduced = np.real(eigenvectors_reduced[:, idx])
+
+        # construct eigentensors
+        eigentensors_tmp = psi
+        eigentensors_tmp.cores[-1] = u.dot(np.diag(np.reciprocal(s))).dot(eigenvectors_reduced)[:, :, None, None]
+
+        # append results
+        eigenvalues.append(eigenvalues_reduced)
+        eigentensors.append(eigentensors_tmp)
+
+    # only return lists if more than one set of x-indices/y-indices was given
+    if len(x_indices) == 1:
+        eigenvalues = eigenvalues[0]
+        eigentensors = eigentensors[0]
+
+    return eigenvalues, eigentensors
+
+
+def _reduced_matrix(last_core, x_indices, y_indices, threshold, max_rank):
+    """Compute reduced matrix for AMUSEt.
+
+    Parameters
+    ----------
+    last_core: ndarray
+        last TT core of left-orthonormalized psi_z
+    x_indices: ndarray
+        index set for snapshot matrix x
+    y_indices: ndarray
+        index set for snapshot matrix y
+    threshold: float
+        threshold for SVD
+    max_rank: int
+        maximum rank for SVD
+
+    Returns
+    -------
+    matrix: ndarray
+        reduced matrix
+    u: ndarray
+        left-orthonormal matrix of the SVD of the last core of psi_x
+    s: ndarray
+        vector of singular values of the SVD of the last core of psi_x
+    v: ndarray
+        right-orthonormal matrix of the SVD of the last core of psi_x
+    """
+
+    # extract last cores of psi_x and psi_y
+    psi_x_last = np.squeeze(last_core[:, x_indices, :, :])
+    psi_y_last = np.squeeze(last_core[:, y_indices, :, :])
+
+    # decompose last core of psi_x
+    u, s, v = linalg.svd(psi_x_last, full_matrices=False, overwrite_a=True, check_finite=False, lapack_driver='gesvd')
+    indices = np.where(s / s[0] > threshold)[0]
+    u = u[:, indices]
+    s = s[indices]
+    v = v[indices, :]
+    u = u[:, :np.minimum(u.shape[1], max_rank)]
+    s = s[:np.minimum(s.shape[0], max_rank)]
+    v = v[:np.minimum(v.shape[0], max_rank), :]
+
+    # construct reduced matrix
+    matrix = v.dot(psi_y_last.T).dot(u).dot(np.diag(np.reciprocal(s)))
+
+    return matrix, u, s, v
