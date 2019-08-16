@@ -220,9 +220,9 @@ class TestTT(TestCase):
 
         # check if multiplication fails when dimensions do not match
         with self.assertRaises(ValueError):
-            cores = self.t.cores.copy()
-            cores[0] = np.random.rand(self.ranks[0], self.row_dims[0] + 1, self.col_dims[0], self.ranks[1])
-            self.t.transpose().dot(TT(cores))
+            t_tmp = t_tmp.copy()
+            t_tmp.cores[0] = np.random.rand(self.ranks[0], self.row_dims[0] + 1, self.col_dims[0], self.ranks[1])
+            self.t.transpose().dot(t_tmp)
 
         # check if multiplication fails when input is not a tensor train
         with self.assertRaises(TypeError):
