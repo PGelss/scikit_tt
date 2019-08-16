@@ -434,13 +434,15 @@ class TT(object):
 
         return tt_prod
 
-    def transpose(self, cores=None):
+    def transpose(self, cores=None, overwrite=False):
         """Transpose of tensor trains
 
         Parameters
         ----------
         cores: list of ints
             cores which should be transposed, if cores=None (default), all cores are transposed
+        overwrite: bool, optional
+            whether to overwrite self or not, default is False
 
         Returns
         -------
@@ -471,7 +473,10 @@ class TT(object):
             cores = np.arange(0, self.order)
 
         # copy self
-        tt_transpose = self.copy()
+        if overwrite is False:
+            tt_transpose = self.copy()
+        else:
+            tt_transpose = self
 
         for i in range(self.order):
 
@@ -480,8 +485,10 @@ class TT(object):
                 tt_transpose.cores[i] = np.transpose(tt_transpose.cores[i], [0, 2, 1, 3])
 
                 # interchange row and column dimensions
-                tt_transpose.row_dims[i] = self.col_dims[i]
-                tt_transpose.col_dims[i] = self.row_dims[i]
+                row_dim = tt_transpose.row_dims[i]
+                col_dim = tt_transpose.col_dims[i]
+                tt_transpose.row_dims[i] = col_dim
+                tt_transpose.col_dims[i] = row_dim
 
         return tt_transpose
 
@@ -637,7 +644,8 @@ class TT(object):
 
         return tt_mat
 
-    def ortho_left(self, start_index=0, end_index=None, threshold=0, max_rank=np.infty):
+    def ortho_left(self, start_index=0, end_index=None, threshold=0, max_rank=np.infty, progress=False,
+                   string='Left-orthonormalization'):
         """left-orthonormalization of tensor trains
 
         Parameters
@@ -650,6 +658,10 @@ class TT(object):
             threshold for reduced SVD decompositions, default is 0
         max_rank: int, optional
             maximum rank of the left-orthonormalized tensor train, default is np.infty
+        progress: boolean, optional
+            whether to show progress bar, default is False
+        string: string, optional
+            title of the progress bar if progress is True
 
         Returns
         -------
@@ -665,6 +677,9 @@ class TT(object):
         ValueError
             if max_rank is not a positive integer
         """
+
+        # show progress
+        start_time = utl.progress(string, 0, show=progress)
 
         # set end_index to the index of the penultimate core if not otherwise defined
         if end_index is None:
@@ -700,13 +715,12 @@ class TT(object):
                         self.cores[i] = u.reshape(self.ranks[i], self.row_dims[i], self.col_dims[i], self.ranks[i + 1])
 
                         # shift non-orthonormal part to next core
-                        self.cores[i + 1] = np.diag(s).dot(v).dot(self.cores[i + 1].reshape(self.cores[i + 1].shape[0],
-                                                                                            self.row_dims[i + 1] *
-                                                                                            self.col_dims[i + 1] *
-                                                                                            self.ranks[i + 2]))
-                        self.cores[i + 1] = self.cores[i + 1].reshape(self.ranks[i + 1], self.row_dims[i + 1],
-                                                                      self.col_dims[i + 1],
-                                                                      self.ranks[i + 2])
+                        self.cores[i + 1] = np.tensordot(np.diag(s).dot(v), self.cores[i + 1], axes=(1, 0))
+
+                        # show progress
+                        utl.progress(string + '... r=' + str(self.ranks[i + 1]),
+                                     100 * (i - start_index + 1) / (end_index - start_index + 1),
+                                     cpu_time=_time.time() - start_time, show=progress)
 
                     return self
 
@@ -1017,7 +1031,7 @@ class TT(object):
 
         return qtt_tensor
 
-    def qtt2tt(self, merge_numbers):
+    def qtt2tt(self, merge_numbers: list):
         """conversion from QTT format into TT format
 
         Contract the QTT cores of a given quantized tensor train in order to obtain a TT representation.
@@ -1075,7 +1089,7 @@ class TT(object):
 
         return tt_tensor
 
-    def svd(self, index, threshold=0, ortho_l=True, ortho_r=True):
+    def svd(self, index, threshold=0, ortho_l=True, ortho_r=True, overwrite=False):
         """Computation of a global SVD of a tensor train.
 
         Construct a singular value decomposition of a (non-operator) tensor train t in the form of tensor networks u, s,
@@ -1092,6 +1106,8 @@ class TT(object):
             whether to apply left-orthonormalization or not, default is True
         ortho_r: bool, optional
             whether to apply right-orthonormalization or not, default is True
+        overwrite: bool, optional
+            whether to overwrite self or not, default is False
 
         Returns
         -------
@@ -1111,7 +1127,10 @@ class TT(object):
         """
 
         # copy self
-        t = self.copy()
+        if overwrite is False:
+            t = self.copy()
+        else:
+            t = self
 
         # left-orthonormalize cores 0 to index-2
         if ortho_l is True:
@@ -1147,7 +1166,7 @@ class TT(object):
 
         return u, s, v
 
-    def pinv(self, index, threshold=0, ortho_l=True, ortho_r=True):
+    def pinv(self, index, threshold=0, ortho_l=True, ortho_r=True, overwrite=False):
         """Computation of the pseudoinverse of a tensor train
 
         Construct the pseudoinverse of a (non-operator) tensor train by a global SVD. See [1]_, [2]_ and [3]_ for
@@ -1164,6 +1183,8 @@ class TT(object):
             whether to apply left-orthonormalization or not, default is True
         ortho_r: bool, optional
             whether to apply right-orthonormalization or not, default is True
+        overwrite: bool, optional
+            whether to overwrite self or not, default is False
 
         Returns
         -------
@@ -1181,7 +1202,7 @@ class TT(object):
         """
 
         # compute gloabl SVD of self
-        u, s, v = TT.svd(self, index, threshold=threshold, ortho_l=ortho_l, ortho_r=ortho_r)
+        u, s, v = TT.svd(self, index, threshold=threshold, ortho_l=ortho_l, ortho_r=ortho_r, overwrite=overwrite)
 
         # define core list
         cores = u.cores + v.cores
@@ -1207,7 +1228,7 @@ def zeros(row_dims, col_dims, ranks=1):
         list of the row dimensions of the tensor train of all zeros
     col_dims: list of ints
         list of the column dimensions of the tensor train of all zeros
-    ranks: list of ints, optional
+    ranks: int or list of ints, optional
         list of the ranks of the tensor train of all zeros, default is [1, ..., 1]
 
     Returns
@@ -1238,7 +1259,7 @@ def ones(row_dims, col_dims, ranks=1):
         list of the row dimensions of the tensor train of all ones
     col_dims: list of ints
         list of the column dimensions of the tensor train of all ones
-    ranks: list of ints, optional
+    ranks: int or list of ints, optional
         list of the ranks of the tensor train of all ones, default is [1, ..., 1]
 
     Returns
@@ -1318,7 +1339,7 @@ def rand(row_dims, col_dims, ranks=1):
         list of row dimensions of the random tensor train
     col_dims: list of ints
         list of column dimensions of the random tensor train
-    ranks: list of ints, optional
+    ranks: int or list of ints, optional
         list of the ranks of the random tensor train, default is [1, ..., 1]
 
     Returns
@@ -1347,7 +1368,7 @@ def uniform(row_dims, ranks=1, norm=1):
     ----------
     row_dims: list of ints
         list of row dimensions of the random tensor train
-    ranks: list of ints, optional
+    ranks: int or list of ints, optional
         list of the ranks of the uniformly distributed tensor train, default is [1, ..., 1]
     norm: float, optional
         norm of the uniformly distributed tensor train, default is 1
