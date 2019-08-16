@@ -4,7 +4,7 @@ python:
   - "3.5"
   - "3.6"
 install:
-  - pip install -r requirements.txt
+  - pip install scipy
   - pip install pytest pytest-cov -U
   - python setup.py develop
 script:
