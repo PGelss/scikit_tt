@@ -8,7 +8,6 @@ metadata = dict(name='scikit_tt',
                 packages=find_packages(),
                 install_requires=['numpy>=1.14',
                                   'scipy>=1',
-                                  'matplotlib>=2.2',
                                   ],
                 )
 
