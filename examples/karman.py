@@ -38,7 +38,7 @@ utl.header(title='TDMD - von Kármán vortex street')
 
 # load data
 path = os.path.dirname(os.path.realpath(__file__))
-data = np.load(path + "/data/vonKarman.npz")['snapshots']
+data = np.load(path + "/data/karman_snapshots.npz")['snapshots']
 number_of_snapshots = data.shape[-1] - 1
 
 # tensor-based approach
