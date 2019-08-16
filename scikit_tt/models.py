@@ -4,7 +4,6 @@ from __future__ import division
 import numpy as np
 from scikit_tt.tensor_train import TT
 import scikit_tt.slim as slim
-import matplotlib.pyplot as plt
 
 def cantor_dust(dimension, level):
     """Construction of a (multidimensional) Cantor dust
