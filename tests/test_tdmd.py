@@ -15,7 +15,7 @@ class TestTDMD(TestCase):
 
         # load data
         path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-        data = np.load(path + "/examples/data/vonKarman.npz")['snapshots']
+        data = np.load(path + "/examples/data/karman_snapshots.npz")['snapshots']
         self.x = data[:, :, 0:-1]
         self.y = data[:, :, 1:]
 
