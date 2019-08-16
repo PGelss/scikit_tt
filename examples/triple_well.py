@@ -18,7 +18,6 @@ import scikit_tt.data_driven.ulam as ulam
 import scikit_tt.solvers.evp as evp
 import scikit_tt.utils as utl
 import matplotlib.pyplot as plt
-import scipy.io as io
 import os
 import time as _time
 
@@ -35,7 +34,7 @@ number_ev = 3
 # --------------------------------------------
 
 directory = os.path.dirname(os.path.realpath(__file__))
-transitions = io.loadmat(directory + '/data/TripleWell2D_500.mat')["indices"]
+transitions = np.load(directory + '/data/triple_well_transitions.npz')['transitions']
 
 # construct TT operator
 # ---------------------
