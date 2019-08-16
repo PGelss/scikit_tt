@@ -20,7 +20,6 @@ import scikit_tt.utils as utl
 import matplotlib.pyplot as plt
 # noinspection PyUnresolvedReferences
 from mpl_toolkits.mplot3d import Axes3D
-import scipy.io as io
 import os
 import time as _time
 
@@ -37,7 +36,7 @@ number_ev = 3
 # --------------------------------------------
 
 directory = os.path.dirname(os.path.realpath(__file__))
-transitions = io.loadmat(directory + '/data/QuadrupleWell3D_25x25x25_100.mat')["indices"]
+transitions = np.load(directory + '/data/quadruple_well_transitions.npz')['transitions']
 
 # construct TT operator
 # ---------------------

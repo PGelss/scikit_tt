@@ -5,7 +5,6 @@ from unittest import TestCase
 import scikit_tt.data_driven.ulam as ulam
 import numpy as np
 import os
-import scipy.io as io
 
 
 class TestPF(TestCase):
@@ -18,8 +17,8 @@ class TestPF(TestCase):
 
         # load transition lists
         directory = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-        self.transitions_2d = io.loadmat(directory + '/examples/data/TripleWell2D_500.mat')["indices"]
-        self.transitions_3d = io.loadmat(directory + '/examples/data/QuadrupleWell3D_25x25x25_100.mat')["indices"]
+        self.transitions_2d = np.load(directory + '/examples/data/triple_well_transitions.npz')['transitions']
+        self.transitions_3d = np.load(directory + '/examples/data/quadruple_well_transitions.npz')['transitions']
 
         # coarse-grain 3d data
         self.transitions_3d = np.int64(np.ceil(np.true_divide(self.transitions_3d, 5)))

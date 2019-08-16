@@ -8,7 +8,6 @@ import scikit_tt.tensor_train as tt
 import scikit_tt.solvers.evp as evp
 import numpy as np
 import scipy.sparse.linalg as splin
-import scipy.io as io
 import os
 
 
@@ -30,7 +29,7 @@ class TestEVP(TestCase):
 
         # load data
         directory = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-        transitions = io.loadmat(directory + '/examples/data/TripleWell2D_500.mat')["indices"]
+        transitions = np.load(directory + '/examples/data/triple_well_transitions.npz')["transitions"]
 
         # coarse-grain data
         transitions = np.int64(np.ceil(np.true_divide(transitions, 2)))
