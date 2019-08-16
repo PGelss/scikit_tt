@@ -142,7 +142,7 @@ tdmd_standard ............ standard tDMD algorithm
 
 ### 5.2 Transformed data tensors
 
-Given time-series data and a set of basis functions, **scikit-tt** provides methods to construct the counterparts of tranformed basis matrices, so-called transformed data tensors. The algorithms in [*tdmd.py*](scikit_tt/data_driven/transform.py) include general basis decompositions [[10](README.md#11-references)], coordinate- and function-major decompositions [[7](README.md#11-references)], as well as an approach to construct transformed data tensors using higher-order CUR decompositions (HOCUR) [[10, 11](README.md#11-references)]. Furthermore, different basis functions which are typicall used can be found in the module.
+Given time-series data and a set of basis functions, **scikit-tt** provides methods to construct the counterparts of tranformed basis matrices, so-called transformed data tensors. The algorithms in [*transform.py*](scikit_tt/data_driven/transform.py) include general basis decompositions [[10](README.md#11-references)], coordinate- and function-major decompositions [[7](README.md#11-references)], as well as an approach to construct transformed data tensors using higher-order CUR decompositions (HOCUR) [[10, 11](README.md#11-references)]. Furthermore, different basis functions which are typicall used can be found in the module.
 
 ```
 constant_function ........ constant function

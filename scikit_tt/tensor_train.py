@@ -1031,7 +1031,7 @@ class TT(object):
 
         return qtt_tensor
 
-    def qtt2tt(self, merge_numbers: list):
+    def qtt2tt(self, merge_numbers):
         """conversion from QTT format into TT format
 
         Contract the QTT cores of a given quantized tensor train in order to obtain a TT representation.
