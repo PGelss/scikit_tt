@@ -383,14 +383,14 @@ plt.rcParams.update({'axes.grid': True})
 plot_potential()
 
 # parameters
-directory = os.path.dirname(os.path.realpath(__file__)) + '/data/radial_potential/'
+directory = os.path.dirname(os.path.realpath(__file__)) + '/data/'
 number_of_boxes = 100
 threshold = 1e-2
 thresholds = [0, 1e-12, 1e-1]
 max_ranks = [2400, 2375, 2350]
 
 # load data
-z = np.load(directory + 'data.npz')['z']
+z = np.load(directory + 'radial_potential_snapshots.npz')['z']
 
 # define basis functions
 diam = 12 / number_of_boxes
