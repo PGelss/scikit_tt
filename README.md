@@ -22,7 +22,8 @@ The simulation and analysis of high-dimensional problems is often infeasible due
    - [Tensor-based dynamic mode decomposition (tDMD)](README.md#51-tensor-based-dynamic-mode-decomposition-tdmd)
    - [Transformed data tensors](README.md#52-transformed-data-tensors)
    - [Multidimensional approximation of nonlinear dynamical systems (MANDy)](README.md#53-multidimensional-approximation-of-nonlinear-dynamical-systems-mandy)
-   - [Ulam's method](README.md#54-ulams-method)
+   - [Tensor-based extended dynamic mode decomposition (tEDMD)](README.md#54-tensor-based-extended-dynamic-mode-decomposition-tedmd)
+   - [Ulam's method](README.md#55-ulams-method)
 6. [Models](README.md#6-models)
 7. [Examples](README.md#7-examples)
 8. [Tests](README.md#8-tests)
@@ -164,7 +165,15 @@ mandy_cm ................. MANDy using coordinate-major decompositions
 mandy_fm ................. MANDy using function-major decompositions
 ```
 
-### 5.4 Ulam's method
+### 5.4 Tensor-based extended dynamic mode decomposition (tEDMD)
+
+As described in [[10](README.md#11-references)], a tensor-based counterpart of EDMD is implemented in **scikit-tt**.
+
+```
+amuset ................... tEDMD using AMUSEt (either with HOSVD or HOCUR)
+```
+
+### 5.5 Ulam's method
 
 Given transitions of particles in a 2- or 3-dimensional potentials, **scikit-tt** can be used to approximate the corresponding Perron-Frobenius operator in TT format. The algorithms can be found in [*ulam.py*](scikit_tt/data_driven/ulam.py). See [[2](README.md#11-references)] for details.
 
