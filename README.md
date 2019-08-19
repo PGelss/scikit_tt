@@ -167,10 +167,11 @@ mandy_fm ................. MANDy using function-major decompositions
 
 ### 5.4 Tensor-based extended dynamic mode decomposition (tEDMD)
 
-As described in [[10](README.md#11-references)], a tensor-based counterpart of EDMD is implemented in **scikit-tt**.
+As described in [[10](README.md#11-references)], a tensor-based counterpart of EDMD is implemented in **scikit-tt**. The basic procedures of tEDMD - combinations of the TT format and so-called AMUSE - are implemented in [*tedmd.py*](scikit_tt/data_driven/tedmd.py).
 
 ```
-amuset ................... tEDMD using AMUSEt (either with HOSVD or HOCUR)
+amuset_hosvd ............. tEDMD using AMUSEt with HOSVD
+amuset_hocur ............. tEDMD using AMUSEt with HOCUR
 ```
 
 ### 5.5 Ulam's method
