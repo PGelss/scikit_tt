@@ -227,9 +227,8 @@ def amuset(z, eigenvalues_amuse, eigenvectors_amuse, thresholds: list, max_ranks
     for i in range(len(thresholds) - 1):
 
         # apply AMUSEt using HOSVD
-        eigenvalues, eigentensors = tedmd.amuset(z, np.arange(0, z.shape[1] - 1), np.arange(1, z.shape[1]),
-                                                 basis_list, method='HOSVD',
-                                                 threshold=thresholds[i + 1], max_rank=10000)
+        eigenvalues, eigentensors = tedmd.amuset_hosvd(z, np.arange(0, z.shape[1] - 1), np.arange(1, z.shape[1]),
+                                                 basis_list, threshold=thresholds[i + 1])
         # matricize eigentensors
         eigentensors = eigentensors.transpose(cores=2).matricize()
 
@@ -254,10 +253,7 @@ def amuset(z, eigenvalues_amuse, eigenvectors_amuse, thresholds: list, max_ranks
     for i in range(len(max_ranks)):
 
         # apply AMUSEt using HOCUR
-        eigenvalues, eigentensors = tedmd.amuset(z, np.arange(0, z.shape[1] - 1),
-                                                 np.arange(1, z.shape[1]), basis_list,
-                                                 threshold=threshold, method='HOCUR',
-                                                 max_rank=max_ranks[i], multiplier=100)
+        eigenvalues, eigentensors = tedmd.amuset_hocur(z, np.arange(0, z.shape[1] - 1), np.arange(1, z.shape[1]), basis_list, max_rank=max_ranks[i], multiplier=100)
 
         # matricize eigentensors
         eigentensors = eigentensors.transpose(cores=2).matricize()
