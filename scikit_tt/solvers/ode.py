@@ -87,6 +87,66 @@ def errors_expl_euler(operator, solution, step_sizes):
 
     return errors
 
+def sod(operator, initial_value, step_sizes, threshold=1e-12, max_rank=50, normalize=2, progress=True):
+    """Second order differencing for linear differential equations in the TT format
+
+    Parameters
+    ----------
+    operator: instance of TT class
+        TT operator of the differential equation
+    initial_value: instance of TT class
+        initial value of the differential equation
+    step_sizes: list of floats
+        step sizes
+    threshold: float, optional
+        threshold for reduced SVD decompositions, default is 1e-12
+    max_rank: int, optional
+        maximum rank of the solution, default is 50
+    normalize: int (0, 1, or 2)
+        no normalization if 0, otherwise the solution is normalized in terms of Manhattan or Euclidean norm in each step
+    progress: bool, optional
+        whether to show the progress of the algorithm or not, default is True
+
+    Returns
+    -------
+    solution: list of instances of the TT class
+        numerical solution of the differential equation
+    """
+
+    # return current time
+    start_time = utl.progress('Running explicit Euler method', 0, show=progress)
+
+    # define solution
+    solution = [initial_value]
+
+    # begin explicit Euler method
+    # ---------------------------
+
+    for i in range(len(step_sizes)):
+
+        if i == 0:
+            solution_prev = solution[0] + 1j*step_sizes[i]*operator.dot(solution[0])
+        else:
+            solution_prev = solution[i-1].copy()
+
+        # compute next time step
+        tt_tmp = solution_prev - 2j*step_sizes[i]*operator.dot(solution[i])
+
+        # truncate ranks of the solution
+        tt_tmp = tt_tmp.ortho(threshold=threshold, max_rank=max_rank)
+
+        # normalize solution
+        if normalize > 0:
+            tt_tmp = (1 / tt_tmp.norm(p=normalize)) * tt_tmp
+
+        # append solution
+        solution.append(tt_tmp.copy())
+
+        # print progress
+        utl.progress('Running explicit Euler method', 100 * (i + 1) / len(step_sizes), show=progress,
+                     cpu_time=_time.time() - start_time)
+
+    return solution
 
 def implicit_euler(operator, initial_value, initial_guess, step_sizes, repeats=1, tt_solver='als', threshold=1e-12,
                    max_rank=np.infty, micro_solver='solve', progress=True):
