@@ -492,6 +492,32 @@ class TT(object):
 
         return tt_transpose
 
+    def conj(self, overwrite=False):
+        """Complex conjugate of tensor trains
+
+        Parameters
+        ----------
+        overwrite: bool, optional
+            whether to overwrite self or not, default is False
+
+        Returns
+        -------
+        tt_conj: instance of TT class
+            complex conjugate of self
+        """
+
+        # copy self
+        if overwrite is False:
+            tt_conj = self.copy()
+        else:
+            tt_conj = self
+
+        # conjugate each core
+        for i in range(self.order):
+            tt_conj.cores[i] = np.conj(tt_conj.cores[i], [0, 2, 1, 3])
+
+        return tt_conj
+
     def isoperator(self):
         """Operator check
 
