@@ -5,7 +5,7 @@ import numpy as np
 import time as _time
 
 
-def explicit_euler(operator, initial_value, step_sizes, threshold=1e-12, max_rank=50, progress=True):
+def explicit_euler(operator, initial_value, step_sizes, threshold=1e-12, max_rank=50, normalize=1, progress=True):
     """Explicit Euler method for linear differential equations in the TT format
 
     Parameters
@@ -20,6 +20,8 @@ def explicit_euler(operator, initial_value, step_sizes, threshold=1e-12, max_ran
         threshold for reduced SVD decompositions, default is 1e-12
     max_rank: int, optional
         maximum rank of the solution, default is 50
+    normalize: int (0, 1, or 2)
+        no normalization if 0, otherwise the solution is normalized in terms of Manhattan or Euclidean norm in each step
     progress: bool, optional
         whether to show the progress of the algorithm or not, default is True
 
@@ -46,7 +48,8 @@ def explicit_euler(operator, initial_value, step_sizes, threshold=1e-12, max_ran
         tt_tmp = tt_tmp.ortho(threshold=threshold, max_rank=max_rank)
 
         # normalize solution
-        tt_tmp = (1 / tt_tmp.norm(p=1)) * tt_tmp
+        if normalize > 0:
+            tt_tmp = (1 / tt_tmp.norm(p=normalize)) * tt_tmp
 
         # append solution
         solution.append(tt_tmp.copy())
@@ -88,7 +91,7 @@ def errors_expl_euler(operator, solution, step_sizes):
     return errors
 
 def sod(operator, initial_value, step_sizes, threshold=1e-12, max_rank=50, normalize=2, progress=True):
-    """Second order differencing for linear differential equations in the TT format
+    """Second order differencing (time-symmetrized explicit Euler) for linear differential equations in the TT format
 
     Parameters
     ----------
@@ -114,23 +117,23 @@ def sod(operator, initial_value, step_sizes, threshold=1e-12, max_rank=50, norma
     """
 
     # return current time
-    start_time = utl.progress('Running explicit Euler method', 0, show=progress)
+    start_time = utl.progress('Running time-symmetrized explicit Euler method', 0, show=progress)
 
-    # define solution
+    # initialize solution
     solution = [initial_value]
 
-    # begin explicit Euler method
-    # ---------------------------
+    # begin loop over time steps
+    # --------------------------
 
     for i in range(len(step_sizes)):
 
-        if i == 0:
-            solution_prev = solution[0] + 1j*step_sizes[i]*operator.dot(solution[0])
+        if i == 0: # initialize: one expl. Euler backwards in time
+            solution_prev = (tt.eye(operator.row_dims) - step_sizes[i]*operator).dot(solution[0])
         else:
             solution_prev = solution[i-1].copy()
 
-        # compute next time step
-        tt_tmp = solution_prev - 2j*step_sizes[i]*operator.dot(solution[i])
+        # compute next time step from current and previous time step
+        tt_tmp = solution_prev + 2*step_sizes[i]*operator.dot(solution[i])
 
         # truncate ranks of the solution
         tt_tmp = tt_tmp.ortho(threshold=threshold, max_rank=max_rank)
@@ -143,13 +146,14 @@ def sod(operator, initial_value, step_sizes, threshold=1e-12, max_rank=50, norma
         solution.append(tt_tmp.copy())
 
         # print progress
-        utl.progress('Running explicit Euler method', 100 * (i + 1) / len(step_sizes), show=progress,
+        utl.progress('Running time-symmetrized explicit Euler method', 100 * (i + 1) / len(step_sizes), show=progress,
                      cpu_time=_time.time() - start_time)
 
     return solution
 
+
 def implicit_euler(operator, initial_value, initial_guess, step_sizes, repeats=1, tt_solver='als', threshold=1e-12,
-                   max_rank=np.infty, micro_solver='solve', progress=True):
+                   max_rank=np.infty, micro_solver='solve', normalize=1, progress=True):
     """Implicit Euler method for linear differential equations in the TT format
 
     Parameters
@@ -172,6 +176,8 @@ def implicit_euler(operator, initial_value, initial_guess, step_sizes, repeats=1
         maximum rank of the solution, default is infinity
     micro_solver: string, optional
         algorithm for obtaining the solutions of the micro systems, can be 'solve' or 'lu', default is 'solve'
+    normalize: int (0, 1, or 2)
+        no normalization if 0, otherwise the solution is normalized in terms of Manhattan or Euclidean norm in each step
     progress: bool, optional
         whether to show the progress of the algorithm or not, default is True
 
@@ -204,7 +210,8 @@ def implicit_euler(operator, initial_value, initial_guess, step_sizes, repeats=1
                               solver=micro_solver, threshold=threshold, repeats=repeats, max_rank=max_rank)
 
         # normalize solution
-        tt_tmp = (1 / tt_tmp.norm(p=1)) * tt_tmp
+        if normalize > 0:
+            tt_tmp = (1 / tt_tmp.norm(p=normalize)) * tt_tmp
 
         # append solution
         solution.append(tt_tmp.copy())
