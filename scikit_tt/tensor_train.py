@@ -434,7 +434,7 @@ class TT(object):
 
         return tt_prod
 
-    def transpose(self, cores=None, overwrite=False):
+    def transpose(self, cores=None, conjugate=False, overwrite=False):
         """Transpose of tensor trains
 
         Parameters
@@ -490,6 +490,9 @@ class TT(object):
                 tt_transpose.row_dims[i] = col_dim
                 tt_transpose.col_dims[i] = row_dim
 
+                if conjugate:
+                    tt_transpose.cores[i] = np.conj(tt_transpose.cores[i])
+
         return tt_transpose
 
     def conj(self, overwrite=False):
@@ -514,7 +517,7 @@ class TT(object):
 
         # conjugate each core
         for i in range(self.order):
-            tt_conj.cores[i] = np.conj(tt_conj.cores[i], [0, 2, 1, 3])
+            tt_conj.cores[i] = np.conj(tt_conj.cores[i])
 
         return tt_conj
 
