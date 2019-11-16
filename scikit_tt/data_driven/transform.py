@@ -7,25 +7,6 @@ import time as _time
 from scikit_tt.tensor_train import TT
 
 
-def __constant_function_callback(t):
-    """Constant function.
-
-    Parameters
-    ----------
-    t: float
-        argument
-
-    Returns
-    -------
-    v: float
-        equal to 1
-    """
-
-    v = 1 + 0 * t
-
-    return v
-
-
 def constant_function(index):
     """Constant function.
 
@@ -43,29 +24,6 @@ def constant_function(index):
     f = lambda t: __constant_function_callback(t[index])
 
     return f
-
-
-def __indicator_function_callback(t, a, b):
-    """Indicator function of an interval on the real line.
-
-    Parameters
-    ----------
-    t: float
-        check if t is in a given interval
-    a: float
-        lower bound of the interval
-    b: float
-        upper bound of the interval
-
-    Returns
-    -------
-    v: int
-        equal to 1 if t is in [a,b], 0 otherwise
-    """
-
-    v = 1 * ((a <= t) & (t < b))
-
-    return v
 
 
 def indicator_function(index, a, b):
@@ -90,28 +48,63 @@ def indicator_function(index, a, b):
 
     return f
 
-
-def __gauss_function_callback(t, mean, variance):
-    """Gauss function.
+def identity(index):
+    """Identiy function.
 
     Parameters
     ----------
-    t: float
-        argument for the Gauss function
-    mean: float
-        mean of the distribution
-    variance: float (>0)
-        variance
+    index: int
+        define which entry of a snapshot is passed to the identity function
 
     Returns
     -------
-    v: float (>0)
-        value of the Gauss function at t
+    f: function
+        identity function at given index
     """
 
-    v = np.exp(-0.5 * (t - mean) ** 2 / variance)
+    f = lambda t: t[index]
 
-    return v
+    return f
+
+def cos(index, alpha):
+    """Cosine function.
+
+    Parameters
+    ----------
+    index: int
+        define which entry of a snapshot is passed to the cosine function
+    alpha: float
+        prefactor
+
+    Returns
+    -------
+    f: function
+        cosine function at given index
+    """
+
+    f = lambda t: np.cos(alpha * t[index])
+
+    return f
+
+def sin(index, alpha):
+    """Sine function.
+
+    Parameters
+    ----------
+    index: int
+        define which entry of a snapshot is passed to the sine function
+    alpha: float
+        prefactor
+
+    Returns
+    -------
+    f: function
+        sine function at given index
+    """
+
+    f = lambda t: np.sin(alpha * t[index])
+
+    return f
 
 
 def gauss_function(index, mean, variance):
@@ -135,29 +128,6 @@ def gauss_function(index, mean, variance):
     f = lambda t: __gauss_function_callback(t[index], mean, variance)
 
     return f
-
-
-def __periodic_gauss_function_callback(t, mean, variance):
-    """Periodic Gauss function.
-
-    Parameters
-    ----------
-    t: float
-        argument for the periodic Gauss function
-    mean: float
-        mean of the distribution
-    variance: float (>0)
-        variance
-
-    Returns
-    -------
-    v: float (>0)
-        value of the Gauss function at t
-    """
-
-    v = np.exp(-0.5 * np.sin(0.5 * (t - mean)) ** 2 / variance)
-
-    return v
 
 
 def periodic_gauss_function(index, mean, variance):
@@ -277,7 +247,7 @@ def basis_decomposition(x, phi, single_core=None):
     return psi
 
 
-def coordinate_major(x, phi):
+def coordinate_major(x, phi, single_core=None):
     """Construct a transformed data tensor in TT format using the coordinate-major approach.
 
     Given a set of basis functions phi, construct a TT decomposition psi of the form::
@@ -302,6 +272,8 @@ def coordinate_major(x, phi):
         snapshot matrix of size d x m
     phi: list of lambda functions
         list of basis functions
+    single_core: None or int, optional
+        return only the ith core of psi if single_core=i (<p), default is None
 
     Returns
     -------
@@ -323,23 +295,45 @@ def coordinate_major(x, phi):
     # number of dimensions
     d = x.shape[0]
 
-    # define cores as list of empty arrays
-    cores = [np.zeros([1, p, 1, m])] + [np.zeros([m, p, 1, m]) for _ in range(1, d)]
+    if single_core is None:
 
-    # insert elements of first core
-    for j in range(m):
-        cores[0][0, :, 0, j] = np.array([phi[k](x[0, j]) for k in range(p)])
+        # define cores as list of empty arrays
+        cores = [np.zeros([1, p, 1, m])] + [np.zeros([m, p, 1, m]) for _ in range(1, d)]
 
-    # insert elements of subsequent cores
-    for i in range(1, d):
+        # insert elements of first core
         for j in range(m):
-            cores[i][j, :, 0, j] = np.array([phi[k](x[i, j]) for k in range(p)])
+            cores[0][0, :, 0, j] = np.array([phi[k](x[0, j]) for k in range(p)])
 
-    # append core containing unit vectors
-    cores.append(np.eye(m).reshape(m, m, 1, 1))
+        # insert elements of subsequent cores
+        for i in range(1, d):
+            for j in range(m):
+                cores[i][j, :, 0, j] = np.array([phi[k](x[i, j]) for k in range(p)])
 
-    # construct tensor train
-    psi = TT(cores)
+        # append core containing unit vectors
+        cores.append(np.eye(m).reshape(m, m, 1, 1))
+
+        # construct tensor train
+        psi = TT(cores)
+
+    elif single_core == 0:
+
+        # define core
+        psi = np.zeros([1, p, 1, m])
+
+        # insert elements
+        for j in range(m):
+            # apply basis functions
+            psi[0, :, 0, j] = np.array([phi[k](x[0, j]) for k in range(p)])
+
+    else:
+
+        # define core
+        psi = np.zeros([m, p, 1, m])
+
+        # insert elements
+        for j in range(m):
+            # apply basis functions
+            psi[j, :, 0, j] = np.array([phi[k](x[single_core, j]) for k in range(p)])
 
     return psi
 
@@ -422,6 +416,40 @@ def function_major(x, phi, add_one=True):
 
     return psi
 
+def gram(x_1, x_2, basis_list):
+    """Gram matrix.
+
+    Compute the Gram matrix of two transformed data tensors psi_1=psi(x_1) and psi_2=psi(x_2), i.e., psi_1^T@psi_2. See
+    _[1] for details.
+
+    Parameters
+    ----------
+    x_1: ndarray
+        data matrix for psi_1
+    x_2: ndarray
+        data matrix for psi_2
+    basis_list: list of lists of lambda functions
+        list of basis functions in every mode
+
+    Returns
+    -------
+    gram: ndarray
+        Gram matrix
+
+    References
+    ----------
+    .. [1] S. Klus, P. Gelß, "Tensor-Based Algorithms for Image Classification", Algorithms, 2019
+    """
+
+    # compute gram by iteratively applying the Hadarmard product
+    gram = np.ones([x_1.shape[1], x_2.shape[1]])
+    for i in range(len(basis_list)):
+        theta_1 = np.array([basis_list[i][k](x_1) for k in range(len(basis_list[i]))])
+        theta_2 = np.array([basis_list[i][k](x_2) for k in range(len(basis_list[i]))])
+        gram *= (theta_1.T.dot(theta_2))
+
+    return gram
+
 
 def hocur(x, basis_list, ranks, repeats=1, multiplier=10, progress=True, string=None):
     """Higher-order CUR decomposition of transformed data tensors.
@@ -485,7 +513,7 @@ def hocur(x, basis_list, ranks, repeats=1, multiplier=10, progress=True, string=
     # -------------------
 
     # define initial lists of column indices
-    col_inds = __first_col_inds(n, ranks, multiplier)
+    col_inds = __hocur_first_col_inds(n, ranks, multiplier)
 
     # define list of cores
     cores = [None] * (p + 1)
@@ -508,16 +536,16 @@ def hocur(x, basis_list, ranks, repeats=1, multiplier=10, progress=True, string=
         for i in range(p):
 
             # extract submatrix
-            y = __extract_matrix(x, basis_list, row_inds[i], col_inds[i])
+            y = __hocur_extract_matrix(x, basis_list, row_inds[i], col_inds[i])
 
             if k == 0:
                 # find linearly independent columns
-                cols = __find_li_cols(y)
+                cols = __hocur_find_li_cols(y)
                 cols = cols[:ranks[i + 1]]
                 y = y[:, cols]
 
             # find optimal rows
-            rows = __maxvolume(y)  # type: list
+            rows = __hocur_maxvolume(y)  # type: list
 
             # adapt ranks if necessary
             ranks[i + 1] = len(rows)
@@ -551,10 +579,10 @@ def hocur(x, basis_list, ranks, repeats=1, multiplier=10, progress=True, string=
         for i in range(p, 0, -1):
 
             # extract submatrix
-            y = __extract_matrix(x, basis_list, row_inds[i], col_inds[i]).reshape([ranks[i], n[i] * ranks[i + 1]])
+            y = __hocur_extract_matrix(x, basis_list, row_inds[i], col_inds[i]).reshape([ranks[i], n[i] * ranks[i + 1]])
 
             # find optimal rows
-            cols = __maxvolume(y.T)  # type: list
+            cols = __hocur_maxvolume(y.T)  # type: list
 
             # adapt ranks if necessary
             ranks[i] = len(cols)
@@ -583,7 +611,7 @@ def hocur(x, basis_list, ranks, repeats=1, multiplier=10, progress=True, string=
                          cpu_time=_time.time() - start_time, show=progress)
 
         # define first core
-        y = __extract_matrix(x, basis_list, None, col_inds[0])
+        y = __hocur_extract_matrix(x, basis_list, None, col_inds[0])
         cores[0] = y.reshape([1, n[0], 1, ranks[1]])
 
     # construct tensor train
@@ -593,8 +621,49 @@ def hocur(x, basis_list, ranks, repeats=1, multiplier=10, progress=True, string=
 
     return psi
 
+# private functions # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
-def __first_col_inds(dimensions, ranks, multiplier):
+def __constant_function_callback(t):
+    """Constant function.
+
+    Parameters
+    ----------
+    t: float
+        argument
+
+    Returns
+    -------
+    v: float
+        equal to 1
+    """
+
+    v = 1 + 0 * t
+
+    return v
+
+def __indicator_function_callback(t, a, b):
+    """Indicator function of an interval on the real line.
+
+    Parameters
+    ----------
+    t: float
+        check if t is in a given interval
+    a: float
+        lower bound of the interval
+    b: float
+        upper bound of the interval
+
+    Returns
+    -------
+    v: int
+        equal to 1 if t is in [a,b], 0 otherwise
+    """
+
+    v = 1 * ((a <= t) & (t < b))
+
+    return v
+
+def __hocur_first_col_inds(dimensions, ranks, multiplier):
     """Create random column indices
 
     Parameters
@@ -632,7 +701,53 @@ def __first_col_inds(dimensions, ranks, multiplier):
     return col_inds
 
 
-def __extract_matrix(data, basis_list, row_coordinates_list, col_coordinates_list):
+def __gauss_function_callback(t, mean, variance):
+    """Gauss function.
+
+    Parameters
+    ----------
+    t: float
+        argument for the Gauss function
+    mean: float
+        mean of the distribution
+    variance: float (>0)
+        variance
+
+    Returns
+    -------
+    v: float (>0)
+        value of the Gauss function at t
+    """
+
+    v = np.exp(-0.5 * (t - mean) ** 2 / variance)
+
+    return v
+
+
+def __periodic_gauss_function_callback(t, mean, variance):
+    """Periodic Gauss function.
+
+    Parameters
+    ----------
+    t: float
+        argument for the periodic Gauss function
+    mean: float
+        mean of the distribution
+    variance: float (>0)
+        variance
+
+    Returns
+    -------
+    v: float (>0)
+        value of the Gauss function at t
+    """
+
+    v = np.exp(-0.5 * np.sin(0.5 * (t - mean)) ** 2 / variance)
+
+    return v
+
+
+def __hocur_extract_matrix(data, basis_list, row_coordinates_list, col_coordinates_list):
     """Extraction of a submatrix of a transformed data tensor.
 
     Given a set of row and column coordinates, extracts a submatrix from the transformed data tensor corresponding to
@@ -764,7 +879,7 @@ def __extract_matrix(data, basis_list, row_coordinates_list, col_coordinates_lis
     return matrix
 
 
-def __find_li_cols(matrix, tol=1e-14):
+def __hocur_find_li_cols(matrix, tol=1e-14):
     """Find linearly independent columns of a matrix.
 
     Parameters
@@ -794,7 +909,7 @@ def __find_li_cols(matrix, tol=1e-14):
     return cols
 
 
-def __maxvolume(matrix, maximum_iterations=1000, tolerance=1e-5):
+def __hocur_maxvolume(matrix, maximum_iterations=1000, tolerance=1e-5):
     """Find dominant submatrix.
 
     Find rows of a given rectangular matrix which build a maximum-volume submatrix, see [1]_.
@@ -824,7 +939,7 @@ def __maxvolume(matrix, maximum_iterations=1000, tolerance=1e-5):
     iteration_counter = 1
 
     # find linearly independent rows
-    rows = __find_li_cols(matrix.T, tol=0)  # type: list
+    rows = __hocur_find_li_cols(matrix.T, tol=0)  # type: list
 
     # repeat row swapping until tolerance is reached
     while max_val > 1 + tolerance and iteration_counter <= maximum_iterations:
