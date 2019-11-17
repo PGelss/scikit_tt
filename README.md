@@ -159,7 +159,7 @@ function_major ........... construct transformed data tensors with function-majo
 hocur .................... construct general transformed data tensors using HOCUR
 ```
 
-## 5.3 Regression methods
+### 5.3 Regression methods
 
 Our toolbox provides different tensor-based methods to solve regression problems on transformed data tensors in the least-squares sense. The algorithms can be found in [*regression.py*](scikit_tt/data_driven/regression.py). The following functions have been implemented so far.
 
@@ -170,16 +170,16 @@ mandy_fm ................. MANDy using function-major decompositions
 mandy_kb ................. kernel-based MANDy
 ```
 
-### 5.3.1 Multidimensional approximation of nonlinear dynamical systems (MANDy)
+#### 5.3.1 Multidimensional approximation of nonlinear dynamical systems (MANDy)
 
 MANDy combines the data-driven recovery of dynamical systems with tensor decompositions. The methods implemented in [*mandy.py*](scikit_tt/data_driven/mandy.py) can be used for, e.g., the recovery of unknown governing equations from measurement data only. MANDy computes an exact TT decomposition of involved coefficient tensors. See [[7](README.md#11-references)] for details. 
 
 
-### 5.3.2 Kernel-based MANDy
+#### 5.3.2 Kernel-based MANDy
 
 Instead of computing the coefficient tensors explicitly, kernel-based MANDy can be used to indirectly represent those tensors by inverting gram matrices corresponding to the given transformed data tensors. Then, a sequence of Hadamard products is exploited to speed up computations. See [[12](README.md#11-references)] for details.
 
-### 5.3.3 Alternating ridge regression
+#### 5.3.3 Alternating ridge regression
 
 The exact computation of the coefficient tensors (indirectly or directly represented) may lead to high TT ranks. An alternative is the application of ARR to the regression problem in order to compute a low-rank representation of the coefficient tensor by iteratively solving low-dimensional regression problems. See [[12](README.md#11-references)] for details.
 
