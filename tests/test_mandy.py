@@ -5,7 +5,7 @@ from unittest import TestCase
 import numpy as np
 import scipy.integrate as spint
 import scikit_tt.models as mdl
-import scikit_tt.data_driven.mandy as mandy
+import scikit_tt.data_driven.reg as reg
 
 
 class TestMANDy(TestCase):
@@ -65,7 +65,7 @@ class TestMANDy(TestCase):
         """test coordinate-major approach"""
 
         # apply MANDy
-        xi = mandy.mandy_cm(self.fpu_x, self.fpu_y, self.fpu_psi, threshold=1e-10)
+        xi = reg.mandy_cm(self.fpu_x, self.fpu_y, self.fpu_psi, threshold=1e-10)
 
         # compute relative error
         rel_err = (xi - self.fpu_xi_exact).norm() / self.fpu_xi_exact.norm()
@@ -77,8 +77,8 @@ class TestMANDy(TestCase):
         """test function-major approach"""
 
         # apply MANDy
-        _ = mandy.mandy_fm(self.kuramoto_x, self.kuramoto_y, self.kuramoto_psi, add_one=False)
-        xi = mandy.mandy_fm(self.kuramoto_x, self.kuramoto_y, self.kuramoto_psi)
+        _ = reg.mandy_fm(self.kuramoto_x, self.kuramoto_y, self.kuramoto_psi, add_one=False)
+        xi = reg.mandy_fm(self.kuramoto_x, self.kuramoto_y, self.kuramoto_psi)
 
         # compute relative error
         rel_err = (xi - self.kuramoto_xi_exact).norm() / self.kuramoto_xi_exact.norm()
