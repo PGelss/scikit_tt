@@ -172,7 +172,7 @@ mandy_kb ................. kernel-based MANDy
 
 #### 5.3.1 Multidimensional approximation of nonlinear dynamical systems (MANDy)
 
-MANDy combines the data-driven recovery of dynamical systems with tensor decompositions. The methods implemented in [*mandy.py*](scikit_tt/data_driven/mandy.py) can be used for, e.g., the recovery of unknown governing equations from measurement data only. MANDy computes an exact TT decomposition of involved coefficient tensors. See [[7](README.md#11-references)] for details. 
+MANDy combines the data-driven recovery of dynamical systems with tensor decompositions. It can be used for, e.g., the recovery of unknown governing equations from measurement data only. MANDy computes an exact TT decomposition of involved coefficient tensors. See [[7](README.md#11-references)] for details. 
 
 
 #### 5.3.2 Kernel-based MANDy
