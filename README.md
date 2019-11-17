@@ -21,9 +21,12 @@ The simulation and analysis of high-dimensional problems is often infeasible due
 5. [Data analysis](README.md#5-data-analysis)
    - [Tensor-based dynamic mode decomposition (tDMD)](README.md#51-tensor-based-dynamic-mode-decomposition-tdmd)
    - [Transformed data tensors](README.md#52-transformed-data-tensors)
-   - [Multidimensional approximation of nonlinear dynamical systems (MANDy)](README.md#53-multidimensional-approximation-of-nonlinear-dynamical-systems-mandy)
-   - [Tensor-based extended dynamic mode decomposition (tEDMD)](README.md#54-tensor-based-extended-dynamic-mode-decomposition-tedmd)
-   - [Ulam's method](README.md#55-ulams-method)
+   - [Regression methods](README.md#53-regression-methods)
+     - [Multidimensional approximation of nonlinear dynamical systems (MANDy)](README.md#531-multidimensional-approximation-of-nonlinear-dynamical-systems-mandy)
+     - [Kernel-based MANDy)](README.md#532-kernel-based-mandy)
+     - [Alternating ridge regression (ARR)](README.md#533-alternating-ridge-regression-arr)
+   - [Tensor-based extended dynamic mode decomposition (tEDMD)](README.md#56-tensor-based-extended-dynamic-mode-decomposition-tedmd)
+   - [Ulam's method](README.md#57-ulams-method)
 6. [Models](README.md#6-models)
 7. [Examples](README.md#7-examples)
 8. [Tests](README.md#8-tests)
@@ -156,7 +159,9 @@ function_major ........... construct transformed data tensors with function-majo
 hocur .................... construct general transformed data tensors using HOCUR
 ```
 
-### 5.3 Multidimensional approximation of nonlinear dynamical systems (MANDy)
+## 5.3 Regression methods
+
+### 5.3.1 Multidimensional approximation of nonlinear dynamical systems (MANDy)
 
 MANDy combines the data-driven recovery of dynamical systems with tensor decompositions. The methods implemented in [*mandy.py*](scikit_tt/data_driven/mandy.py) can be used for the recovery of unknown governing equations from measurement data only. See [[7](README.md#11-references)] for details. 
 

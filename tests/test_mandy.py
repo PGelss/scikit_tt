@@ -5,7 +5,7 @@ from unittest import TestCase
 import numpy as np
 import scipy.integrate as spint
 import scikit_tt.models as mdl
-import scikit_tt.data_driven.reg as reg
+import scikit_tt.data_driven.regression as reg
 
 
 class TestMANDy(TestCase):
