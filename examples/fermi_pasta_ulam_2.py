@@ -10,7 +10,7 @@ References
 """
 
 import numpy as np
-import scikit_tt.data_driven.mandy as mandy
+import scikit_tt.data_driven.regression as reg
 import scikit_tt.models as mdl
 import scikit_tt.utils as utl
 import matplotlib.pyplot as plt
@@ -108,7 +108,7 @@ for i in range(d_min, d_max + 1):
                      cpu_time=_time.time() - start_time)
 
         # approximate coefficient tensor
-        xi = mandy.mandy_cm(x[:, :j], y[:, :j], psi, threshold=1e-10)
+        xi = reg.mandy_cm(x[:, :j], y[:, :j], psi, threshold=1e-10)
         rel_errors[ind_1, ind_2] = (xi - xi_exact).norm() / xi_exact.norm()
         del xi
 

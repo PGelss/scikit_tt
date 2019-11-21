@@ -12,7 +12,7 @@ References
 from __future__ import division
 import numpy as np
 import scipy.linalg as splin
-import scikit_tt.data_driven.mandy as mandy
+import scikit_tt.data_driven.regression as reg
 import scikit_tt.models as mdl
 import scikit_tt.utils as utl
 import matplotlib.pyplot as plt
@@ -153,7 +153,7 @@ for i in range(snapshots_min, snapshots_max + snapshots_step, snapshots_step):
             # exact computation in TT format
             start_time = utl.progress('Running MANDy (eps=0)', 0)
         with utl.timer() as time:
-            xi = mandy.mandy_cm(x, y, psi, threshold=0)
+            xi = reg.mandy_cm(x, y, psi, threshold=0)
         cpu_times[1, ind] += time.elapsed / repeats
         if r == 0:
             rel_errors[1, ind] = (xi - xi_exact).norm() / xi_exact.norm()
@@ -166,7 +166,7 @@ for i in range(snapshots_min, snapshots_max + snapshots_step, snapshots_step):
         for j in range(0, 4):
             start_time = utl.progress('Running MANDy (eps=10^' + str(-10 + j) + ')', 0)
             with utl.timer() as time:
-                xi = mandy.mandy_cm(x, y, psi, threshold=10 ** (-10 + j))
+                xi = reg.mandy_cm(x, y, psi, threshold=10 ** (-10 + j))
             cpu_times[j + 2, ind] += time.elapsed / repeats
             if r == 0:
                 rel_errors[j + 2, ind] = (xi - xi_exact).norm() / xi_exact.norm()

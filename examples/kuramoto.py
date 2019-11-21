@@ -6,13 +6,13 @@ This is an example of the application of MANDy to a high-dimensional dynamical s
 References
 ----------
 .. [1] P. Gelß, S. Klus, J. Eisert, C. Schütte, "Multidimensional Approximation of Nonlinear Dynamical Systems",
-       arXiv:1809.02448, 2018
+       Journal of Computational Nonlinear Dynamics, 2019
 """
 
 import numpy as np
 import scipy.integrate as spint
 from scikit_tt.tensor_train import TT
-import scikit_tt.data_driven.mandy as mandy
+import scikit_tt.data_driven.regression as reg
 import scikit_tt.models as mdl
 import scikit_tt.utils as utl
 import matplotlib.pyplot as plt
@@ -134,7 +134,7 @@ utl.progress('Generate test data', 100, cpu_time=_time.time() - start_time)
 # apply MANDy (function-major)
 start_time = utl.progress('Running MANDy (eps=' + str(threshold) + ')', 0)
 with utl.timer() as time:
-    xi = mandy.mandy_fm(x, y, psi, threshold=threshold)
+    xi = reg.mandy_fm(x, y, psi, threshold=threshold)
 utl.progress('Running MANDy (eps=' + str(threshold) + ')', 100, cpu_time=_time.time() - start_time)
 
 # CPU time and relative error
@@ -155,7 +155,7 @@ time = 100
 m = 6
 
 # generate new data
-start_time = utl.progress('\Generate test data', 0)
+start_time = utl.progress('Generate test data', 0)
 [x, _] = kuramoto(x_0, w, time, m)
 utl.progress('Generate test data', 100, cpu_time=_time.time() - start_time)
 
