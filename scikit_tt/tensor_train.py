@@ -269,7 +269,7 @@ class TT(object):
                 # construct cores
                 for i in range(order):
                     # set core to zero array
-                    cores.append(np.zeros([ranks[i], self.row_dims[i], self.col_dims[i], ranks[i + 1]], dtype = complex))
+                    cores.append(np.zeros([ranks[i], self.row_dims[i], self.col_dims[i], ranks[i + 1]]))
 
                     # insert core of self
                     cores[i][0:self.ranks[i], :, :, 0:self.ranks[i + 1]] = self.cores[i]
