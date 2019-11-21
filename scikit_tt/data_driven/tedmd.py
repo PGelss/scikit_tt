@@ -60,7 +60,7 @@ def amuset_hosvd(data_matrix, x_indices, y_indices, basis_list, threshold=1e-2, 
     # loop over all index sets
     for i in range(len(x_indices)):
         # compute reduced matrix
-        matrix, u, s, v = _reduced_matrix(last_core, x_indices[i], y_indices[i], threshold)
+        matrix, u, s, v = _reduced_matrix(last_core, x_indices[i], y_indices[i])
 
         # solve reduced eigenvalue problem
         eigenvalues_reduced, eigenvectors_reduced = np.linalg.eig(matrix)
@@ -176,8 +176,8 @@ def _reduced_matrix(last_core, x_indices, y_indices, threshold=1e-3):
         index set for snapshot matrix x
     y_indices: ndarray
         index set for snapshot matrix y
-    threshold: float
-        threshold for SVD
+    threshold: float, optional
+        threshold for SVD, default is 1e-4
 
     Returns
     -------
