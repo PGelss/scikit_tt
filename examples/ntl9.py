@@ -1,5 +1,14 @@
 # -*- coding: utf-8 -*-
 
+"""
+This is an example of tensor-based EDMD. See [1]_ for details.
+
+References
+----------
+..[1] F. Nüske, P. Gelß, S. Klus, C. Clementi. "Tensor-based EDMD for the Koopman analysis of high-dimensional
+          systems", arXiv:1908.04741, 2019
+"""
+
 import numpy as np
 import scikit_tt.utils as utl
 import scikit_tt.data_driven.tedmd as tedmd
