@@ -23,7 +23,7 @@ The simulation and analysis of high-dimensional problems is often infeasible due
    - [Transformed data tensors](README.md#52-transformed-data-tensors)
    - [Regression methods](README.md#53-regression-methods)
      - [Multidimensional approximation of nonlinear dynamical systems (MANDy)](README.md#531-multidimensional-approximation-of-nonlinear-dynamical-systems-mandy)
-     - [Kernel-based MANDy)](README.md#532-kernel-based-mandy)
+     - [Kernel-based MANDy](README.md#532-kernel-based-mandy)
      - [Alternating ridge regression (ARR)](README.md#533-alternating-ridge-regression-arr)
    - [Tensor-based extended dynamic mode decomposition (tEDMD)](README.md#56-tensor-based-extended-dynamic-mode-decomposition-tedmd)
    - [Ulam's method](README.md#57-ulams-method)
@@ -223,14 +223,19 @@ vicsek_fractal ........... generalization of the Vicsek fractal
 Numerical experiments from different application areas are included in **scikit-tt**. For instance, the application of the TT format to chemical master equations [[2](README.md#11-references)], heterogeneous catalytic processes [[3](README.md#11-references)], fluid dynamics [[6](README.md#11-references)], and dynamical systems [[6](README.md#11-references), [7](README.md#11-references)] can be found in the directory [*examples*](examples/).
 
 ```
+ala10 .................... apply tEDMD to time series data of deca-alanine
 co_oxidation ............. compute stationary distributions of a catalytic process
 fermi_pasta_ulam_1 ....... apply MANDy to the Fermi-Pasta-Ulam problem
 fermi_pasta_ulam_2 ....... apply MANDy to the Fermi-Pasta-Ulam problem
 fractals ................. use tensor decompositions for generating fractal patterns
 karman ................... apply tDMD to the von Kármán vortex street
 kuramoto ................. apply MANDy to the Kuramoto model
+mnist .................... tensor-based image classification of theMNIST and FMNIST data set
+ntl9 ..................... apply tEDMD to time series data of NTL9
 quadruple_well ........... approximate eigenfunctions of the Perron-Frobenius operator in 3D
+radial_potential ......... apply tEDMD to time series data of particles in a radial potential
 signaling_cascade ........ compute mean concentrations of a 20-dimensional signaling cascade
+toll_station ............. compute distribution of cars at a toll station
 triple_well .............. approximate eigenfunctions of the Perron-Frobenius operator in 2D
 two_step_destruction ..... apply QTT and MALS to a two-step destruction process
 ```
