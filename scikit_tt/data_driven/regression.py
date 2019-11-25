@@ -247,7 +247,9 @@ def mandy_kb(x, y, basis_list):
     gram = tdt.gram(x, x, basis_list)
 
     # solve system of linear equations
-    z = lin.solve(gram, y.T, assume_a='pos', check_finite=False).T
+    # z = lin.solve(gram, y.T, assume_a='pos', check_finite=False).T
+    z, _, _, _ = lin.lstsq(gram, y.T, lapack_driver='gelss')
+    z = z.T
 
     return z
 
