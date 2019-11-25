@@ -33,7 +33,7 @@ class TestMANDy(TestCase):
         self.kuramoto_m = 1000
         self.kuramoto_psi = [lambda t: np.sin(t), lambda t: np.cos(t)]
         self.kuramoto_basis = [[tdt.constant_function(0)] + [tdt.sin(i,1) for i in range(self.kuramoto_d)], [tdt.constant_function(0)] + [tdt.cos(i,1) for i in range(self.kuramoto_d)]]
-        self.kuramoto_initial = tt.ones([11, 11], [1, 1], 15)
+        self.kuramoto_initial = tt.ones([11, 11], [1, 1], 11)
 
         # exact coefficient tensors
         self.fpu_xi_exact = mdl.fpu_coefficients(self.fpu_d)
@@ -90,11 +90,29 @@ class TestMANDy(TestCase):
         # check if relative error is smaller than tolerance
         self.assertLess(rel_err, self.tol)
 
+    def test_mandy_kb(self):
+        """test kernel-based approach"""
+
+        # apply kernel-based MANDy
+        z = reg.mandy_kb(self.kuramoto_x, self.kuramoto_y, self.kuramoto_basis)
+
+        # construct coefficient tensor
+        xi = tdt.basis_decomposition(self.kuramoto_x, self.kuramoto_basis)
+        xi.cores[-1] = np.tensordot(xi.cores[-1], z.T, axes=(1,0)).transpose([0, 3, 1, 2])
+        xi.row_dims[-1] = z.shape[0]
+
+        # compute relative error
+        rel_err = (xi - self.kuramoto_xi_exact).norm() / self.kuramoto_xi_exact.norm()
+
+        # check if relative error is smaller than tolerance
+        self.assertLess(rel_err, self.tol)
+
     def test_arr(self):
         """test ARR"""
 
         # apply ARR
-        xi = reg.arr(self.kuramoto_x, self.kuramoto_y, self.kuramoto_basis, self.kuramoto_initial, repeats=5, progress=False)
+        _ = reg.arr(self.kuramoto_x, self.kuramoto_y, self.kuramoto_basis, [self.kuramoto_initial.copy() for _ in range(10)], repeats=1, rcond=10**-12, progress=False)
+        xi = reg.arr(self.kuramoto_x, self.kuramoto_y, self.kuramoto_basis, self.kuramoto_initial, repeats=10, rcond=10**-12, progress=False)
 
         # merge tensor-trains
         for i in range(self.kuramoto_d):
@@ -106,7 +124,7 @@ class TestMANDy(TestCase):
         xi_comb = xi[0]
         for i in range(1, self.kuramoto_d):
         	xi_comb = xi_comb + xi[i]
-        	
+
         # compute relative error
         rel_err = (xi_comb - self.kuramoto_xi_exact).norm() / self.kuramoto_xi_exact.norm()
 
