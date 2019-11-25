@@ -1,13 +1,26 @@
+
 ![scikit-tt - A toolbox for tensor-train computations](logo.png)
 
 <p align="center">
   <a href="https://travis-ci.org/PGelss/scikit_tt"><img src="https://img.shields.io/travis/PGelss/scikit_tt.svg"><a>
   <a href="https://codecov.io/gh/PGelss/scikit_tt/branch/master"><img src="https://img.shields.io/codecov/c/github/PGelss/scikit_tt.svg"><a>
+<img src="https://img.shields.io/github/downloads/PGelss/scikit_tt/total">
 </p>
 
 ## Short description
 
-The simulation and analysis of high-dimensional problems is often infeasible due to the curse of dimensionality. Using the *tensor-train format* (TT format) [[1](README.md#11-references), [2](README.md#11-references)], **scikit-tt** can be applied to various numerical problems in order to reduce the memory consumption and the computational costs compared to classical approaches significantly. Possible application areas are the computation of low-rank approximations for high-dimensional systems [[3](README.md#11-references)], solving systems of linear equations and eigenvalue problems in the TT format [[4](README.md#11-references)], representing operators based on nearest-neighbor interactions in the TT format [[5](README.md#11-references)], constructing pseudoinverses for tensor-based reformulations of dimensionality reduction methods [[6](README.md#11-references)], and the approximation of transfer operators [[2](README.md#11-references)] as well as governing equations of dynamical systems [[7](README.md#11-references)].
+The simulation and analysis of high-dimensional problems is often infeasible due to the curse of dimensionality. Using the *tensor-train format* (TT format) [[1](README.md#11-references), [2](README.md#11-references)], **Scikit-TT** can be applied to various numerical problems in order to reduce the memory consumption and the computational costs compared to classical approaches significantly. Possible application areas are:
+
+- the computation of low-rank approximations for high-dimensional systems [[3](README.md#11-references)],
+- solving systems of linear equations and eigenvalue problems in the TT format [[4](README.md#11-references)],
+- representing operators based on nearest-neighbor interactions in the TT format [[5](README.md#11-references)],
+- constructing pseudoinverses for tensor-based reformulations of dimensionality reduction methods [[6](README.md#11-references)],
+- recovery of governing equations of dynamical systems [[7](README.md#11-references)],
+- creating fractal patterns with tensor products [[9](README.md#11-references)],
+- Koopman analysis of high-dimensional systems [[10](README.md#11-references)],
+- tensor-based image classification [[12](README.md#11-references)].
+
+**Scikit-TT** provides a powerful TT class as well as different modules comprising solvers for algebraic problems, the automatic construction of tensor trains, and data-driven methods. Furthermore, several examples for the diverse application areas are included.
 
 ## Content
 
@@ -40,7 +53,7 @@ The simulation and analysis of high-dimensional problems is often infeasible due
 
 ## 1. Installing
 
-A [*setup.py*](setup.py) is included in the package. To install **scikit-tt** simply enter:
+A [*setup.py*](setup.py) is included in the package. To install **Scikit-TT** simply enter:
 
 ```
 python setup.py install --user
@@ -54,13 +67,64 @@ pip install git+https://github.com/PGelss/scikit_tt
 
 ## 2. TT class
 
-The tensor-train class - implemented in the module [*tensor-train.py*](scikit_tt/tensor_train.py) - is the core of **scikit-tt** and enables us to work with the tensor-train format. We define tensor trains in terms of different attributes such as *order*, *row_dims*, *col_dims*, *ranks*, and *cores*. An overview of the member functions of the class is shown in the following list.
+The tensor-train class - implemented in the module [*tensor-train.py*](scikit_tt/tensor_train.py) - is the core of **Scikit-TT** and enables us to work with the tensor-train format. We define tensor trains in terms of different attributes such as *order*, *row_dims*, *col_dims*, *ranks*, and *cores*. That is, a tensor train (operator) 
+
+$$T \in \mathbb{R}^{(m_1 \times n_1) \times \dots \times (m_d\times n_d)}$$ 
+
+with graphical representation
+
+$$
+\,\text{---}\,{\footnotesize r_0}\,\text{---}\,
+\begin{matrix}
+|\\
+{\footnotesize n_1}\\
+|   \\
+\fcolorbox{black}{whitesmoke}{$T_1$}  \\
+| \\
+{\footnotesize m_1}\\
+|
+\end{matrix}
+\,\text{---}\,{\footnotesize r_1}\,\text{---}\,
+\begin{matrix}
+|\\
+{\footnotesize n_2}\\
+|   \\
+\fcolorbox{black}{whitesmoke}{$T_2$}   \\
+| \\
+{\footnotesize m_2}\\
+|
+\end{matrix}
+\,\text{---}\,{\footnotesize r_2}\,\text{---}\,
+\begin{matrix}
+|\\
+{\footnotesize n_3}\\
+|   \\
+\fcolorbox{black}{whitesmoke}{$T_3$}   \\
+| \\
+{\footnotesize m_3}\\
+|
+\end{matrix}
+\,\text{------}\cdots\cdots\text{------}\,
+\begin{matrix}
+|\\
+{\footnotesize n_d}\\
+|   \\
+\fcolorbox{black}{whitesmoke}{$T_d$}   \\
+| \\
+{\footnotesize m_d}\\
+|
+\end{matrix}
+\,\text{---}\,{\footnotesize r_d}\,\text{---}\,
+$$
+
+is given by ```order=d```, ```row_dims=[m_1,...,m_d]```, ```col_dims=[n_1,...,n_d]```, ```ranks=[r_0,...,r_d]```, and ```cores=[T_1,...,T_d]```. An overview of the member functions of the class is shown in the following list.
 
 ```
 TT ....................... construct tensor train from array or list of cores
 print .................... print the attributes of a given tensor train
 +,-,*,@ .................. basic operations on tensor trains 
 transpose ................ transpose of a tensor train
+conj ..................... complex conjugate of a tensor train
 isoperator ............... check if a tensor train is an operator
 copy ..................... deep copy of a tensor train
 element .................. compute single element of a tensor train
@@ -72,6 +136,7 @@ ortho .................... left- and right-orthonormalize a tensor train
 norm ..................... compute the norm of a tensor train
 tt2qtt ................... convert from TT to QTT format
 qtt2tt ................... convert from QTT to TT format
+svd ...................... compute global SVDs of tensor trains
 pinv ..................... compute pseudoinverses of tensor trains
 ```
 
@@ -82,13 +147,12 @@ zeros .................... construct a tensor train of all zeros
 ones ..................... construct a tensor train of all ones
 eye ...................... construct an identity tensor train
 rand ..................... construct a random tensor train
-unit ..................... construct a canonical unit tensor train
 uniform .................. construct a uniformly distributed tensor train
 ```
 
 ## 3. TT solvers
 
-Different methods for solving systems of linear equations, eigenvalue problems, and linear differential equations in the TT format are implemented in **scikit-tt**. These methods - which can be found in the directory [*scikit_tt/solvers*](scikit_tt/solvers) - are based on the alternating optimization of the TT cores.
+Different methods for solving systems of linear equations, eigenvalue problems, and linear differential equations in the TT format are implemented in **Scikit-TT**. These methods - which can be found in the directory [*scikit_tt/solvers*](scikit_tt/solvers) - are based on the alternating optimization of the TT cores.
 
 ### 3.1 Systems of linear equations
 
@@ -110,7 +174,7 @@ power_method ............. inverse power iteration method for eigenvalue problem
 
 ### 3.3 Linear differential equations
 
-In order to compute time-dependent or stationary distributions of linear differential equations in the TT format, **scikit-tt** uses explicit as well as implicit integration schemes such as the Euler methods or the trapezoidal rule. In order to approximate the solutions at each time step using implicit methods, ALS and MALS, respectively, are used. The methods can be found in [*ode.py*](scikit_tt/solvers/ode.py).
+In order to compute time-dependent or stationary distributions of linear differential equations in the TT format, **Scikit-TT** uses explicit as well as implicit integration schemes such as the Euler methods or the trapezoidal rule. In order to approximate the solutions at each time step using implicit methods, ALS and MALS, respectively, are used. The methods can be found in [*ode.py*](scikit_tt/solvers/ode.py).
 
 ```
 explicit_euler ........... explicit Euler method for linear differential equations in the TT format
@@ -133,7 +197,7 @@ slim_mme_hom ............. SLIM decomposition for homogeneous Markov generators
 
 ## 5. Data analysis
 
-**scikit-tt** combines data-driven methods with tensor network decompositions in order to significantly reduce the computational costs and/or storage consumption for high-dimensional data sets. Different methods can be found in the directory [*scikit_tt/data_driven*](scikit_tt/data_driven/).
+**Scikit-TT** combines data-driven methods with tensor network decompositions in order to significantly reduce the computational costs and/or storage consumption for high-dimensional data sets. Different methods can be found in the directory [*scikit_tt/data_driven*](scikit_tt/data_driven/).
 
 ### 5.1 Tensor-based dynamic mode decomposition (tDMD)
 
@@ -146,7 +210,7 @@ tdmd_standard ............ standard tDMD algorithm
 
 ### 5.2 Transformed data tensors
 
-Given time-series data and a set of basis functions, **scikit-tt** provides methods to construct the counterparts of tranformed basis matrices, so-called transformed data tensors. The algorithms in [*transform.py*](scikit_tt/data_driven/transform.py) include general basis decompositions [[10](README.md#11-references)], coordinate- and function-major decompositions [[7](README.md#11-references)], as well as an approach to construct transformed data tensors using higher-order CUR decompositions (HOCUR) [[10, 11](README.md#11-references)]. Furthermore, different basis functions which are typicall used can be found in the module.
+Given time-series data and a set of basis functions, **Scikit-TT** provides methods to construct the counterparts of tranformed basis matrices, so-called transformed data tensors. The algorithms in [*transform.py*](scikit_tt/data_driven/transform.py) include general basis decompositions [[10](README.md#11-references)], coordinate- and function-major decompositions [[7](README.md#11-references)], as well as an approach to construct transformed data tensors using higher-order CUR decompositions (HOCUR) [[10, 11](README.md#11-references)]. Furthermore, different basis functions which are typicall used can be found in the module.
 
 ```
 constant_function ........ constant function
@@ -164,7 +228,7 @@ hocur .................... construct general transformed data tensors using HOCU
 Our toolbox provides different tensor-based methods to solve regression problems on transformed data tensors in the least-squares sense. The algorithms can be found in [*regression.py*](scikit_tt/data_driven/regression.py). The following functions have been implemented so far.
 
 ```
-arr ...................... Alternating ridge regression
+arr ...................... alternating ridge regression
 mandy_cm ................. MANDy using coordinate-major decompositions
 mandy_fm ................. MANDy using function-major decompositions
 mandy_kb ................. kernel-based MANDy
@@ -185,7 +249,7 @@ The exact computation of the coefficient tensors (indirectly or directly represe
 
 ### 5.4 Tensor-based extended dynamic mode decomposition (tEDMD)
 
-As described in [[10](README.md#11-references)], a tensor-based counterpart of EDMD is implemented in **scikit-tt**. The basic procedures of tEDMD - combinations of the TT format and so-called AMUSE - are implemented in [*tedmd.py*](scikit_tt/data_driven/tedmd.py).
+As described in [[10](README.md#11-references)], a tensor-based counterpart of EDMD is implemented in **Scikit-TT**. The basic procedures of tEDMD - combinations of the TT format and so-called AMUSE - are implemented in [*tedmd.py*](scikit_tt/data_driven/tedmd.py).
 
 ```
 amuset_hosvd ............. tEDMD using AMUSEt with HOSVD
@@ -194,7 +258,7 @@ amuset_hocur ............. tEDMD using AMUSEt with HOCUR
 
 ### 5.5 Ulam's method
 
-Given transitions of particles in a 2- or 3-dimensional potentials, **scikit-tt** can be used to approximate the corresponding Perron-Frobenius operator in TT format. The algorithms can be found in [*ulam.py*](scikit_tt/data_driven/ulam.py). See [[2](README.md#11-references)] for details.
+Given transitions of particles in a 2- or 3-dimensional potentials, **Scikit-TT** can be used to approximate the corresponding Perron-Frobenius operator in TT format. The algorithms can be found in [*ulam.py*](scikit_tt/data_driven/ulam.py). See [[2](README.md#11-references)] for details.
 
 ```
 ulam_2d .................. approximate Perron-Frobenius operators for 2-dimensional systems
@@ -220,7 +284,7 @@ vicsek_fractal ........... generalization of the Vicsek fractal
 
 ## 7. Examples
 
-Numerical experiments from different application areas are included in **scikit-tt**. For instance, the application of the TT format to chemical master equations [[2](README.md#11-references)], heterogeneous catalytic processes [[3](README.md#11-references)], fluid dynamics [[6](README.md#11-references)], and dynamical systems [[6](README.md#11-references), [7](README.md#11-references)] can be found in the directory [*examples*](examples/).
+Numerical experiments from different application areas are included in **Scikit-TT**. For instance, the application of the TT format to chemical master equations [[2](README.md#11-references)], heterogeneous catalytic processes [[3](README.md#11-references)], fluid dynamics [[6](README.md#11-references)], and dynamical systems [[6](README.md#11-references), [7](README.md#11-references)] can be found in the directory [*examples*](examples/).
 
 ```
 ala10 .................... apply tEDMD to time series data of deca-alanine
@@ -257,7 +321,7 @@ test_ulam ................ unit tests for data_driven/ulam.py
 
 ## 9. Utilities
 
-In [*utils.py*](scikit_tt/utils.py) we collect routines which are employed at several points in **scikit-tt**.
+In [*utils.py*](scikit_tt/utils.py) we collect routines which are employed at several points in **Scikit-TT**.
 
 ```
 header ................... ASCII header for scikit-tt
@@ -269,7 +333,7 @@ timer .................... measure CPU time
 
 ### 10.1 Authors & contact
 
-* **Dr. Patrick Gelß** - _major contribution_ - CRC 1114, Freie Universität Berlin, Germany
+* **Dr. Patrick Gelß** - _lead developer_ - CRC 1114, Freie Universität Berlin, Germany
   - address: Arnimallee 9, 14195 Berlin, Germany
   - email: p.gelss@fu-berlin.de
 * **Dr. Stefan Klus** - _initial work_ - CRC 1114, Freie Universität Berlin, Germany
@@ -286,7 +350,7 @@ This project is licensed under the [LGPLv3+](https://www.gnu.org/licenses/lgpl-3
 
 ### 10.4 Versions
 
-The current version of **scikit-tt** is [1.0.1](https://github.com/PGelss/scikit_tt/releases/latest).
+The current version of **Scikit-TT** is [1.1](https://github.com/PGelss/scikit_tt/releases/latest). For a list of previous versions, click [here](https://github.com/PGelss/scikit_tt/releases).
 
 ## 11. References
 
@@ -313,3 +377,4 @@ The current version of **scikit-tt** is [1.0.1](https://github.com/PGelss/scikit
 [11] I. Oseledets, E. Tyrtyshnikov, "TT-cross approximation for multidimensional arrays", Linear Algebra and its Applications 432 (1) (2010)
 
 [12] S. Klus, P. Gelß, "Tensor-Based Algorithms for Image Classification", Algorithms 12 (11), 2019
+
