@@ -4,8 +4,10 @@ from __future__ import division
 from unittest import TestCase
 import numpy as np
 import scipy.integrate as spint
+import scikit_tt.tensor_train as tt
 import scikit_tt.models as mdl
 import scikit_tt.data_driven.regression as reg
+import scikit_tt.data_driven.transform as tdt
 
 
 class TestMANDy(TestCase):
@@ -30,6 +32,8 @@ class TestMANDy(TestCase):
         self.kuramoto_t = 100
         self.kuramoto_m = 1000
         self.kuramoto_psi = [lambda t: np.sin(t), lambda t: np.cos(t)]
+        self.kuramoto_basis = [[tdt.constant_function(0)] + [tdt.sin(i,1) for i in range(self.kuramoto_d)], [tdt.constant_function(0)] + [tdt.cos(i,1) for i in range(self.kuramoto_d)]]
+        self.kuramoto_initial = tt.ones([11, 11], [1, 1], 15)
 
         # exact coefficient tensors
         self.fpu_xi_exact = mdl.fpu_coefficients(self.fpu_d)
@@ -82,6 +86,29 @@ class TestMANDy(TestCase):
 
         # compute relative error
         rel_err = (xi - self.kuramoto_xi_exact).norm() / self.kuramoto_xi_exact.norm()
+
+        # check if relative error is smaller than tolerance
+        self.assertLess(rel_err, self.tol)
+
+    def test_arr(self):
+        """test ARR"""
+
+        # apply ARR
+        xi = reg.arr(self.kuramoto_x, self.kuramoto_y, self.kuramoto_basis, self.kuramoto_initial, repeats=5, progress=False)
+
+        # merge tensor-trains
+        for i in range(self.kuramoto_d):
+        	xi[i].order += 1
+        	xi[i].cores.append(np.eye(self.kuramoto_d)[:,i].reshape([1, 10, 1, 1]))
+        	xi[i].row_dims.append(10)
+        	xi[i].col_dims.append(1)
+        	xi[i].ranks.append(1)
+        xi_comb = xi[0]
+        for i in range(1, self.kuramoto_d):
+        	xi_comb = xi_comb + xi[i]
+        	
+        # compute relative error
+        rel_err = (xi_comb - self.kuramoto_xi_exact).norm() / self.kuramoto_xi_exact.norm()
 
         # check if relative error is smaller than tolerance
         self.assertLess(rel_err, self.tol)
