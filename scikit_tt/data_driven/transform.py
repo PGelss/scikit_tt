@@ -16,7 +16,7 @@ def constant_function():
         constant function
     """
 
-    f = lambda t: 1
+    f = lambda t: 1 + 0 * t[0]
 
     return f
 
