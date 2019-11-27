@@ -78,6 +78,8 @@ class TestMANDy(TestCase):
 
         tdt_1 = tdt.basis_decomposition(self.data, self.phi_2)
         _ = tdt.function_major(self.data, self.psi_2, add_one=False)
+        _ = tdt.function_major(self.data, self.psi_2, add_one=False, single_core=0)
+        _ = tdt.function_major(self.data, self.psi_2, add_one=False, single_core=1)
         tdt_2 = tdt.function_major(self.data, self.psi_2)
         self.assertLess((tdt_1-tdt_2).norm(), self.tol)
 
