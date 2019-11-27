@@ -356,7 +356,7 @@ def coordinate_major(x, phi, single_core=None):
     return psi
 
 
-def function_major(x, phi, add_one=True):
+def function_major(x, phi, add_one=True, single_core=None):
     """Construct a transformed data tensor in TT format using the function-major approach.
 
     Given a set of basis functions phi, construct a TT decomposition psi of the form::
@@ -404,33 +404,63 @@ def function_major(x, phi, add_one=True):
     # number of dimensions
     d = x.shape[0]
 
-    # define cores as list of empty arrays
-    cores = [np.zeros([1, d + add_one, 1, m])] + [np.zeros([m, d + add_one, 1, m]) for _ in range(1, p)]
+    if single_core is None:
 
-    # insert elements of first core
-    if add_one is True:
-        for j in range(m):
-            cores[0][0, 0, 0, j] = 1
-            cores[0][0, 1:, 0, j] = np.array([phi[0](x[k, j]) for k in range(d)])
-    else:
-        for j in range(m):
-            cores[0][0, :, 0, j] = np.array([phi[0](x[k, j]) for k in range(d)])
+        # define cores as list of empty arrays
+        cores = [np.zeros([1, d + add_one, 1, m])] + [np.zeros([m, d + add_one, 1, m]) for _ in range(1, p)]
 
-    # insert elements of subsequent cores
-    for i in range(1, p):
+        # insert elements of first core
         if add_one is True:
             for j in range(m):
-                cores[i][j, 0, 0, j] = 1
-                cores[i][j, 1:, 0, j] = np.array([phi[i](x[k, j]) for k in range(d)])
+                cores[0][0, 0, 0, j] = 1
+                cores[0][0, 1:, 0, j] = np.array([phi[0](x[k, j]) for k in range(d)])
         else:
             for j in range(m):
-                cores[i][j, :, 0, j] = np.array([phi[i](x[k, j]) for k in range(d)])
+                cores[0][0, :, 0, j] = np.array([phi[0](x[k, j]) for k in range(d)])
 
-    # append core containing unit vectors
-    cores.append(np.eye(m).reshape(m, m, 1, 1))
+        # insert elements of subsequent cores
+        for i in range(1, p):
+            if add_one is True:
+                for j in range(m):
+                    cores[i][j, 0, 0, j] = 1
+                    cores[i][j, 1:, 0, j] = np.array([phi[i](x[k, j]) for k in range(d)])
+            else:
+                for j in range(m):
+                    cores[i][j, :, 0, j] = np.array([phi[i](x[k, j]) for k in range(d)])
 
-    # construct tensor train
-    psi = TT(cores)
+        # append core containing unit vectors
+        cores.append(np.eye(m).reshape(m, m, 1, 1))
+
+        # construct tensor train
+        psi = TT(cores)
+
+    elif single_core == 0:
+
+        # define core
+        psi = np.zeros([1, d + add_one, 1, m])
+
+        # insert elements
+        if add_one is True:
+            for j in range(m):
+                psi[0, 0, 0, j] = 1
+                psi[0, 1:, 0, j] = np.array([phi[0](x[k, j]) for k in range(d)])
+        else:
+            for j in range(m):
+                psi[0, :, 0, j] = np.array([phi[0](x[k, j]) for k in range(d)])
+
+    else:
+
+        # define core
+        psi = np.zeros([m, d + add_one, 1, m])
+
+        # insert elements
+        if add_one is True:
+            for j in range(m):
+                psi[j, 0, 0, j] = 1
+                psi[j, 1:, 0, j] = np.array([phi[single_core](x[k, j]) for k in range(d)])
+        else:
+            for j in range(m):
+                psi[j, :, 0, j] = np.array([phi[single_core](x[k, j]) for k in range(d)])
 
     return psi
 
