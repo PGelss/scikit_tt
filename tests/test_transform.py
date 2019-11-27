@@ -9,9 +9,13 @@ class TestMANDy(TestCase):
 
     def setUp(self):
         """..."""
+
+        self.tol = 1e-10
         self.d = 10
         self.m = 5
+        self.n = 20
         self.data = np.random.rand(self.d, self.m)
+        self.data_2 = np.random.rand(self.d, self.n)
         self.phi_1 = [[tdt.constant_function(), tdt.identity(i), tdt.monomial(i,2)] for i in range(self.d)]
         self.psi_1 = [lambda t: 1, lambda t: t, lambda t: t**2]
         self.phi_2 = [[tdt.constant_function()] + [tdt.sin(i,1) for i in range(self.d)], [tdt.constant_function()] + [tdt.cos(i,1) for i in range(self.d)] ]
@@ -56,6 +60,48 @@ class TestMANDy(TestCase):
         core_1 = tdt.basis_decomposition(self.data, self.phi_1, single_core=1)
         self.assertEqual(np.sum(np.abs(tdt_1.cores[0]-core_0)), 0)
         self.assertEqual(np.sum(np.abs(tdt_1.cores[1]-core_1)), 0)
+
+    def test_coordinate_major(self):
+        """test coordinate-major decomposition"""
+
+        tdt_1 = tdt.basis_decomposition(self.data, self.phi_1)
+        tdt_2 = tdt.coordinate_major(self.data, self.psi_1)
+        self.assertLess((tdt_1-tdt_2).norm(), self.tol)
+
+        core_0 = tdt.coordinate_major(self.data, self.psi_1, single_core=0)
+        core_1 = tdt.coordinate_major(self.data, self.psi_1, single_core=1)
+        self.assertEqual(np.sum(np.abs(tdt_1.cores[0]-core_0)), 0)
+        self.assertEqual(np.sum(np.abs(tdt_1.cores[1]-core_1)), 0)
+
+    def test_function_major(self):
+        """test function-major decomposition"""
+
+        tdt_1 = tdt.basis_decomposition(self.data, self.phi_2)
+        _ = tdt.function_major(self.data, self.psi_2, add_one=False)
+        tdt_2 = tdt.function_major(self.data, self.psi_2)
+        self.assertLess((tdt_1-tdt_2).norm(), self.tol)
+
+        core_0 = tdt.function_major(self.data, self.psi_2, single_core=0)
+        core_1 = tdt.function_major(self.data, self.psi_2, single_core=1)
+        self.assertEqual(np.sum(np.abs(tdt_1.cores[0]-core_0)), 0)
+        self.assertEqual(np.sum(np.abs(tdt_1.cores[1]-core_1)), 0)
+
+    def test_gram(self):
+        """test construction of gram matrix"""
+
+        tdt_1 = tdt.basis_decomposition(self.data, self.phi_1).transpose(cores=[self.d]).matricize()
+        tdt_2 = tdt.basis_decomposition(self.data_2, self.phi_1).transpose(cores=[self.d]).matricize()
+        gram = tdt.gram(self.data, self.data_2, self.phi_1)
+        self.assertLess(np.sum(np.abs(tdt_1.T.dot(tdt_2)-gram)), self.tol)
+
+    def test_hocur(self):
+        """test higher-order CUR decomposition"""
+
+        tdt_1 = tdt.basis_decomposition(self.data, self.phi_1).transpose(cores=[self.d]).matricize()
+        tdt_2 = tdt.hocur(self.data, self.phi_1, 5, repeats=10, progress=False).transpose(cores=[self.d]).matricize()
+        self.assertLess(np.sum(np.abs(tdt_1-tdt_2)), self.tol)
+
+
 
 
 
