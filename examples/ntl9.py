@@ -157,7 +157,7 @@ def tedmd_hosvd(dimensions, downsampling_rate, integer_lag_times, threshold, dir
         lag_times = time_step * downsampling_rate * integer_lag_times
         
         # define basis list
-        basis_list = [[tdt.constant_function(i), tdt.gauss_function(i, 0.285, 0.001), tdt.gauss_function(i, 0.62, 0.01)] for
+        basis_list = [[tdt.constant_function(), tdt.gauss_function(i, 0.285, 0.001), tdt.gauss_function(i, 0.62, 0.01)] for
                       i in range(dimensions[i])]
 
         # progress
@@ -221,7 +221,7 @@ def tedmd_hocur(dimensions, downsampling_rate, integer_lag_times, max_rank, dire
         lag_times = time_step * downsampling_rate * integer_lag_times
         
         # define basis list
-        basis_list = [[tdt.constant_function(i), tdt.gauss_function(i, 0.285, 0.001), tdt.gauss_function(i, 0.62, 0.01)] for
+        basis_list = [[tdt.constant_function(), tdt.gauss_function(i, 0.285, 0.001), tdt.gauss_function(i, 0.62, 0.01)] for
                       i in range(dimensions[i])]
 
         # progress
