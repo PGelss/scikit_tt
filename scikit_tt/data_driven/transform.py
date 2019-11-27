@@ -7,13 +7,8 @@ import time as _time
 from scikit_tt.tensor_train import TT
 
 
-def constant_function(index):
+def constant_function():
     """Constant function.
-
-    Parameters
-    ----------
-    index: int
-        define which entry of a snapshot is passed to the indicator function
 
     Returns
     -------
@@ -21,7 +16,7 @@ def constant_function(index):
         constant function
     """
 
-    f = lambda t: __constant_function_callback(t[index])
+    f = lambda t: 1
 
     return f
 
@@ -44,7 +39,8 @@ def indicator_function(index, a, b):
         indicator function
     """
 
-    f = lambda t: __indicator_function_callback(t[index], a, b)
+    #f = lambda t: __indicator_function_callback(t[index], a, b)
+    f = lambda t: 1 * ((a <= t[index]) & (t[index] < b))
 
     return f
 
@@ -66,25 +62,6 @@ def identity(index):
 
     return f
 
-def cos(index, alpha):
-    """Cosine function.
-
-    Parameters
-    ----------
-    index: int
-        define which entry of a snapshot is passed to the cosine function
-    alpha: float
-        prefactor
-
-    Returns
-    -------
-    f: function
-        cosine function at given index
-    """
-
-    f = lambda t: np.cos(alpha * t[index])
-
-    return f
 
 def sin(index, alpha):
     """Sine function.
@@ -107,6 +84,27 @@ def sin(index, alpha):
     return f
 
 
+def cos(index, alpha):
+    """Cosine function.
+
+    Parameters
+    ----------
+    index: int
+        define which entry of a snapshot is passed to the cosine function
+    alpha: float
+        prefactor
+
+    Returns
+    -------
+    f: function
+        cosine function at given index
+    """
+
+    f = lambda t: np.cos(alpha * t[index])
+
+    return f
+
+
 def gauss_function(index, mean, variance):
     """Gauss function.
 
@@ -125,7 +123,7 @@ def gauss_function(index, mean, variance):
         Gauss function
     """
 
-    f = lambda t: __gauss_function_callback(t[index], mean, variance)
+    f = lambda t: np.exp(-0.5 * (t[index] - mean) ** 2 / variance)
 
     return f
 
@@ -148,7 +146,7 @@ def periodic_gauss_function(index, mean, variance):
             Gauss function
         """
 
-    f = lambda t: __periodic_gauss_function_callback(t[index], mean, variance)
+    f = lambda t: np.exp(-0.5 * np.sin(0.5 * (t[index] - mean)) ** 2 / variance)
 
     return f
 
@@ -623,46 +621,6 @@ def hocur(x, basis_list, ranks, repeats=1, multiplier=10, progress=True, string=
 
 # private functions # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
-def __constant_function_callback(t):
-    """Constant function.
-
-    Parameters
-    ----------
-    t: float
-        argument
-
-    Returns
-    -------
-    v: float
-        equal to 1
-    """
-
-    v = 1 + 0 * t
-
-    return v
-
-def __indicator_function_callback(t, a, b):
-    """Indicator function of an interval on the real line.
-
-    Parameters
-    ----------
-    t: float
-        check if t is in a given interval
-    a: float
-        lower bound of the interval
-    b: float
-        upper bound of the interval
-
-    Returns
-    -------
-    v: int
-        equal to 1 if t is in [a,b], 0 otherwise
-    """
-
-    v = 1 * ((a <= t) & (t < b))
-
-    return v
-
 def __hocur_first_col_inds(dimensions, ranks, multiplier):
     """Create random column indices
 
@@ -699,52 +657,6 @@ def __hocur_first_col_inds(dimensions, ranks, multiplier):
         col_inds.insert(0, [[multi_inds[0, j]] + col_inds[0][multi_inds[1, j]] for j in range(multi_inds.shape[1])])
 
     return col_inds
-
-
-def __gauss_function_callback(t, mean, variance):
-    """Gauss function.
-
-    Parameters
-    ----------
-    t: float
-        argument for the Gauss function
-    mean: float
-        mean of the distribution
-    variance: float (>0)
-        variance
-
-    Returns
-    -------
-    v: float (>0)
-        value of the Gauss function at t
-    """
-
-    v = np.exp(-0.5 * (t - mean) ** 2 / variance)
-
-    return v
-
-
-def __periodic_gauss_function_callback(t, mean, variance):
-    """Periodic Gauss function.
-
-    Parameters
-    ----------
-    t: float
-        argument for the periodic Gauss function
-    mean: float
-        mean of the distribution
-    variance: float (>0)
-        variance
-
-    Returns
-    -------
-    v: float (>0)
-        value of the Gauss function at t
-    """
-
-    v = np.exp(-0.5 * np.sin(0.5 * (t - mean)) ** 2 / variance)
-
-    return v
 
 
 def __hocur_extract_matrix(data, basis_list, row_coordinates_list, col_coordinates_list):
