@@ -3,7 +3,6 @@
 <p align="center">
   <a href="https://travis-ci.org/PGelss/scikit_tt"><img src="https://img.shields.io/travis/PGelss/scikit_tt.svg"><a>
   <a href="https://codecov.io/gh/PGelss/scikit_tt/branch/master"><img src="https://img.shields.io/codecov/c/github/PGelss/scikit_tt.svg"><a>
-<img src="https://img.shields.io/github/downloads/PGelss/scikit_tt/total">
 </p>
 
 ## Short description
