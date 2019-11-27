@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import sys
 import numpy as np
 import scipy.linalg as lin
 import scikit_tt.data_driven.transform as tdt
@@ -247,9 +248,11 @@ def mandy_kb(x, y, basis_list):
     gram = tdt.gram(x, x, basis_list)
 
     # solve system of linear equations
-    # z = lin.solve(gram, y.T, assume_a='pos', check_finite=False).T
-    z, _, _, _ = lin.lstsq(gram, y.T, lapack_driver='gelss')
-    z = z.T
+    if np.linalg.cond(gram) < 1 / sys.float_info.epsilon:
+        z = lin.solve(gram, y.T, assume_a='pos', check_finite=False).T
+    else:
+        z, _, _, _ = lin.lstsq(gram, y.T, lapack_driver='gelss')
+        z = z.T
 
     return z
 
