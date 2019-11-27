@@ -62,6 +62,26 @@ def identity(index):
 
     return f
 
+def monomial(index, exponent):
+    """Monomial function.
+
+    Parameters
+    ----------
+    index: int
+        define which entry of a snapshot is passed to the identity function
+    exponent: int
+        degree of the monomial
+
+    Returns
+    -------
+    f: function
+        monomial function at given index
+    """
+
+    f = lambda t: (t[index])**exponent
+
+    return f
+
 
 def sin(index, alpha):
     """Sine function.
