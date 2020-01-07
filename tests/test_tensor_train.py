@@ -13,7 +13,7 @@ class TestTT(TestCase):
         """Generate random parameters for a tensor train"""
 
         # set tolerance for relative errors
-        self.tol = 1e-8
+        self.tol = 1e-7
 
         # set threshold and maximum rank for orthonormalization
         self.threshold = 1e-14
