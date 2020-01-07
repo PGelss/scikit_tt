@@ -269,7 +269,11 @@ class TT(object):
                 # construct cores
                 for i in range(order):
                     # set core to zero array
-                    cores.append(np.zeros([ranks[i], self.row_dims[i], self.col_dims[i], ranks[i + 1]]))
+                    if np.any(np.iscomplex(self.cores[i])) or np.any(np.iscomplex(tt_add.cores[i])):
+                        cores.append(
+                            np.zeros([ranks[i], self.row_dims[i], self.col_dims[i], ranks[i + 1]], dtype=complex))
+                    else:
+                        cores.append(np.zeros([ranks[i], self.row_dims[i], self.col_dims[i], ranks[i + 1]]))
 
                     # insert core of self
                     cores[i][0:self.ranks[i], :, :, 0:self.ranks[i + 1]] = self.cores[i]
@@ -439,8 +443,10 @@ class TT(object):
 
         Parameters
         ----------
-        cores: list of ints
+        cores: list of ints, optional
             cores which should be transposed, if cores=None (default), all cores are transposed
+        conjugate: bool, optional
+            whether to compute the conjugate transpose, default is False
         overwrite: bool, optional
             whether to overwrite self or not, default is False
 
