@@ -254,7 +254,7 @@ def errors_impl_euler(operator, solution, step_sizes):
 
 
 def trapezoidal_rule(operator, initial_value, initial_guess, step_sizes, repeats=1, tt_solver='als', threshold=1e-12,
-                     max_rank=np.infty, micro_solver='solve', progress=True):
+                     max_rank=np.infty, micro_solver='solve', normalize=1, progress=True):
     """Trapezoidal rule for linear differential equations in the TT format
 
     Parameters
@@ -277,6 +277,8 @@ def trapezoidal_rule(operator, initial_value, initial_guess, step_sizes, repeats
         maximum rank of the solution, default is infinity
     micro_solver: string, optional
         algorithm for obtaining the solutions of the micro systems, can be 'solve' or 'lu', default is 'solve'
+    normalize: int (0, 1, or 2)
+        no normalization if 0, otherwise the solution is normalized in terms of Manhattan or Euclidean norm in each step
     progress: bool, optional
         whether to show the progress of the algorithm or not, default is True
 
@@ -311,7 +313,8 @@ def trapezoidal_rule(operator, initial_value, initial_guess, step_sizes, repeats
                               solver=micro_solver, repeats=repeats, threshold=threshold, max_rank=max_rank)
 
         # normalize solution
-        tt_tmp = (1 / tt_tmp.norm(p=1)) * tt_tmp
+        if normalize > 0:
+            tt_tmp = (1 / tt_tmp.norm(p=normalize)) * tt_tmp
 
         # append solution
         solution.append(tt_tmp.copy())
@@ -356,7 +359,7 @@ def errors_trapezoidal(operator, solution, step_sizes):
 def adaptive_step_size(operator, initial_value, initial_guess, time_end, step_size_first=1e-10, repeats=1,
                        solver='solve',
                        error_tol=1e-1, closeness_tol=0.5, step_size_min=1e-14, step_size_max=10, closeness_min=1e-3,
-                       factor_max=2, factor_safe=0.9, second_method='two_step_Euler', progress=True):
+                       factor_max=2, factor_safe=0.9, second_method='two_step_Euler', normalize=1, progress=True):
     """Adaptive step size method
 
     Parameters
@@ -392,6 +395,8 @@ def adaptive_step_size(operator, initial_value, initial_guess, time_end, step_si
     second_method: string, optional
         which higher-order method should be used, can be 'two_step_Euler' or 'trapezoidal_rule', default is
         'two_step_Euler'
+    normalize: int (0, 1, or 2)
+        no normalization if 0, otherwise the solution is normalized in terms of Manhattan or Euclidean norm in each step
     progress: bool, optional
         whether to show the progress of the algorithm or not, default is True
 
@@ -443,7 +448,9 @@ def adaptive_step_size(operator, initial_value, initial_guess, time_end, step_si
             t_2 = sle.als(tt.eye(operator.row_dims) - 0.5 * step_size * operator, t_tmp.copy(),
                           (tt.eye(operator.row_dims) + 0.5 * step_size * operator).dot(solution[-1]), solver=solver,
                           repeats=repeats)
-        t_2 = (1 / t_2.norm(p=1)) * t_2
+        # normalize solution
+        if normalize > 0:
+            t_2 = (1 / t_2.norm(p=normalize)) * t_2
 
         # compute closeness to staionary distribution
         closeness = (operator.dot(t_1)).norm()
