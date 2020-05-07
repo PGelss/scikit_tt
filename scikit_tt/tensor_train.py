@@ -438,6 +438,60 @@ class TT(object):
 
         return tt_prod
 
+    def tensordot(self, other, num_axes):
+        """
+        Computes index contraction between self and other. Does not work for TT operators. Self and other must have
+        col_dims = [1,...,1]. Self is changed to tensordot(self, other) and nothing is returned. It is assumed that the
+        axes for contraction are at the end of self.row_dims and at the beginning of other.row_dims.
+
+        Example: If self.row_dims=[n_1,n_2,n_3,n_4] and other.row_dims=[n_3,n_4,n_5], then after
+        tensordot(self, other, 2) it holds: self.row_dims=[n_1,n_2,n_5].
+
+        Parameters
+        ----------
+        other: instance of TT class, not an operator
+        num_axes: integer
+            number of axes at the end of self.row_dims and at the beginning of other.row_dims for contraction
+        """
+
+        # some checks
+        if not all([i == 1 for i in self.col_dims]):
+            raise ValueError('tensordot is not supported for operators, but self is an operator')
+        if not all([i == 1 for i in other.col_dims]):
+            raise ValueError('tensordot is not supported for operators, but other is an operator')
+        if self.row_dims[-num_axes:] != other.row_dims[:num_axes]:
+            raise ValueError('axes do not match')
+
+        first_idx = len(self.row_dims) - num_axes
+        M = np.tensordot(self.cores[first_idx], other.cores[0], axes=([1, 2], [1, 2]))  # shape (r_0, r_1, s_0, s_1)
+
+        for idx in range(first_idx + 1, len(self.row_dims)):
+            M_new = np.tensordot(self.cores[idx], other.cores[idx - first_idx], axes=([1, 2], [1, 2]))
+            # M_new shape (r_{i-1}, r_i, s_{i-1}, s_i)
+            M = np.tensordot(M, M_new, axes=([1, 3], [0, 2]))  # shape (r_0, s_0, r_i, s_i)
+            M = np.swapaxes(M, 1, 2)  # shape (r_0, r_i, s_0, s_i)
+        M = M[:, 0, 0, :]  # shape (r_0, s_{num_axes})
+
+        if num_axes == len(self.row_dims) and num_axes == len(other.row_dims):  # complete contraction over both
+            self.cores = [np.zeros((1, 1, 1, 1))]  # results in scalar
+            self.cores[0][0, 0, 0, 0] = M[0, 0]
+        elif num_axes == len(self.row_dims):  # complete contraction over self -> merge M into first core of other
+            self.cores = []
+            self.cores.append(np.tensordot(M, other.cores[num_axes], axes=([1], [0])))
+            if len(other.cores) > 1:
+                self.cores.extend(other.cores[num_axes + 1:])
+        else:  # merge M into (first_idx - 1)-th core of self
+            self.cores[first_idx - 1] = np.tensordot(self.cores[first_idx - 1], M, axes=([3], [0]))
+            self.cores = self.cores[:first_idx]
+            if len(other.cores) > num_axes:
+                self.cores.extend(other.cores[num_axes:])
+
+        # define new order, row dimensions, column dimensions, ranks, and cores
+        self.order = len(self.cores)
+        self.row_dims = [self.cores[i].shape[1] for i in range(self.order)]
+        self.col_dims = [self.cores[i].shape[2] for i in range(self.order)]
+        self.ranks = [self.cores[i].shape[0] for i in range(self.order)] + [self.cores[-1].shape[3]]
+
     def transpose(self, cores=None, conjugate=False, overwrite=False):
         """Transpose of tensor trains
 
