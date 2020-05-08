@@ -441,7 +441,8 @@ class TT(object):
     def tensordot(self, other, num_axes):
         """
         Computes index contraction between self and other. Does not work for TT operators. Self and other must have
-        col_dims = [1,...,1]. Self is changed to tensordot(self, other) and nothing is returned. It is assumed that the
+        col_dims = [1,...,1]. Furthermore it must hold: self.ranks[-1] = other.ranks[0] = 1.
+        Self is changed to tensordot(self, other) and nothing is returned. It is assumed that the
         axes for contraction are at the end of self.row_dims and at the beginning of other.row_dims.
 
         Example: If self.row_dims=[n_1,n_2,n_3,n_4] and other.row_dims=[n_3,n_4,n_5], then after
@@ -469,12 +470,11 @@ class TT(object):
             M_new = np.tensordot(self.cores[idx], other.cores[idx - first_idx], axes=([1, 2], [1, 2]))
             # M_new shape (r_{i-1}, r_i, s_{i-1}, s_i)
             M = np.tensordot(M, M_new, axes=([1, 3], [0, 2]))  # shape (r_0, s_0, r_i, s_i)
-            M = np.swapaxes(M, 1, 2)  # shape (r_0, r_i, s_0, s_i)
+            M = np.transpose(M, [0, 2, 1, 3])  # shape (r_0, r_i, s_0, s_i)
         M = M[:, 0, 0, :]  # shape (r_0, s_{num_axes})
 
         if num_axes == len(self.row_dims) and num_axes == len(other.row_dims):  # complete contraction over both
-            self.cores = [np.zeros((1, 1, 1, 1))]  # results in scalar
-            self.cores[0][0, 0, 0, 0] = M[0, 0]
+            self.cores = [M[:, np.newaxis, np.newaxis, :]]
         elif num_axes == len(self.row_dims):  # complete contraction over self -> merge M into first core of other
             self.cores = []
             self.cores.append(np.tensordot(M, other.cores[num_axes], axes=([1], [0])))
