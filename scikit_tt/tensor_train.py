@@ -444,13 +444,12 @@ class TT(object):
 
         return tt_prod
 
-    def tensordot(self, other, num_axes, mode='last-first'):
+    def tensordot(self, other, num_axes, mode='last-first', overwrite=False):
         """
-        Computes index contraction between self and other.
-        Self is changed to tensordot(self, other) and nothing is returned. The axes for contraction have to be the last
-        or the first axes of self and other. Thus, there are 4 modes of operation: 'last-first', 'last-last',
-        'first-last' and 'first-first'. The sequence of not contracted cores of self is always maintained (cf. the
-        2nd example below).
+        Computes index contraction between self and other. The axes for contraction have to be the last or the first
+        axes of self and other. Thus, there are 4 modes of operation: 'last-first', 'last-last', 'first-last' and
+        'first-first'. The sequence of not contracted cores of self is always maintained (cf. the 2nd example below).
+        For saving memory, you can choose to overwrite self with the tensordot.
 
         Parameters
         ----------
@@ -460,6 +459,13 @@ class TT(object):
         mode: string
             location of the axes for contraction on self-other; one of the following: 'last-first', 'last-last',
             'first-last', 'first-first'
+        overwrite: bool
+            whether to overwrite self or not
+            
+        Returns
+        -------
+        tdot: instance of TT class
+            tensordot(self, other)
 
         Examples
         --------
@@ -468,7 +474,6 @@ class TT(object):
         >>> t = tt.ones([1, 2, 3, 4], [5, 6, 7, 8], ranks=[1, 2, 4, 3, 1])
         >>> u = tt.ones([3, 4, 5], [7, 8, 2], ranks=[1, 7, 8, 1])
         >>> t.tensordot(u, 2)
-        >>> print(t)
 
         Tensor train with order    = 3,
                   row_dims = [1, 2, 5],
@@ -479,7 +484,6 @@ class TT(object):
         >>> t = tt.ones([2, 3, 4, 5], [1, 1, 1, 1], ranks=3)
         >>> u = tt.ones([7, 6, 4, 5], [1, 1, 1, 1], ranks=2)
         >>> t.tensordot(u, 2, mode='last-last')
-        >>> print(t)
 
         Tensor train with order    = 4,
                   row_dims = [2, 3, 6, 7],
@@ -519,6 +523,12 @@ class TT(object):
                 self.col_dims[first_idx_self:last_idx_self + 1] != other.col_dims[first_idx_other:last_idx_other + 1]:
             raise ValueError('axes do not match')
 
+        # copy self
+        if overwrite is False:
+            tdot = ones([1], [1], 1)  # placeholder
+        else:
+            tdot = self
+
         # calculate the contraction
         M = np.tensordot(self.cores[first_idx_self], other.cores[first_idx_other], axes=([1, 2], [1, 2]))
         # M.shape (r_0, r_1, s_0, s_1)
@@ -541,51 +551,55 @@ class TT(object):
 
         # build the cores
         if num_axes == self.order and num_axes == other.order:  # complete contraction over both
-            self.cores = [M[:, np.newaxis, np.newaxis, :]]
+            tdot.cores = [M[:, np.newaxis, np.newaxis, :]]
 
         elif num_axes == self.order:  # complete contraction over self -> merge M into other
-            self.cores = []
+            tdot.cores = []
             if mode == 'last-first':
-                self.cores.append(np.tensordot(M, other.cores[last_idx_other + 1], axes=([1], [0])))
-                self.cores.extend(other.cores[last_idx_other + 2:])  # append the remaining cores of other
+                tdot.cores.append(np.tensordot(M, other.cores[last_idx_other + 1], axes=([1], [0])))
+                tdot.cores.extend(other.cores[last_idx_other + 2:])  # append the remaining cores of other
             elif mode == 'last-last':
-                self.cores.append(np.tensordot(other.cores[first_idx_other - 1], M, axes=([3], [1])))
-                self.cores.extend(other.cores[:first_idx_other - 1][::-1])  # append the remaining cores of other
-                for i in range(len(self.cores)):  # they need to be rank-transposed
-                    self.cores[i] = np.transpose(self.cores[i], [3, 1, 2, 0])
+                tdot.cores.append(np.tensordot(other.cores[first_idx_other - 1], M, axes=([3], [1])))
+                tdot.cores.extend(other.cores[:first_idx_other - 1][::-1])  # append the remaining cores of other
+                for i in range(len(tdot.cores)):  # they need to be rank-transposed
+                    tdot.cores[i] = np.transpose(tdot.cores[i], [3, 1, 2, 0])
             elif mode == 'first-last':
-                self.cores.append(np.tensordot(other.cores[first_idx_other - 1], M, axes=([3], [1])))
-                self.cores = other.cores[:first_idx_other - 1] + self.cores  # append the remaining cores of other
+                tdot.cores.append(np.tensordot(other.cores[first_idx_other - 1], M, axes=([3], [1])))
+                tdot.cores = other.cores[:first_idx_other - 1] + tdot.cores  # append the remaining cores of other
             else:  # mode = 'first-first', merge M into last core of other
-                self.cores.append(np.tensordot(M, other.cores[last_idx_other + 1], axes=([1], [0])))
-                self.cores = other.cores[last_idx_other + 2:][::-1] + self.cores  # append the remaining cores of other
-                for i in range(len(self.cores)):  # they need to be rank-transposed
-                    self.cores[i] = np.transpose(self.cores[i], [3, 1, 2, 0])
+                tdot.cores.append(np.tensordot(M, other.cores[last_idx_other + 1], axes=([1], [0])))
+                tdot.cores = other.cores[last_idx_other + 2:][::-1] + tdot.cores  # append the remaining cores of other
+                for i in range(len(tdot.cores)):  # they need to be rank-transposed
+                    tdot.cores[i] = np.transpose(tdot.cores[i], [3, 1, 2, 0])
 
-        else:  # merge M into self
+        else:  # merge M into tdot
             if mode == 'last-first':
-                self.cores[first_idx_self - 1] = np.tensordot(self.cores[first_idx_self - 1], M, axes=([3], [0]))
-                self.cores = self.cores[:first_idx_self] + other.cores[last_idx_other + 1:]
+                tdot.cores = self.cores[:first_idx_self] + other.cores[last_idx_other + 1:]
+                tdot.cores[first_idx_self - 1] = np.tensordot(tdot.cores[first_idx_self - 1], M, axes=([3], [0]))
             elif mode == 'last-last':
-                self.cores[first_idx_self - 1] = np.tensordot(self.cores[first_idx_self - 1], M, axes=([3], [0]))
-                self.cores = self.cores[:first_idx_self]
-                self.cores.extend(other.cores[:first_idx_other][::-1])  # append the remaining cores of other
-                for i in range(first_idx_self, len(self.cores)):  # they need to be rank-transposed
-                    self.cores[i] = np.transpose(self.cores[i], [3, 1, 2, 0])
+                tdot.cores = self.cores[:first_idx_self]
+                tdot.cores[first_idx_self - 1] = np.tensordot(tdot.cores[first_idx_self - 1], M, axes=([3], [0]))
+                tdot.cores.extend(other.cores[:first_idx_other][::-1])  # append the remaining cores of other
+                for i in range(first_idx_self, len(tdot.cores)):  # they need to be rank-transposed
+                    tdot.cores[i] = np.transpose(tdot.cores[i], [3, 1, 2, 0])
             elif mode == 'first-last':
-                self.cores[last_idx_self + 1] = np.tensordot(M, self.cores[last_idx_self + 1], axes=([0], [0]))
-                self.cores = other.cores[:first_idx_other] + self.cores[last_idx_self + 1:]
+                tdot.cores = self.cores[last_idx_self + 1:]
+                tdot.cores[0] = np.tensordot(M, tdot.cores[0], axes=([0], [0]))
+                tdot.cores = other.cores[:first_idx_other] + tdot.cores
             else:  # first-first
-                self.cores[last_idx_self + 1] = np.tensordot(M, self.cores[last_idx_self + 1], axes=([0], [0]))
-                self.cores = other.cores[last_idx_other + 1:][::-1] + self.cores[last_idx_self + 1:]
+                tdot.cores = self.cores[last_idx_self + 1:]
+                tdot.cores[0] = np.tensordot(M, tdot.cores[0], axes=([0], [0]))
+                tdot.cores = other.cores[last_idx_other + 1:][::-1] + tdot.cores
                 for i in range(other.order - num_axes):  # they need to be rank-transposed
-                    self.cores[i] = np.transpose(self.cores[i], [3, 1, 2, 0])
+                    tdot.cores[i] = np.transpose(tdot.cores[i], [3, 1, 2, 0])
 
         # define new order, row dimensions, column dimensions and ranks
-        self.order = len(self.cores)
-        self.row_dims = [self.cores[i].shape[1] for i in range(self.order)]
-        self.col_dims = [self.cores[i].shape[2] for i in range(self.order)]
-        self.ranks = [self.cores[i].shape[0] for i in range(self.order)] + [self.cores[-1].shape[3]]
+        tdot.order = len(tdot.cores)
+        tdot.row_dims = [tdot.cores[i].shape[1] for i in range(tdot.order)]
+        tdot.col_dims = [tdot.cores[i].shape[2] for i in range(tdot.order)]
+        tdot.ranks = [tdot.cores[i].shape[0] for i in range(tdot.order)] + [tdot.cores[-1].shape[3]]
+
+        return tdot
 
     def transpose(self, cores=None, conjugate=False, overwrite=False):
         """Transpose of tensor trains
