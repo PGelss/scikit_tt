@@ -1,4 +1,5 @@
 import scikit_tt.tensor_train as tt
+from scikit_tt.tensor_train import TT
 import scikit_tt.utils as utl
 from scikit_tt.solvers import sle
 import numpy as np
@@ -6,28 +7,29 @@ import time as _time
 
 
 def explicit_euler(operator, initial_value, step_sizes, threshold=1e-12, max_rank=50, normalize=1, progress=True):
-    """Explicit Euler method for linear differential equations in the TT format
+    """
+    Explicit Euler method for linear differential equations in the TT format.
 
     Parameters
     ----------
-    operator: instance of TT class
+    operator : TT
         TT operator of the differential equation
-    initial_value: instance of TT class
+    initial_value : TT
         initial value of the differential equation
-    step_sizes: list of floats
+    step_sizes : list of float
         step sizes for the application of the implicit Euler method
-    threshold: float, optional
+    threshold : float, optional
         threshold for reduced SVD decompositions, default is 1e-12
-    max_rank: int, optional
+    max_rank : int, optional
         maximum rank of the solution, default is 50
-    normalize: int (0, 1, or 2)
+    normalize : {0, 1, 2}, optional
         no normalization if 0, otherwise the solution is normalized in terms of Manhattan or Euclidean norm in each step
-    progress: bool, optional
+    progress : bool, optional
         whether to show the progress of the algorithm or not, default is True
 
     Returns
     -------
-    solution: list of instances of the TT class
+    list of TT
         numerical solution of the differential equation
     """
 
@@ -62,20 +64,21 @@ def explicit_euler(operator, initial_value, step_sizes, threshold=1e-12, max_ran
 
 
 def errors_expl_euler(operator, solution, step_sizes):
-    """Compute approximation errors of the explicit Euler method
+    """
+    Compute approximation errors of the explicit Euler method.
 
     Parameters
     ----------
-    operator: instance of TT class
+    operator : TT
         TT operator of the differential equation
-    solution: list of instances of TT class
+    solution : list of TT
         approximate solution of the linear differential equation
-    step_sizes: list of floats
+    step_sizes : list of float
         step sizes for the application of the implicit Euler method
 
     Returns
     -------
-    errors: list of floats
+    list of float
         approximation errors
     """
 
@@ -90,29 +93,31 @@ def errors_expl_euler(operator, solution, step_sizes):
 
     return errors
 
+
 def sod(operator, initial_value, step_sizes, threshold=1e-12, max_rank=50, normalize=2, progress=True):
-    """Second order differencing (time-symmetrized explicit Euler) for linear differential equations in the TT format
+    """
+    Second order differencing (time-symmetrized explicit Euler) for linear differential equations in the TT format.
 
     Parameters
     ----------
-    operator: instance of TT class
+    operator : TT
         TT operator of the differential equation
-    initial_value: instance of TT class
+    initial_value : TT
         initial value of the differential equation
-    step_sizes: list of floats
+    step_sizes : list of float
         step sizes
-    threshold: float, optional
+    threshold : float, optional
         threshold for reduced SVD decompositions, default is 1e-12
-    max_rank: int, optional
+    max_rank : int, optional
         maximum rank of the solution, default is 50
-    normalize: int (0, 1, or 2)
+    normalize : {0, 1, 2}, optional
         no normalization if 0, otherwise the solution is normalized in terms of Manhattan or Euclidean norm in each step
-    progress: bool, optional
+    progress : bool, optional
         whether to show the progress of the algorithm or not, default is True
 
     Returns
     -------
-    solution: list of instances of the TT class
+    list of TT
         numerical solution of the differential equation
     """
 
@@ -154,36 +159,37 @@ def sod(operator, initial_value, step_sizes, threshold=1e-12, max_rank=50, norma
 
 def implicit_euler(operator, initial_value, initial_guess, step_sizes, repeats=1, tt_solver='als', threshold=1e-12,
                    max_rank=np.infty, micro_solver='solve', normalize=1, progress=True):
-    """Implicit Euler method for linear differential equations in the TT format
+    """
+    Implicit Euler method for linear differential equations in the TT format.
 
     Parameters
     ----------
-    operator: instance of TT class
+    operator : TT
         TT operator of the differential equation
-    initial_value: instance of TT class
+    initial_value : TT
         initial value of the differential equation
-    initial_guess: instance of TT class
+    initial_guess : TT
         initial guess for the first step
-    step_sizes: list of floats
+    step_sizes : list of float
         step sizes for the application of the implicit Euler method
-    repeats: int, optional
+    repeats : int, optional
         number of repeats of the (M)ALS in each iteration step, default is 1
-    tt_solver: string, optional
+    tt_solver : string, optional
         algorithm for solving the systems of linear equations in the TT format, default is 'als'
-    threshold: float, optional
+    threshold : float, optional
         threshold for reduced SVD decompositions, default is 1e-12
-    max_rank: int, optional
+    max_rank : int, optional
         maximum rank of the solution, default is infinity
-    micro_solver: string, optional
+    micro_solver : string, optional
         algorithm for obtaining the solutions of the micro systems, can be 'solve' or 'lu', default is 'solve'
-    normalize: int (0, 1, or 2)
+    normalize : {0, 1, 2}, optional
         no normalization if 0, otherwise the solution is normalized in terms of Manhattan or Euclidean norm in each step
-    progress: bool, optional
+    progress : bool, optional
         whether to show the progress of the algorithm or not, default is True
 
     Returns
     -------
-    solution: list of instances of the TT class
+    list of TT
         numerical solution of the differential equation
     """
 
@@ -224,20 +230,21 @@ def implicit_euler(operator, initial_value, initial_guess, step_sizes, repeats=1
 
 
 def errors_impl_euler(operator, solution, step_sizes):
-    """Compute approximation errors of the implicit Euler method
+    """
+    Compute approximation errors of the implicit Euler method.
 
     Parameters
     ----------
-    operator: instance of TT class
+    operator : TT
         TT operator of the differential equation
-    solution: list of instances of TT class
+    solution : list of TT
         approximate solution of the linear differential equation
-    step_sizes: list of floats
+    step_sizes : list of float
         step sizes for the application of the implicit Euler method
 
     Returns
     -------
-    errors: list of floats
+    list of float
         approximation errors
     """
 
@@ -255,36 +262,37 @@ def errors_impl_euler(operator, solution, step_sizes):
 
 def trapezoidal_rule(operator, initial_value, initial_guess, step_sizes, repeats=1, tt_solver='als', threshold=1e-12,
                      max_rank=np.infty, micro_solver='solve', normalize=1, progress=True):
-    """Trapezoidal rule for linear differential equations in the TT format
+    """
+    Trapezoidal rule for linear differential equations in the TT format.
 
     Parameters
     ----------
-    operator: instance of TT class
+    operator : TT
         TT operator of the differential equation
-    initial_value: instance of TT class
+    initial_value : TT
         initial value of the differential equation
-    initial_guess: instance of TT class
+    initial_guess : TT
         initial guess for the first step
-    step_sizes: list of floats
+    step_sizes : list of float
         step sizes for the application of the trapezoidal rule
-    repeats: int, optional
+    repeats : int, optional
         number of repeats of the (M)ALS in each iteration step, default is 1
-    tt_solver: string, optional
+    tt_solver : string, optional
         algorithm for solving the systems of linear equations in the TT format, default is 'als'
-    threshold: float, optional
+    threshold : float, optional
         threshold for reduced SVD decompositions, default is 1e-12
-    max_rank: int, optional
+    max_rank : int, optional
         maximum rank of the solution, default is infinity
-    micro_solver: string, optional
+    micro_solver : string, optional
         algorithm for obtaining the solutions of the micro systems, can be 'solve' or 'lu', default is 'solve'
-    normalize: int (0, 1, or 2)
+    normalize : {0, 1, 2}, optional
         no normalization if 0, otherwise the solution is normalized in terms of Manhattan or Euclidean norm in each step
-    progress: bool, optional
+    progress : bool, optional
         whether to show the progress of the algorithm or not, default is True
 
     Returns
     -------
-    solution: list of instances of the TT class
+    list of TT
         numerical solution of the differential equation
     """
 
@@ -327,20 +335,21 @@ def trapezoidal_rule(operator, initial_value, initial_guess, step_sizes, repeats
 
 
 def errors_trapezoidal(operator, solution, step_sizes):
-    """Compute approximation errors of the trapezoidal rule
+    """
+    Compute approximation errors of the trapezoidal rule.
 
     Parameters
     ----------
-    operator: instance of TT class
+    operator : TT
         TT operator of the differential equation
-    solution: list of instances of TT class
+    solution : list of TT
         approximate solution of the linear differential equation
-    step_sizes: list of floats
+    step_sizes : list of float
         step sizes for the application of the implicit Euler method
 
     Returns
     -------
-    errors: list of floats
+    list of float
         approximation errors
     """
 
@@ -360,49 +369,50 @@ def adaptive_step_size(operator, initial_value, initial_guess, time_end, step_si
                        solver='solve',
                        error_tol=1e-1, closeness_tol=0.5, step_size_min=1e-14, step_size_max=10, closeness_min=1e-3,
                        factor_max=2, factor_safe=0.9, second_method='two_step_Euler', normalize=1, progress=True):
-    """Adaptive step size method
+    """
+    Adaptive step size method.
 
     Parameters
     ----------
-    operator: instance of TT class
+    operator : TT
         TT operator of the differential equation
-    initial_value: instance of TT class
+    initial_value : TT
         initial value of the differential equation
-    initial_guess: instance of TT class
+    initial_guess : TT
         initial guess for the first step
-    time_end: float
+    time_end : float
         time point to which the ODE should be integrated
-    step_size_first: float, optional
+    step_size_first : float, optional
         first time step, default is 1e-10
-    repeats: int, optional
+    repeats : int, optional
         number of repeats of the ALS in each iteration step, default is 1
-    solver: string, optional
+    solver : string, optional
         algorithm for obtaining the solutions of the micro systems, can be 'solve' or 'lu', default is 'solve'
-    error_tol: float, optional
+    error_tol : float, optional
         tolerance for relative local error, default is 1e-1
-    closeness_tol: float, optional
+    closeness_tol : float, optional
         tolerance for relative change in the closeness to the stationary distribution, default is 0.5
-    step_size_min: float, optional
+    step_size_min : float, optional
         minimum step size, default is 1e-14
-    step_size_max: float, optional
+    step_size_max : float, optional
         maximum step size, default is 10
-    closeness_min: float, optional
+    closeness_min : float, optional
         minimum closeness value, default is 1e-3
-    factor_max: float, optional
+    factor_max : float, optional
         maximum factor for step size adaption, default is 2
-    factor_safe: float, optional
+    factor_safe : float, optional
         safety factor for step size adaption, default is 0.9
-    second_method: string, optional
+    second_method : {'two_step_Euler', 'trapezoidal_rule'}, optional
         which higher-order method should be used, can be 'two_step_Euler' or 'trapezoidal_rule', default is
         'two_step_Euler'
-    normalize: int (0, 1, or 2)
+    normalize : {0, 1, 2}, optional
         no normalization if 0, otherwise the solution is normalized in terms of Manhattan or Euclidean norm in each step
-    progress: bool, optional
+    progress : bool, optional
         whether to show the progress of the algorithm or not, default is True
 
     Returns
     -------
-    solution: list of instances of the TT class
+    list of TT
         numerical solution of the differential equation
     """
 
