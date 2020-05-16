@@ -10,35 +10,36 @@ from scikit_tt.tensor_train import TT
 
 
 def als(operator, initial_guess, operator_gevp=None, number_ev=1, repeats=1, solver='eig', sigma=1, real=True):
-    """Alternating linear scheme
+    """
+    Alternating linear scheme.
 
     Approximates eigenvalues and corresponding eigentensors of an (generalized) eigenvalue problem in the TT format.
     For details, see [1]_.
 
     Parameters
     ----------
-    operator: instance of TT class
+    operator : TT
         TT operator, left-hand side
-    initial_guess: instance of TT class
+    initial_guess : TT
         initial guess for the solution
-    operator_gevp: instance of TT class, optional
+    operator_gevp : TT, optional
         TT operator, right-hand side (for generalized eigenvalue problems), default is None
-    number_ev: int, optional
+    number_ev : int, optional
         number of eigenvalues and corresponding eigentensor to compute, default is 1
-    repeats: int, optional
+    repeats : int, optional
         number of repeats of the ALS, default is 1
-    solver: string, optional
+    solver : string, optional
         algorithm for obtaining the solutions of the micro systems, can be 'eig', 'eigs' or 'eigh', default is 'eig'
-    sigma: float, optional
+    sigma : float, optional
         find eigenvalues near sigma, default is 1
-    real: bool, optional
+    real : bool, optional
         whether to compute only real eigenvalues and eigentensors or not, default is True
 
     Returns
     -------
-    eigenvalues: float or list of floats
+    eigenvalues: float or list of float
         approximated eigenvalues, if number_ev>1 eigenvalues is a list of floats
-    eigentensors: instance of TT class or list of instances of TT class
+    eigentensors: TT or list of TT
         approximated eigentensors, if number_ev>1 eigentensors is a list of tensor trains
 
     References
@@ -132,29 +133,30 @@ def als(operator, initial_guess, operator_gevp=None, number_ev=1, repeats=1, sol
 
 
 def power_method(operator, initial_guess, operator_gevp=None, repeats=10, sigma=0.999):
-    """Inverse power iteration method
+    """
+    Inverse power iteration method.
 
     Approximates eigenvalues and corresponding eigentensors of an (generalized) eigenvalue problem in the TT format.
     For details, see [1]_.
 
     Parameters
     ----------
-    operator: instance of TT class
+    operator : TT
         TT operator, left-hand side
-    initial_guess: instance of TT class
+    initial_guess : TT
         initial guess for the solution
-    operator_gevp: instance of TT class, optional
+    operator_gevp : TT, optional
         TT operator, right-hand side (for generalized eigenvalue problems), default is None
-    repeats: int, optional
+    repeats : int, optional
         number of iterations, default is 10
-    sigma: float, optional
+    sigma : float, optional
         find eigenvalues near sigma, default is 1
 
     Returns
     -------
-    eigenvalue: float
+    eigenvalue : float
         approximated eigenvalue
-    eigentensor: instance of TT class
+    eigentensor : TT
         approximated eigentensors
 
     References
@@ -194,17 +196,18 @@ def power_method(operator, initial_guess, operator_gevp=None, repeats=10, sigma=
 
 
 def __construct_stack_left_op(i, stack_left_op, operator, solution):
-    """Construct left stack for left-hand side
+    """
+    Construct left stack for left-hand side.
 
     Parameters
     ----------
-    i: int
+    i : int
         core index
-    stack_left_op: list of ndarrays
+    stack_left_op : list of np.ndarray
         left stack for left-hand side
-    operator: instance of TT class
+    operator : TT
         TT operator of the system of linear equations
-    solution: instance of TT class
+    solution : TT
         approximated solution of the system of linear equations
     """
 
@@ -222,17 +225,18 @@ def __construct_stack_left_op(i, stack_left_op, operator, solution):
 
 
 def __construct_stack_right_op(i, stack_right_op, operator, solution):
-    """Construct right stack for left-hand side
+    """
+    Construct right stack for left-hand side.
 
     Parameters
     ----------
-    i: int
+    i : int
         core index
-    stack_right_op: list of ndarrays
+    stack_right_op : list of np.ndarray
         right stack for left-hand side
-    operator: instance of TT class
+    operator : TT
         TT operator side of the system of linear equations
-    solution: instance of TT class
+    solution : TT
         approximated solution of the system of linear equations
     """
 
@@ -250,24 +254,25 @@ def __construct_stack_right_op(i, stack_right_op, operator, solution):
 
 
 def __construct_micro_matrix_als(i, stack_left_op, stack_right_op, operator, solution):
-    """Construct micro matrix for ALS
+    """
+    Construct micro matrix for ALS.
 
     Parameters
     ----------
-    i: int
+    i : int
         core index
-    stack_left_op: list of ndarrays
+    stack_left_op : list of np.ndarray
         left stack for left-hand side
-    stack_right_op: list of ndarrays
+    stack_right_op : list of np.ndarray
         right stack for left-hand side
-    operator: instance of TT class
+    operator : TT
         TT operator of the system of linear equations
-    solution: instance of TT class
+    solution : TT
         approximated solution of the system of linear equations
 
     Returns
     -------
-    micro_op: ndarray
+    np.ndarray
         ith micro matrix
     """
 
@@ -283,23 +288,24 @@ def __construct_micro_matrix_als(i, stack_left_op, stack_right_op, operator, sol
 
 
 def __update_core_als(i, micro_op, micro_op_gevp, number_ev, solution, solver, sigma, real, direction):
-    """Update TT core for ALS
+    """
+    Update TT core for ALS.
 
     Parameters
     ----------
-    i: int
+    i : int
         core index
-    micro_op: ndarray
+    micro_op : np.ndarray
         micro matrix for ith TT core
-    solution: instance of TT class
+    solution : TT
         approximated solution of the eigenvalue problem
-    solver: string
+    solver : string
         algorithm for obtaining the solutions of the micro systems
-    sigma: float
+    sigma : float
         find eigenvalues near sigma
-    real: bool
+    real : bool
         whether to compute only real eigenvalues and eigentensors or not
-    direction: string
+    direction : string
         'forward' if first half sweep, 'backward' if second half sweep
     """
 
