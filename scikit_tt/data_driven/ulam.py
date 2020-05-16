@@ -8,24 +8,25 @@ from scikit_tt.tensor_train import TT
 
 
 def ulam_2d(transitions, states, simulations):
-    """TT approximation of the Perron-Frobenius operator in 2D
+    """
+    TT approximation of the Perron-Frobenius operator in 2D.
 
     Given transitions of particles in a 2-dimensional potential, compute the approximation of the corresponding Perron-
     Frobenius operator in TT format. See [1]_ for details.
 
     Parameters
     ----------
-    transitions: ndarray
+    transitions : np.ndarray
         matrix containing the transitions, each row is of the form [x_1, x_2, y_1, y_2] representing a transition from
         state (x_1, x_2) to (y_1, y_2)
-    states: list of ints
+    states : list of int
         number of states in x- and y-direction
-    simulations: int
+    simulations : int
         number of simulations per state
 
     Returns
     -------
-    operator: instance of TT class
+    TT
         TT approximation of the Perron-Frobenius operator
 
      References
@@ -55,24 +56,25 @@ def ulam_2d(transitions, states, simulations):
 
 
 def ulam_3d(transitions, states, simulations):
-    """TT approximation of the Perron-Frobenius operator in 3D
+    """
+    TT approximation of the Perron-Frobenius operator in 3D.
 
     Given transitions of particles in a 3-dimensional potential, compute the approximation of the corresponding Perron-
     Frobenius operator in TT format. See [1]_ for details.
 
     Parameters
     ----------
-    transitions: ndarray
+    transitions : np.ndarray
         matrix containing the transitions, each row is of the form [x_1, x_2, x_3, y_1, y_2, y_3] representing a
         transition from state (x_1, x_2, x_3) to (y_1, y_2, y_3)
-    states: list of ints
+    states : list of int
         number of states in x-, y-, and z-direction
-    simulations: int
+    simulations : int
         number of simulations per state
 
     Returns
     -------
-    operator: instance of TT class
+    TT
         TT approximation of the Perron-Frobenius operator
 
      References
