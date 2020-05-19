@@ -33,7 +33,7 @@ class TestODE(TestCase):
         for i in range(10):
             derivatives.append((operator.dot(solution[-i - 1])).norm())
 
-        # check if implicit Euler method converged to stationary distribution
+        # check if explicit Euler method converged to stationary distribution
         for i in range(10):
             self.assertLess(derivatives[i], self.tol)
 
