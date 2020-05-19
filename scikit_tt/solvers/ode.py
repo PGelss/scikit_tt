@@ -90,8 +90,8 @@ def errors_expl_euler(operator, solution, step_sizes):
 
     return errors
 
-def sod(operator, initial_value, step_sizes, threshold=1e-12, max_rank=50, normalize=2, progress=True):
-    """Second order differencing (time-symmetrized explicit Euler) for linear differential equations in the TT format
+def symmetric_euler(operator, initial_value, step_sizes, threshold=1e-12, max_rank=50, normalize=1, progress=True):
+    """Time-symmetrized explicit Euler (second order differencing) for linear differential equations in the TT format
 
     Parameters
     ----------
@@ -129,6 +129,11 @@ def sod(operator, initial_value, step_sizes, threshold=1e-12, max_rank=50, norma
 
         if i == 0: # initialize: one expl. Euler backwards in time
             solution_prev = (tt.eye(operator.row_dims) - step_sizes[i]*operator).dot(solution[0])
+
+            # normalize
+            if normalize > 0:
+                solution_prev = (1 / solution_prev.norm(p=normalize)) * solution_prev
+
         else:
             solution_prev = solution[i-1].copy()
 
