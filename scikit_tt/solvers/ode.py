@@ -91,7 +91,8 @@ def errors_expl_euler(operator, solution, step_sizes):
     return errors
 
 def symmetric_euler(operator, initial_value, step_sizes, threshold=1e-12, max_rank=50, normalize=1, progress=True):
-    """Time-symmetrized explicit Euler (second order differencing) for linear differential equations in the TT format
+    """Time-symmetrized explicit Euler ('second order differencing' in quantum mechanics) for linear differential 
+    equations in the TT format, see [1]_.
 
     Parameters
     ----------
@@ -114,6 +115,11 @@ def symmetric_euler(operator, initial_value, step_sizes, threshold=1e-12, max_ra
     -------
     solution: list of instances of the TT class
         numerical solution of the differential equation
+
+    References
+    ----------
+    .. [1] A. Askar, A. S. Cakmak, "Explicit integration method for the time‐dependent Schrodinger equation for 
+           collision problems", J. Chem. Phys. 68, 2794, 1978
     """
 
     # return current time
@@ -128,7 +134,7 @@ def symmetric_euler(operator, initial_value, step_sizes, threshold=1e-12, max_ra
     for i in range(len(step_sizes)):
 
         if i == 0: # initialize: one expl. Euler backwards in time
-            solution_prev = (tt.eye(operator.row_dims) - step_sizes[i]*operator).dot(solution[0])
+            solution_prev = (tt.eye(operator.row_dims) - step_sizes[0]*operator).dot(solution[0])
 
             # normalize
             if normalize > 0:
