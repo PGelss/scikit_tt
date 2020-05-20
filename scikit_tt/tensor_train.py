@@ -930,8 +930,7 @@ class TT(object):
             if (isinstance(max_rank, (int, np.integer)) and max_rank > 0) or max_rank == np.infty:
 
                 # left- and right-orthonormalize self
-                self.ortho_left(threshold=threshold, max_rank=max_rank, end_index=int(np.ceil(self.order/2)-2)).ortho_right(threshold=threshold,
-                                                                                    max_rank=max_rank)
+                self.ortho_left(threshold=threshold, max_rank=np.infty).ortho_right(threshold=threshold,max_rank=max_rank)
 
                 return self
 
