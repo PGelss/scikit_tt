@@ -118,7 +118,7 @@ def symmetric_euler(operator, initial_value, step_sizes, threshold=1e-12, max_ra
 
     References
     ----------
-    .. [1] A. Askar, A. S. Cakmak, "Explicit integration method for the time‐dependent Schrodinger equation for 
+    .. [1] A. Askar, A. S. Cakmak, "Explicit integration method for the time-dependent Schrodinger equation for
            collision problems", J. Chem. Phys. 68, 2794, 1978
     """
 
