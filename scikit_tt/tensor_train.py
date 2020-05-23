@@ -519,9 +519,25 @@ class TT(object):
             raise ValueError('unknown mode')
 
         # check dimensions for contraction
+        if num_axes > self.order or num_axes > other.order:
+            raise ValueError('num_axes is too big')
         if self.row_dims[first_idx_self:last_idx_self + 1] != other.row_dims[first_idx_other:last_idx_other + 1] or \
                 self.col_dims[first_idx_self:last_idx_self + 1] != other.col_dims[first_idx_other:last_idx_other + 1]:
             raise ValueError('axes do not match')
+
+        # check if the needed ranks are 1
+        if mode == 'last-first':
+            if self.ranks[-1] != 1 or other.ranks[0] != 1:
+                raise ValueError('last rank of self and first rank of other have to be 1')
+        elif mode == 'last-last':
+            if self.ranks[-1] != 1 or other.ranks[-1] != 1:
+                raise ValueError('last rank of self and last rank of other have to be 1')
+        elif mode == 'first-last':
+            if self.ranks[0] != 1 or other.ranks[-1] != 1:
+                raise ValueError('first rank of self and last rank of other have to be 1')
+        else:  # mode == 'first-first':
+            if self.ranks[0] != 1 or other.ranks[0] != 1:
+                raise ValueError('first rank of self and first rank of other have to be 1')
 
         # copy self
         if overwrite is False:
