@@ -35,13 +35,13 @@ class TT(object):
     ----------
     order : int
         order of the tensor train
-    row_dims : list of int
+    row_dims : list[int]
         list of the row dimensions of the tensor train
-    col_dims : list of int
+    col_dims : list[int]
         list of the column dimensions of the tensor train
-    ranks : list of int
+    ranks : list[int]
         list of the ranks of the tensor train
-    cores : list of np.ndarray
+    cores : list[np.ndarray]
         list of the cores of the tensor train
 
     Methods
@@ -117,8 +117,8 @@ class TT(object):
         """
         Parameters
         ----------
-        x : list of np.ndarray or np.ndarray
-            either a list of TT cores or a full tensor
+        x : list[np.ndarray] or np.ndarray
+            either a list[TT] cores or a full tensor
         threshold : float, optional
             threshold for reduced SVD decompositions, default is 0
         max_rank : int, optional
@@ -616,7 +616,7 @@ class TT(object):
 
         Parameters
         ----------
-        cores : list of int, optional
+        cores : list[int], optional
             cores which should be transposed, if cores=None (default), all cores are transposed
         conjugate : bool, optional
             whether to compute the conjugate transpose, default is False
@@ -784,7 +784,7 @@ class TT(object):
 
         Parameters
         ----------
-        indices : list of int
+        indices : list[int]
             indices of a single entry of self ([x_1, ..., x_d, y_1, ..., y_d])
 
         Returns
@@ -795,7 +795,7 @@ class TT(object):
         Raises
         ------
         TypeError
-            if indices is not a list of ints
+            if indices is not a list[int]
         ValueError
             if length of indices does not match the order of self
         IndexError
@@ -1227,9 +1227,9 @@ class TT(object):
 
         Parameters
         ----------
-        row_dims : list of list of int
+        row_dims : list[list[int]]
             row dimensions for the QTT representation
-        col_dims : list of list of int
+        col_dims : list[list[int]]
             col dimensions for the QTT representation
         threshold : float, optional
             threshold for reduced SVD decompositions, default is 0
@@ -1310,7 +1310,7 @@ class TT(object):
 
         Parameters
         ----------
-        merge_numbers : list of int
+        merge_numbers : list[int]
             list of core numbers for contractions
 
         Returns
@@ -1490,11 +1490,11 @@ def zeros(row_dims, col_dims, ranks=1):
 
     Parameters
     ----------
-    row_dims : list of int
+    row_dims : list[int]
         list of the row dimensions of the tensor train of all zeros
-    col_dims : list of int
+    col_dims : list[int]
         list of the column dimensions of the tensor train of all zeros
-    ranks : int or list of int, optional
+    ranks : int or list[int], optional
         list of the ranks of the tensor train of all zeros, default is [1, ..., 1]
 
     Returns
@@ -1522,11 +1522,11 @@ def ones(row_dims, col_dims, ranks=1):
 
     Parameters
     ----------
-    row_dims : list of int
+    row_dims : list[int]
         list of the row dimensions of the tensor train of all ones
-    col_dims : list of int
+    col_dims : list[int]
         list of the column dimensions of the tensor train of all ones
-    ranks : int or list of int, optional
+    ranks : int or list[int], optional
         list of the ranks of the tensor train of all ones, default is [1, ..., 1]
 
     Returns
@@ -1554,7 +1554,7 @@ def eye(dims):
 
     Parameters
     ----------
-    dims : list of int
+    dims : list[int]
         list of row/column dimensions of the identity tensor train
 
     Returns
@@ -1582,9 +1582,9 @@ def unit(dims, inds):
 
     Parameters
     ----------
-    dims : list of int
+    dims : list[int]
         dimensions of the tensor train
-    inds : list of int
+    inds : list[int]
         positions of the 1s
 
     Returns
@@ -1605,11 +1605,11 @@ def rand(row_dims, col_dims, ranks=1):
 
     Parameters
     ----------
-    row_dims : list of int
+    row_dims : list[int]
         list of row dimensions of the random tensor train
-    col_dims : list of int
+    col_dims : list[int]
         list of column dimensions of the random tensor train
-    ranks : int or list of int, optional
+    ranks : int or list[int], optional
         list of the ranks of the random tensor train, default is [1, ..., 1]
 
     Returns
@@ -1637,9 +1637,9 @@ def uniform(row_dims, ranks=1, norm=1):
 
     Parameters
     ----------
-    row_dims : list of int
+    row_dims : list[int]
         list of row dimensions of the random tensor train
-    ranks : int or list of int, optional
+    ranks : int or list[int], optional
         list of the ranks of the uniformly distributed tensor train, default is [1, ..., 1]
     norm : float, optional
         norm of the uniformly distributed tensor train, default is 1

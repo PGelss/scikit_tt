@@ -16,7 +16,7 @@ def explicit_euler(operator, initial_value, step_sizes, threshold=1e-12, max_ran
         TT operator of the differential equation
     initial_value : TT
         initial value of the differential equation
-    step_sizes : list of float
+    step_sizes : list[float]
         step sizes for the application of the implicit Euler method
     threshold : float, optional
         threshold for reduced SVD decompositions, default is 1e-12
@@ -29,7 +29,7 @@ def explicit_euler(operator, initial_value, step_sizes, threshold=1e-12, max_ran
 
     Returns
     -------
-    list of TT
+    list[TT]
         numerical solution of the differential equation
     """
 
@@ -71,14 +71,14 @@ def errors_expl_euler(operator, solution, step_sizes):
     ----------
     operator : TT
         TT operator of the differential equation
-    solution : list of TT
+    solution : list[TT]
         approximate solution of the linear differential equation
-    step_sizes : list of float
+    step_sizes : list[float]
         step sizes for the application of the implicit Euler method
 
     Returns
     -------
-    list of float
+    list[float]
         approximation errors
     """
 
@@ -105,7 +105,7 @@ def symmetric_euler(operator, initial_value, step_sizes, threshold=1e-12, max_ra
         TT operator of the differential equation
     initial_value : TT
         initial value of the differential equation
-    step_sizes : list of float
+    step_sizes : list[float]
         step sizes
     threshold : float, optional
         threshold for reduced SVD decompositions, default is 1e-12
@@ -118,7 +118,7 @@ def symmetric_euler(operator, initial_value, step_sizes, threshold=1e-12, max_ra
 
     Returns
     -------
-    list of TT
+    list[TT]
         numerical solution of the differential equation
 
     References
@@ -181,7 +181,7 @@ def implicit_euler(operator, initial_value, initial_guess, step_sizes, repeats=1
         initial value of the differential equation
     initial_guess : TT
         initial guess for the first step
-    step_sizes : list of float
+    step_sizes : list[float]
         step sizes for the application of the implicit Euler method
     repeats : int, optional
         number of repeats of the (M)ALS in each iteration step, default is 1
@@ -200,7 +200,7 @@ def implicit_euler(operator, initial_value, initial_guess, step_sizes, repeats=1
 
     Returns
     -------
-    list of TT
+    list[TT]
         numerical solution of the differential equation
     """
 
@@ -248,14 +248,14 @@ def errors_impl_euler(operator, solution, step_sizes):
     ----------
     operator : TT
         TT operator of the differential equation
-    solution : list of TT
+    solution : list[TT]
         approximate solution of the linear differential equation
-    step_sizes : list of float
+    step_sizes : list[float]
         step sizes for the application of the implicit Euler method
 
     Returns
     -------
-    list of float
+    list[float]
         approximation errors
     """
 
@@ -284,7 +284,7 @@ def trapezoidal_rule(operator, initial_value, initial_guess, step_sizes, repeats
         initial value of the differential equation
     initial_guess : TT
         initial guess for the first step
-    step_sizes : list of float
+    step_sizes : list[float]
         step sizes for the application of the trapezoidal rule
     repeats : int, optional
         number of repeats of the (M)ALS in each iteration step, default is 1
@@ -303,7 +303,7 @@ def trapezoidal_rule(operator, initial_value, initial_guess, step_sizes, repeats
 
     Returns
     -------
-    list of TT
+    list[TT]
         numerical solution of the differential equation
     """
 
@@ -353,14 +353,14 @@ def errors_trapezoidal(operator, solution, step_sizes):
     ----------
     operator : TT
         TT operator of the differential equation
-    solution : list of TT
+    solution : list[TT]
         approximate solution of the linear differential equation
-    step_sizes : list of float
+    step_sizes : list[float]
         step sizes for the application of the implicit Euler method
 
     Returns
     -------
-    list of float
+    list[float]
         approximation errors
     """
 
@@ -423,7 +423,7 @@ def adaptive_step_size(operator, initial_value, initial_guess, time_end, step_si
 
     Returns
     -------
-    list of TT
+    list[TT]
         numerical solution of the differential equation
     """
 

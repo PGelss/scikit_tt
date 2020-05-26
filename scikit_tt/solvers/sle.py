@@ -186,7 +186,7 @@ def __construct_stack_left_op(i, stack_left_op, operator, solution):
     ----------
     i : int
         core index
-    stack_left_op : list of np.ndarray
+    stack_left_op : list[np.ndarray]
         left stack for left-hand side
     operator : TT
         TT operator of the system of linear equations
@@ -214,7 +214,7 @@ def __construct_stack_left_rhs(i, stack_left_rhs, right_hand_side, solution):
     ----------
     i : int
         core index
-    stack_left_rhs : list of np.ndarray
+    stack_left_rhs : list[np.ndarray]
         left stack for right-hand side
     right_hand_side : TT
         right-hand side of the system of linear equations
@@ -242,7 +242,7 @@ def __construct_stack_right_op(i, stack_right_op, operator, solution):
     ----------
     i : int
         core index
-    stack_right_op : list of np.ndarray
+    stack_right_op : list[np.ndarray]
         right stack for left-hand side
     operator : TT
         TT operator side of the system of linear equations
@@ -271,7 +271,7 @@ def __construct_stack_right_rhs(i, stack_right_rhs, right_hand_side, solution):
     ----------
     i : int
         core index
-    stack_right_rhs : list of np.ndarray
+    stack_right_rhs : list[np.ndarray]
         right stack for right-hand side
     right_hand_side : TT
         right-hand side of the system of linear equations
@@ -300,9 +300,9 @@ def __construct_micro_matrix_als(i, stack_left_op, stack_right_op, operator, sol
     ----------
     i : int
         core index
-    stack_left_op : list of np.ndarray
+    stack_left_op : list[np.ndarray]
         left stack for left-hand side
-    stack_right_op : list of np.ndarray
+    stack_right_op : list[np.ndarray]
         right stack for left-hand side
     operator : TT
         TT operator of the system of linear equations
@@ -335,9 +335,9 @@ def __construct_micro_matrix_mals(i, stack_left_op, stack_right_op, operator, so
     ----------
     i : int
         core index
-    stack_left_op : list of np.ndarray
+    stack_left_op : list[np.ndarray]
         left stack for left-hand side
-    stack_right_op : list of np.ndarray
+    stack_right_op : list[np.ndarray]
         right stack for left-hand side
     operator : TT
         TT operator of the system of linear equations
@@ -370,9 +370,9 @@ def __construct_micro_rhs_als(i, stack_left_rhs, stack_right_rhs, right_hand_sid
     ----------
     i : int
         core index
-    stack_left_rhs : list of np.ndarray
+    stack_left_rhs : list[np.ndarray]
         left stack for right-hand side
-    stack_right_rhs : list of np.ndarray
+    stack_right_rhs : list[np.ndarray]
         right stack for right-hand side
     right_hand_side : TT
         right-hand side of the system of linear equations
@@ -403,9 +403,9 @@ def __construct_micro_rhs_mals(i, stack_left_rhs, stack_right_rhs, right_hand_si
     ----------
     i : int
         core index
-    stack_left_rhs : list of np.ndarray
+    stack_left_rhs : list[np.ndarray]
         left stack for right-hand side
-    stack_right_rhs : list of np.ndarray
+    stack_right_rhs : list[np.ndarray]
         right stack for right-hand side
     right_hand_side : TT
         right-hand side of the system of linear equations

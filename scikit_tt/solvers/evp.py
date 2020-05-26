@@ -37,9 +37,9 @@ def als(operator, initial_guess, operator_gevp=None, number_ev=1, repeats=1, sol
 
     Returns
     -------
-    eigenvalues: float or list of float
-        approximated eigenvalues, if number_ev>1 eigenvalues is a list of floats
-    eigentensors: TT or list of TT
+    eigenvalues: float or list[float]
+        approximated eigenvalues, if number_ev>1 eigenvalues is a list[float]
+    eigentensors: TT or list[TT]
         approximated eigentensors, if number_ev>1 eigentensors is a list of tensor trains
 
     References
@@ -203,7 +203,7 @@ def __construct_stack_left_op(i, stack_left_op, operator, solution):
     ----------
     i : int
         core index
-    stack_left_op : list of np.ndarray
+    stack_left_op : list[np.ndarray]
         left stack for left-hand side
     operator : TT
         TT operator of the system of linear equations
@@ -232,7 +232,7 @@ def __construct_stack_right_op(i, stack_right_op, operator, solution):
     ----------
     i : int
         core index
-    stack_right_op : list of np.ndarray
+    stack_right_op : list[np.ndarray]
         right stack for left-hand side
     operator : TT
         TT operator side of the system of linear equations
@@ -261,9 +261,9 @@ def __construct_micro_matrix_als(i, stack_left_op, stack_right_op, operator, sol
     ----------
     i : int
         core index
-    stack_left_op : list of np.ndarray
+    stack_left_op : list[np.ndarray]
         left stack for left-hand side
-    stack_right_op : list of np.ndarray
+    stack_right_op : list[np.ndarray]
         right stack for left-hand side
     operator : TT
         TT operator of the system of linear equations

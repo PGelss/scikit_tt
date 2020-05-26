@@ -17,12 +17,12 @@ def slim_mme(state_space, single_cell_reactions, two_cell_reactions, threshold=0
 
     Parameters
     ----------
-    state_space : list of int
+    state_space : list[int]
         number of states of each cell in the NNIS
-    single_cell_reactions : list of lists of lists of ints and floats
+    single_cell_reactions :  list[list[list[int or float]]]
         list of considered single-cell reactions, i.e. single_cell_reactions[i][j] is a list of the form
         [reactant_state, product_state, reactions_rate] describing the jth reaction on the ith cell.
-    two_cell_reactions : list of lists of lists of ints and floats
+    two_cell_reactions : list[list[list[int or float]]]
         list of considered two-cell reactions, i.e. two_cell_reactions[i][j] is a list of the form
         [reactant_state_i, product_state_i, reactant_state_i+1, product_state_i+1, reactions_rate] describing the jth
         reaction between the ith and the (i+1)th cell.
@@ -181,12 +181,12 @@ def slim_mme_hom(state_space, single_cell_reactions, two_cell_reactions, cyclic=
 
     Parameters
     ----------
-    state_space : list of int
+    state_space : list[int]
         number of states of each cell in the NNIS
-    single_cell_reactions : list of lists of ints and floats
+    single_cell_reactions : list[list[int or float]]
         list of considered single-cell reactions, i.e. single_cell_reactions[i] is a list of the form
         [reactant_state, product_state, reactions_rate] describing the ith reaction on each cell.
-    two_cell_reactions : list of lists of ints and floats
+    two_cell_reactions : list[list[int or float]]
         list of considered two-cell reactions, i.e. two_cell_reactions[i] is a list of the form
         [reactant_state_i, product_state_i, reactant_state_i+1, product_state_i+1, reactions_rate] describing the ith
         reaction between neighboring cells

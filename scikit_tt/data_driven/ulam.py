@@ -19,7 +19,7 @@ def ulam_2d(transitions, states, simulations):
     transitions : np.ndarray
         matrix containing the transitions, each row is of the form [x_1, x_2, y_1, y_2] representing a transition from
         state (x_1, x_2) to (y_1, y_2)
-    states : list of int
+    states : list[int]
         number of states in x- and y-direction
     simulations : int
         number of simulations per state
@@ -67,7 +67,7 @@ def ulam_3d(transitions, states, simulations):
     transitions : np.ndarray
         matrix containing the transitions, each row is of the form [x_1, x_2, x_3, y_1, y_2, y_3] representing a
         transition from state (x_1, x_2, x_3) to (y_1, y_2, y_3)
-    states : list of int
+    states : list[int]
         number of states in x-, y-, and z-direction
     simulations : int
         number of simulations per state
