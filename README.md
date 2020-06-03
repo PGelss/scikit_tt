@@ -337,12 +337,13 @@ timer .................... measure CPU time
 
 ### 10.1 Authors & contact
 
-* **Dr. Patrick Gelß** - _lead developer_ - CRC 1114, Freie Universität Berlin, Germany
+* **Dr. Patrick Gelß** - CRC 1114, Freie Universität Berlin, Germany - _lead developer_
   - address: Arnimallee 9, 14195 Berlin, Germany
   - email: p.gelss@fu-berlin.de
-* **Dr. Stefan Klus** - _initial work_ - CRC 1114, Freie Universität Berlin, Germany
-* **Martin Scherer** - _development advisor_ - Computational Molecular Biology, Freie Universität Berlin, Germany
-* **Dr. Feliks Nüske** - _development of tEDMD_ - Department of Chemistry, Rice University, Houston, Texas
+* **Dr. Stefan Klus** - CRC 1114, Freie Universität Berlin, Germany - _initial work_
+* **Martin Scherer** - _development advisor_
+* **Dr. Feliks Nüske** - Institute of Mathematics, Paderborn University, Germany - _development of tEDMD_
+* **Marvin Lücke** - Institute of Mathematics, Paderborn University, Germany - _TT class methods, code compatibility_
 
 ### 10.2 Built with
 
