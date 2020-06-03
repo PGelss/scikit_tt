@@ -6,13 +6,14 @@ import time
 
 
 def header(title=None, subtitle=None):
-    """Print scikit_tt header
+    """
+    Print scikit_tt header.
 
     Parameters
     ----------
-    title: string
+    title : string
         title or name of the procedure
-    subtitle: string
+    subtitle : string
         subtitle of the procedure
     """
 
@@ -31,21 +32,22 @@ def header(title=None, subtitle=None):
 
 
 def progress(str_text, percent, cpu_time=0, show=True, width=47):
-    """Show progress in percent
+    """
+    Show progress in percent.
 
     Print strings of the form, e.g., 'Running ... 10%' etc., without line breaks.
 
     Parameters
     ----------
-    str_text: string
+    str_text : string
         string to print
-    percent: float
+    percent : float
         current progress; if percent=0, the current time is returned
-    cpu_time: float
+    cpu_time : float
         current CPU time
-    show: bool, optional
+    show : bool, optional
         whether to print the progress, default is True
-    width: int
+    width : int
         width of the progress bar, default is 47
     """
 
@@ -90,7 +92,8 @@ def progress(str_text, percent, cpu_time=0, show=True, width=47):
 
 
 class timer(object):
-    """Measure CPU time
+    """
+    Measure CPU time.
 
     Can be executed using the 'with' statement in order to measure the CPU time needed for calculations.
     """

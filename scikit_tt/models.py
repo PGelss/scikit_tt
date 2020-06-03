@@ -5,22 +5,24 @@ import numpy as np
 from scikit_tt.tensor_train import TT
 import scikit_tt.slim as slim
 
+
 def cantor_dust(dimension, level):
-    """Construction of a (multidimensional) Cantor dust
+    """
+    Construction of a (multidimensional) Cantor dust.
 
     Generate a binary tensor representing a Cantor dust, see [1]_, by exploiting the
     tensor-train format and Kronecker products.
 
     Parameters
     ----------
-    dimension: int
+    dimension : int
         dimension of the Cantor dust
-    level: int
+    level : int
         level of the fractal construction to generate
 
     Returns
     -------
-    fractal: ndarray
+    np.ndarray
         tensor representing the Cantor dust
 
     References
@@ -47,25 +49,25 @@ def cantor_dust(dimension, level):
 
 
 def co_oxidation(order, k_ad_co, cyclic=True):
-    """"CO oxidation on RuO2
+    """
+    CO oxidation on RuO2.
 
     Model for the CO oxidation on a RuO2 surface. For a detailed description of the process and the construction of the
     corresponding TT operator, we refer to [1]_,[2]_, and [3]_.
 
     Arguments
     ---------
-    order: int
+    order : int
         number of reaction sites (= order of the operator)
-    k_ad_co: float
+    k_ad_co : float
         reaction rate constant for the adsorption of CO
-    cyclic: bool, optional
+    cyclic : bool, optional
         whether model should be cyclic or not, default=True
 
     Returns
     -------
-    operator: instance of TT class
+    TT
         TT operator of the process
-
 
     References
     ----------
@@ -104,17 +106,18 @@ def co_oxidation(order, k_ad_co, cyclic=True):
 
 
 def fpu_coefficients(d):
-    """Construction of the exact coefficient tensor for the application of MANDy to the Fermi-Pasta-Ulam problem using
+    """
+    Construction of the exact coefficient tensor for the application of MANDy to the Fermi-Pasta-Ulam problem using
     the basis set {1, x, x^2, x^3}. See [1]_ for details.
 
     Parameters
     ----------
-    d: int
+    d : int
         number of oscillators
 
     Returns
     -------
-    coefficient_tensor: instance of TT class
+    TT
         exact coefficient tensor
 
     References
@@ -175,19 +178,20 @@ def fpu_coefficients(d):
 
 
 def kuramoto_coefficients(d, w):
-    """Construction of the exact coefficient tensor for the application of MANDy to the Kuramoto model using the basis
+    """
+    Construction of the exact coefficient tensor for the application of MANDy to the Kuramoto model using the basis
     set {1, x, x^2, x^3}. See [1]_ for details.
 
     Parameters
     ----------
-    d: int
+    d : int
         number of oscillators
-    w: ndarray
+    w : np.ndarray
         natural frequencies
 
     Returns
     -------
-    coefficient_tensor: instance of TT class
+    TT
         exact coefficient tensor
 
     References
@@ -216,7 +220,8 @@ def kuramoto_coefficients(d, w):
 
 
 def multisponge(dimension, level):
-    """Construction of a multisponge
+    """
+    Construction of a multisponge.
 
     Generate a binary tensor representing a multisponge fractal (e.g., Sierpinski carpet,
     Menger sponge, etc.), see [1]_, by exploiting the tensor-train format and Kronecker
@@ -224,14 +229,14 @@ def multisponge(dimension, level):
 
     Parameters
     ----------
-    dimension: int (>1)
-        dimension of the multisponge
-    level: int
+    dimension : int
+        dimension (>1) of the multisponge
+    level : int
         level of the fractal construction to generate
 
     Returns
     -------
-    fractal: ndarray
+    np.ndarray
         tensor representing the multisponge fractal
 
     References
@@ -271,25 +276,26 @@ def multisponge(dimension, level):
 
 
 def rgb_fractal(matrix_r, matrix_g, matrix_b, level):
-    """Construction of an RGB fractal
+    """
+    Construction of an RGB fractal.
 
     Generate a 3-dimensional tensor representing an RGB fractal, see [1]_, by exploiting
     the tensor-train format.
 
     Parameters
     ----------
-    matrix_r: ndarray
+    matrix_r : np.ndarray
         matrix representing red primaries
-    matrix_g: ndarray
+    matrix_g : np.ndarray
         matrix representing green primaries
-    matrix_b: ndarray
+    matrix_b : np.ndarray
         matrix representing blue primaries
-    level: int
+    level : int
         level of the fractal construction to generate
 
     Returns
     -------
-    fractal: ndarray
+    np.ndarray
         tensor representing the RGB fractal
 
     References
@@ -321,21 +327,21 @@ def rgb_fractal(matrix_r, matrix_g, matrix_b, level):
 
 
 def signaling_cascade(d):
-    """Signaling cascade
+    """
+    Signaling cascade.
 
     Model for a cascading process on a genetic network consisting of genes of species S_1 , ..., S_d. For a detailed
     description of the process and the construction of the corresponding TT operator, we refer to [1]_.
 
     Arguments
     ---------
-    d: int
+    d : int
         number of species (= order of the operator)
 
     Returns
     -------
-    operator: instance of TT class
+    TT
         TT operator of the model
-
 
     References
     ----------
@@ -351,7 +357,7 @@ def signaling_cascade(d):
 
     # make operator stochastic
     s_mat_0[-1, -1] = -0.07 * 63
-    m_mat [-1, -1] = 0
+    m_mat[-1, -1] = 0
 
     # define TT cores
     cores = [np.zeros([1, 64, 64, 3])]
@@ -377,20 +383,20 @@ def signaling_cascade(d):
 
 
 def toll_station(number_of_lanes, number_of_cars):
-    """"Toll station
+    """"
+    Toll station.
 
-    Model for a quasi-realistic traffic problem
+    Model for a quasi-realistic traffic problem.
 
     Arguments
     ---------
-    number_of_lanes:
-    number_of_cars:
+    number_of_lanes : int
+    number_of_cars : int
 
     Returns
     -------
-    operator: instance of TT class
+    TT
         TT operator of the process
-
 
     References
     ----------
@@ -441,27 +447,27 @@ def toll_station(number_of_lanes, number_of_cars):
 
 
 def two_step_destruction(k_1, k_2, k_3, m):
-    """"Two-step destruction
+    """"
+    Two-step destruction.
 
     Model for a two-step mechanism for the destruction of molecules. For a detailed description of the process and the
     construction of the corresponding TT operator, we refer to [1]_.
 
     Arguments
     ---------
-    k_1: float
+    k_1 : float
         rate constant for the first reaction
-    k_2: float
+    k_2 : float
         rate constant for the second reaction
-    k_3: float
+    k_3 : float
         rate constant for the third reaction
-    m: int
+    m : int
         exponent determining the maximum number of molecules
 
     Returns
     -------
-    operator: instance of TT class
+    TT
         TT operator of the process
-
 
     References
     ----------
@@ -502,21 +508,22 @@ def two_step_destruction(k_1, k_2, k_3, m):
 
 
 def vicsek_fractal(dimension, level):
-    """Construction of a Vicsek fractal
+    """
+    Construction of a Vicsek fractal.
 
     Generate a binary tensor representing a Vicsek fractal, see [1]_, by exploiting the
     tensor-train format and Kronecker products.
 
     Parameters
     ----------
-    dimension: int (>1)
-        dimension of the Vicsek fractal
-    level: int
+    dimension : int
+        dimension (>1) of the Vicsek fractal
+    level : int
         level of the fractal construction to generate
 
     Returns
     -------
-    fractal: ndarray
+    np.ndarray
         tensor representing the Vicsek fractal
 
     References

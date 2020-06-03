@@ -3,29 +3,31 @@
 
 import numpy as np
 import scipy.linalg as lin
+from scikit_tt.tensor_train import TT
 
 
 def als(operator, initial_guess, right_hand_side, repeats=1, solver='solve'):
-    """Alternating linear scheme
+    """
+    Alternating linear scheme.
 
     Approximates the solution of a system of linear equations in the TT format. For details, see [1]_.
 
     Parameters
     ----------
-    operator: instance of TT class
+    operator : TT
         TT operator
-    initial_guess: instance of TT class
+    initial_guess : TT
         initial guess for the solution of operator @ x = right_hand_side
-    right_hand_side: instance of TT class
+    right_hand_side : TT
         right hand side of the system of linear equations
-    repeats: int, optional
+    repeats : int, optional
         number of repeats of the ALS, default is 1
-    solver: string, optional
+    solver : string, optional
         algorithm for obtaining the solutions of the micro systems, can be 'solve' or 'lu', default is 'solve'
 
     Returns
     -------
-    solution: instance of TT class
+    TT
         approximated solution of the system of linear equations
 
     References
@@ -89,30 +91,31 @@ def als(operator, initial_guess, right_hand_side, repeats=1, solver='solve'):
 
 
 def mals(operator, initial_guess, right_hand_side, repeats=1, solver='solve', threshold=1e-12, max_rank=np.infty):
-    """Modified alternating linear scheme for solving systems of linear equations in the TT format.
+    """
+    Modified alternating linear scheme for solving systems of linear equations in the TT format.
 
     Approximates the solution of a system of linear equations in the TT format. For details, see [1]_.
 
     Parameters
     ----------
-    operator: instance of TT class
+    operator : TT
         TT operator
-    initial_guess: instance of TT class
+    initial_guess : TT
         initial guess for the solution of operator @ x = right_hand_side
-    right_hand_side: instance of TT class
+    right_hand_side : TT
         right hand side of the system of linear equations
-    repeats: int, optional
+    repeats : int, optional
         number of repeats of the MALS, default is 1
-    solver: string, optional
+    solver : string, optional
         algorithm for obtaining the solutions of the micro systems, can be 'solve' or 'lu', default is 'solve'
-    threshold: float, optional
+    threshold : float, optional
         threshold for reduced SVD decompositions, default is 1e-12
-    max_rank: int, optional
+    max_rank : int, optional
         maximum rank of the solution, default is infinity
 
     Returns
     -------
-    solution: instance of TT class
+    TT
         approximated solution of the system of linear equations
 
     References
@@ -176,17 +179,18 @@ def mals(operator, initial_guess, right_hand_side, repeats=1, solver='solve', th
 
 
 def __construct_stack_left_op(i, stack_left_op, operator, solution):
-    """Construct left stack for left-hand side
+    """
+    Construct left stack for left-hand side.
 
     Parameters
     ----------
-    i: int
+    i : int
         core index
-    stack_left_op: list of ndarrays
+    stack_left_op : list[np.ndarray]
         left stack for left-hand side
-    operator: instance of TT class
+    operator : TT
         TT operator of the system of linear equations
-    solution: instance of TT class
+    solution : TT
         approximated solution of the system of linear equations
     """
 
@@ -203,17 +207,18 @@ def __construct_stack_left_op(i, stack_left_op, operator, solution):
 
 
 def __construct_stack_left_rhs(i, stack_left_rhs, right_hand_side, solution):
-    """Construct left stack for right-hand side
+    """
+    Construct left stack for right-hand side.
 
     Parameters
     ----------
-    i: int
+    i : int
         core index
-    stack_left_rhs: list of ndarrays
+    stack_left_rhs : list[np.ndarray]
         left stack for right-hand side
-    right_hand_side: instance of TT class
+    right_hand_side : TT
         right-hand side of the system of linear equations
-    solution: instance of TT class
+    solution : TT
         approximated solution of the system of linear equations
     """
 
@@ -230,17 +235,18 @@ def __construct_stack_left_rhs(i, stack_left_rhs, right_hand_side, solution):
 
 
 def __construct_stack_right_op(i, stack_right_op, operator, solution):
-    """Construct right stack for left-hand side
+    """
+    Construct right stack for left-hand side.
 
     Parameters
     ----------
-    i: int
+    i : int
         core index
-    stack_right_op: list of ndarrays
+    stack_right_op : list[np.ndarray]
         right stack for left-hand side
-    operator: instance of TT class
+    operator : TT
         TT operator side of the system of linear equations
-    solution: instance of TT class
+    solution : TT
         approximated solution of the system of linear equations
     """
 
@@ -258,17 +264,18 @@ def __construct_stack_right_op(i, stack_right_op, operator, solution):
 
 
 def __construct_stack_right_rhs(i, stack_right_rhs, right_hand_side, solution):
-    """Construct right stack for right-hand side
+    """
+    Construct right stack for right-hand side.
 
     Parameters
     ----------
-    i: int
+    i : int
         core index
-    stack_right_rhs: list of ndarrays
+    stack_right_rhs : list[np.ndarray]
         right stack for right-hand side
-    right_hand_side: instance of TT class
+    right_hand_side : TT
         right-hand side of the system of linear equations
-    solution: instance of TT class
+    solution : TT
         approximated solution of the system of linear equations
     """
 
@@ -286,24 +293,25 @@ def __construct_stack_right_rhs(i, stack_right_rhs, right_hand_side, solution):
 
 
 def __construct_micro_matrix_als(i, stack_left_op, stack_right_op, operator, solution):
-    """Construct micro matrix for ALS
+    """
+    Construct micro matrix for ALS.
 
     Parameters
     ----------
-    i: int
+    i : int
         core index
-    stack_left_op: list of ndarrays
+    stack_left_op : list[np.ndarray]
         left stack for left-hand side
-    stack_right_op: list of ndarrays
+    stack_right_op : list[np.ndarray]
         right stack for left-hand side
-    operator: instance of TT class
+    operator : TT
         TT operator of the system of linear equations
-    solution: instance of TT class
+    solution : TT
         approximated solution of the system of linear equations
 
     Returns
     -------
-    micro_op: ndarray
+    np.ndarray
         ith micro matrix
     """
 
@@ -320,24 +328,25 @@ def __construct_micro_matrix_als(i, stack_left_op, stack_right_op, operator, sol
 
 
 def __construct_micro_matrix_mals(i, stack_left_op, stack_right_op, operator, solution):
-    """Construct micro matrix for MALS
+    """
+    Construct micro matrix for MALS.
 
     Parameters
     ----------
-    i: int
+    i : int
         core index
-    stack_left_op: list of ndarrays
+    stack_left_op : list[np.ndarray]
         left stack for left-hand side
-    stack_right_op: list of ndarrays
+    stack_right_op : list[np.ndarray]
         right stack for left-hand side
-    operator: instance of TT class
+    operator : TT
         TT operator of the system of linear equations
-    solution: instance of TT class
+    solution : TT
         approximated solution of the system of linear equations
 
     Returns
     -------
-    micro_op: ndarray
+    np.ndarray
         ith micro matrix
     """
 
@@ -359,20 +368,20 @@ def __construct_micro_rhs_als(i, stack_left_rhs, stack_right_rhs, right_hand_sid
 
     Parameters
     ----------
-    i: int
+    i : int
         core index
-    stack_left_rhs: list of ndarrays
+    stack_left_rhs : list[np.ndarray]
         left stack for right-hand side
-    stack_right_rhs: list of ndarrays
+    stack_right_rhs : list[np.ndarray]
         right stack for right-hand side
-    right_hand_side: instance of TT class
+    right_hand_side : TT
         right-hand side of the system of linear equations
-    solution: instance of TT class
+    solution : TT
         approximated solution of the system of linear equations
 
     Returns
     -------
-    micro_rhs: ndarray
+    np.ndarray
         ith micro right-hand side
     """
 
@@ -387,24 +396,25 @@ def __construct_micro_rhs_als(i, stack_left_rhs, stack_right_rhs, right_hand_sid
 
 
 def __construct_micro_rhs_mals(i, stack_left_rhs, stack_right_rhs, right_hand_side, solution):
-    """Construct micro right-hand side for MALS
+    """
+    Construct micro right-hand side for MALS.
 
     Parameters
     ----------
-    i: int
+    i : int
         core index
-    stack_left_rhs: list of ndarrays
+    stack_left_rhs : list[np.ndarray]
         left stack for right-hand side
-    stack_right_rhs: list of ndarrays
+    stack_right_rhs : list[np.ndarray]
         right stack for right-hand side
-    right_hand_side: instance of TT class
+    right_hand_side : TT
         right-hand side of the system of linear equations
-    solution: instance of TT class
+    solution : TT
         approximated solution of the system of linear equations
 
     Returns
     -------
-    micro_rhs: ndarray
+    np.ndarray
         ith micro right-hand side
     """
 
@@ -421,21 +431,22 @@ def __construct_micro_rhs_mals(i, stack_left_rhs, stack_right_rhs, right_hand_si
 
 
 def __update_core_als(i, micro_op, micro_rhs, solution, solver, direction):
-    """Update TT core for ALS
+    """
+    Update TT core for ALS.
 
     Parameters
     ----------
-    i: int
+    i : int
         core index
-    micro_op: ndarray
+    micro_op : np.ndarray
         micro matrix for ith TT core
-    micro_rhs: ndarray
+    micro_rhs : np.ndarray
         micro right-hand side for ith TT core
-    solution: instance of TT class
+    solution : TT
         approximated solution of the system of linear equations
-    solver: string
+    solver : string
         algorithm for obtaining the solutions of the micro systems
-    direction: string
+    direction : string
         'forward' if first half sweep, 'backward' if second half sweep
     """
 
@@ -488,25 +499,26 @@ def __update_core_als(i, micro_op, micro_rhs, solution, solver, direction):
 
 
 def __update_core_mals(i, micro_op, micro_rhs, solution, solver, threshold, max_rank, direction):
-    """Update TT cores for MALS
+    """
+    Update TT cores for MALS.
 
     Parameters
     ----------
-    i: int
+    i : int
         core index
-    micro_op: ndarray
+    micro_op : np.ndarray
         micro matrix for ith and (i+1)th TT core
-    micro_rhs: ndarray
+    micro_rhs : np.ndarray
         micro right-hand side for ith and (i+1)th TT core
-    solution: instance of TT class
+    solution : TT
         approximated solution of the system of linear equations
-    solver: string
+    solver : string
         algorithm for obtaining the solutions of the micro systems
-    direction: string
+    direction : string
         'forward' if first half sweep, 'backward' if second half sweep
-    threshold: float
+    threshold : float
         threshold for reduced SVD decompositions
-    max_rank: int
+    max_rank : int
         maximum rank of the solution
     """
 
