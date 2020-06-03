@@ -192,16 +192,16 @@ def basis_decomposition(x, phi, single_core=None):
 
     Parameters
     ----------
-    x: ndarray
+    x: np.ndarray
         snapshot matrix of size d x m
-    phi: list of lists of lambda functions
+    phi: list[list[function]]
         list of basis functions in every mode
     single_core: None or int, optional
         return only the ith core of psi if single_core=i (<p), default is None
 
     Returns
     -------
-    psi: instance of TT class or ndarray
+    psi: instance of TT class or np.ndarray
         tensor train of basis function evaluations if single_core=None, 4-dimensional array if single core
         is an integer
 
@@ -286,9 +286,9 @@ def coordinate_major(x, phi, single_core=None):
 
     Parameters
     ----------
-    x: ndarray
+    x: np.ndarray
         snapshot matrix of size d x m
-    phi: list of lambda functions
+    phi: list[function]
         list of basis functions
     single_core: None or int, optional
         return only the ith core of psi if single_core=i (<p), default is None
@@ -377,9 +377,9 @@ def function_major(x, phi, add_one=True, single_core=None):
 
     Parameters
     ----------
-    x: ndarray
+    x : np.np.ndarray
         snapshot matrix of size d x m
-    phi: list of lambda functions
+    phi : list[function]
         list of basis functions
     add_one: bool, optional
         whether to add the basis function 1 to the cores or not, default is True
@@ -472,16 +472,16 @@ def gram(x_1, x_2, basis_list):
 
     Parameters
     ----------
-    x_1: ndarray
+    x_1: np.ndarray
         data matrix for psi_1
-    x_2: ndarray
+    x_2: np.ndarray
         data matrix for psi_2
-    basis_list: list of lists of lambda functions
+    basis_list: list[list[function]]
         list of basis functions in every mode
 
     Returns
     -------
-    gram: ndarray
+    gram: np.ndarray
         Gram matrix
 
     References
@@ -508,11 +508,11 @@ def hocur(x, basis_list, ranks, repeats=1, multiplier=10, progress=True, string=
 
     Parameters
     ----------
-    x: ndarray
+    x: np.ndarray
         data matrix
-    basis_list: list of lists of lambda functions
+    basis_list: list[list[function]]
         list of basis functions in every mode
-    ranks: list of ints or int
+    ranks: list[int] or int
         maximum TT ranks of the resulting TT representation; if type is int, then the ranks are set to
         [1, ranks, ..., ranks, 1]; note that - depending on the number of linearly independent rows/columns that have
         been found - the TT ranks may be reduced during the decomposition
@@ -676,9 +676,9 @@ def __hocur_first_col_inds(dimensions, ranks, multiplier):
 
     Parameters
     ----------
-    dimensions: list of ints
+    dimensions: list[int]
         dimensions of a given tensor
-    ranks: list of ints
+    ranks: list[int]
         ranks for decomposition
     multiplier: int
         multiply the number of initially chosen column indices (given by ranks) in order to increase the probability of
@@ -686,7 +686,7 @@ def __hocur_first_col_inds(dimensions, ranks, multiplier):
 
     Returns
     -------
-    col_inds: list of lists of ints
+    col_inds: list[list[int]]
         array containing single indices
     """
 
@@ -717,18 +717,18 @@ def __hocur_extract_matrix(data, basis_list, row_coordinates_list, col_coordinat
 
     Parameters
     ----------
-    data: ndarray
+    data: np.ndarray
         data matrix
-    basis_list: list of lists of lambda functions
+    basis_list: list[list[function]]
         list of basis functions in every mode
-    row_coordinates_list: list of lists of ints
+    row_coordinates_list: list[list[int]]
         list of row indices
-    col_coordinates_list: list of lists of ints
+    col_coordinates_list: list[list[int]]
         list of column indices
 
     Returns
     -------
-    matrix: ndarray
+    matrix: np.ndarray
         extracted matrix
     """
 
@@ -846,12 +846,12 @@ def __hocur_find_li_cols(matrix, tol=1e-14):
 
     Parameters
     ----------
-    matrix: ndarray (m,n)
+    matrix: np.ndarray (m,n)
         rectangular matrix
 
     Returns
     -------
-    cols: list of ints
+    cols: list[int]
         indices of linearly independent columns
     """
 
@@ -878,7 +878,7 @@ def __hocur_maxvolume(matrix, maximum_iterations=1000, tolerance=1e-5):
 
     Parameters
     ----------
-    matrix: ndarray (n,r)
+    matrix: np.ndarray (n,r)
         rectangular matrix with rank r
     maximum_iterations: int
         maximum number of iterations, default is 100
@@ -887,7 +887,7 @@ def __hocur_maxvolume(matrix, maximum_iterations=1000, tolerance=1e-5):
 
     Returns
     -------
-    rows: list of ints
+    rows: list[int]
         rows of the matrix which build the dominant submatrix
 
     References
