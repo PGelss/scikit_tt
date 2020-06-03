@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 import sys
-import os
 import numpy as np
 import time
 
@@ -50,8 +49,11 @@ def progress(str_text, percent, cpu_time=0, show=True, width=47):
         width of the progress bar, default is 47
     """
 
+    up_two = '\u001b[2A\r'
+
     if show:
-        os.system('setterm -cursor off')
+        if percent >0:
+            sys.stdout.write(up_two)
         len_text = len(str_text)
         space_text = ' ' * (width - len_text)
         number_of_boxes = width - 6
@@ -67,7 +69,7 @@ def progress(str_text, percent, cpu_time=0, show=True, width=47):
         color_remain = '\33[100m'
         underline = '\033[4m'
         end = '\33[0m'
-        up_two = '\u001b[2A\r'
+
 
         done = int(number_of_boxes * (np.floor(percent) / 100))
         str_done = ' ' * done
@@ -77,12 +79,11 @@ def progress(str_text, percent, cpu_time=0, show=True, width=47):
         sys.stdout.write(color_done + underline + str_done + end)
         sys.stdout.write(color_remain + underline + str_remain + end)
         sys.stdout.write(underline + space_percent + str_percent + end + '\n')
-        sys.stdout.write(str_cpu + up_two)
+        sys.stdout.write(str_cpu + ' ')
         sys.stdout.flush()
 
         if percent == 100:
-            sys.stdout.write(4 * '\n')
-            os.system('setterm -cursor on')
+            sys.stdout.write(2*'\n')
 
     if percent == 0:
         return time.time()
