@@ -7,7 +7,8 @@ from scipy import linalg
 
 
 class TT(object):
-    """Tensor train class
+    """
+    Tensor train class
 
     Tensor trains [1]_ are defined in terms of different attributes. That is, a tensor train with order ``d`` is 
     given by a list of 4-dimensional tensors
@@ -32,15 +33,15 @@ class TT(object):
 
     Attributes
     ----------
-    order: int
+    order : int
         order of the tensor train
-    row_dims: list of ints
+    row_dims : list[int]
         list of the row dimensions of the tensor train
-    col_dims: list of ints
+    col_dims : list[int]
         list of the column dimensions of the tensor train
-    ranks: list of ints
+    ranks : list[int]
         list of the ranks of the tensor train
-    cores: list of ndarrays
+    cores : list[np.ndarray]
         list of the cores of the tensor train
 
     Methods
@@ -116,11 +117,11 @@ class TT(object):
         """
         Parameters
         ----------
-        x: list of ndarrays or ndarray
-            either a list of TT cores or a full tensor
-        threshold: float, optional
+        x : list[np.ndarray] or np.ndarray
+            either a list[TT] cores or a full tensor
+        threshold : float, optional
             threshold for reduced SVD decompositions, default is 0
-        max_rank: int, optional
+        max_rank : int, optional
             maximum rank of the left-orthonormalized tensor train, default is np.infty
 
         Raises
@@ -228,7 +229,8 @@ class TT(object):
             raise TypeError('Parameter must be either a list of cores or an ndarray.')
 
     def __repr__(self):
-        """String representation of tensor trains
+        """
+        String representation of tensor trains
 
         Print the attributes of a given tensor train.
         """
@@ -240,18 +242,19 @@ class TT(object):
                 '                  ranks    = {r}'.format(d=self.order, m=self.row_dims, n=self.col_dims, r=self.ranks))
 
     def __add__(self, tt_add):
-        """Sum of two tensor trains
+        """
+        Sum of two tensor trains.
 
         Add two given tensor trains with same row and column dimensions.
 
         Parameters
         ----------
-        tt_add: instance of TT class
+        tt_add : TT
             tensor train which is added to self
 
         Returns
         -------
-        tt_sum: instance of TT class
+        TT
             sum of tt_add and self
 
         Raises
@@ -303,18 +306,19 @@ class TT(object):
             raise TypeError('Unsupported parameter.')
 
     def __sub__(self, tt_sub):
-        """Difference of two tensor trains
+        """
+        Difference of two tensor trains.
 
         Subtract two given tensor trains.
 
         Parameters
         ----------
-        tt_sub: instance of TT class
+        tt_sub : TT
             tensor train which is subtracted from self
 
         Returns
         -------
-        tt_diff: instance of TT class
+        TT
             difference of tt_add and self
         """
 
@@ -324,16 +328,17 @@ class TT(object):
         return tt_diff
 
     def __mul__(self, scalar):
-        """Left-multiplication of tensor trains and scalars
+        """
+        Left-multiplication of tensor trains and scalars.
 
         Parameters
         ----------
-        scalar: int, float, or complex
+        scalar : int or float or complex
             scalar value for the left-multiplication
 
         Returns
         -------
-        tt_prod: instance of TT class
+        TT
             product of scalar and self
 
         Raises
@@ -357,16 +362,17 @@ class TT(object):
         return tt_prod
 
     def __rmul__(self, scalar):
-        """Right-multiplication of tensor trains and scalars
+        """
+        Right-multiplication of tensor trains and scalars.
 
         Parameters
         ----------
-        scalar: float
+        scalar : float
             scalar value for the right-multiplication
 
         Returns
         -------
-        tt_prod: instance of TT class
+        TT
             product of self and scalar
         """
 
@@ -376,19 +382,20 @@ class TT(object):
         return tt_prod
 
     def __matmul__(self, tt_mul):
-        """Multiplication of tensor trains
+        """
+        Multiplication of tensor trains.
 
         For Python 3.5 and higher, use the operator, i.e. T @ U = T.__matmul__(T,U). Otherwise you can use T.dot(U) or
         TT.dot(T,U).
 
         Parameters
         ----------
-        tt_mul: instance of TT class
+        tt_mul : TT
             tensor train which is multiplied with self
 
         Returns
         -------
-        tt_prod: instance of TT class or float
+        TT
             product of self and tt_mul
 
         Raises
@@ -425,18 +432,19 @@ class TT(object):
             raise TypeError('Unsupported argument.')
 
     def dot(self, tt_mul):
-        """Multiplication of tensor trains
+        """
+        Multiplication of tensor trains.
 
         Alias for TT.__matmul__().
 
         Parameters
         ----------
-        tt_mul: instance of TT class
+        tt_mul : TT
             tensor train which is multiplied with self
 
         Returns
         -------
-        tt_prod: instance of TT class or float
+        tt_prod : TT or float
             product of self and tt_mul
         """
 
@@ -446,25 +454,26 @@ class TT(object):
 
     def tensordot(self, other, num_axes, mode='last-first', overwrite=False):
         """
-        Computes index contraction between self and other. The axes for contraction have to be the last or the first
-        axes of self and other. Thus, there are 4 modes of operation: 'last-first', 'last-last', 'first-last' and
-        'first-first'. The sequence of not contracted cores of self is always maintained (cf. the 2nd example below).
+        Computes index contraction between self and other.
+
+        The axes for contraction have to be the last or the first axes of self and other. Thus, there are 4 modes of
+        operation: 'last-first', 'last-last', 'first-last' and 'first-first'. The sequence of not contracted cores of
+        self is always maintained (cf. the 2nd example below).
         For saving memory, you can choose to overwrite self with the tensordot.
 
         Parameters
         ----------
-        other: instance of TT class
-        num_axes: integer
+        other : TT
+        num_axes : int
             number of axes that should be contracted
-        mode: string
-            location of the axes for contraction on self-other; one of the following: 'last-first', 'last-last',
-            'first-last', 'first-first'
-        overwrite: bool
+        mode : {'last-first', 'last-last', 'first-last', 'first-first'}, optional
+            location of the axes for contraction on self-other
+        overwrite : bool, optional
             whether to overwrite self or not
             
         Returns
         -------
-        tdot: instance of TT class
+        TT
             tensordot(self, other)
 
         Examples
@@ -618,20 +627,21 @@ class TT(object):
         return tdot
 
     def transpose(self, cores=None, conjugate=False, overwrite=False):
-        """Transpose of tensor trains
+        """
+        Transpose of tensor trains.
 
         Parameters
         ----------
-        cores: list of ints, optional
+        cores : list[int], optional
             cores which should be transposed, if cores=None (default), all cores are transposed
-        conjugate: bool, optional
+        conjugate : bool, optional
             whether to compute the conjugate transpose, default is False
-        overwrite: bool, optional
+        overwrite : bool, optional
             whether to overwrite self or not, default is False
 
         Returns
         -------
-        tt_transpose: instance of TT class
+        TT
             transpose of self
 
         Examples
@@ -682,17 +692,19 @@ class TT(object):
 
     def rank_transpose(self, overwrite=False):
         """
-        Computes the rank-transposed of self, which has the same cores as self but in reversed order. To fit together,
+        Computes the rank-transposed of self.
+
+        The rank-transposed has the same cores as self but in reversed order. To fit together,
         every core needs to be transposed with respect to its ranks.
 
         Parameters
         ----------
-        overwrite: bool, optional
+        overwrite : bool, optional
             whether to overwrite self or not, default is False
 
         Returns
         -------
-        tt_transpose: instance of TT class
+        TT
             rank-transpose of self
 
         Examples
@@ -723,16 +735,17 @@ class TT(object):
         return tt_transpose
 
     def conj(self, overwrite=False):
-        """Complex conjugate of tensor trains
+        """
+        Complex conjugate of tensor trains.
 
         Parameters
         ----------
-        overwrite: bool, optional
+        overwrite : bool, optional
             whether to overwrite self or not, default is False
 
         Returns
         -------
-        tt_conj: instance of TT class
+        TT
             complex conjugate of self
         """
 
@@ -749,11 +762,12 @@ class TT(object):
         return tt_conj
 
     def isoperator(self):
-        """Operator check
+        """
+        Operator check.
 
         Returns
         -------
-        op_bool: boolean
+        bool
             true if self is a TT operator
         """
 
@@ -763,11 +777,12 @@ class TT(object):
         return op_bool
 
     def copy(self):
-        """Deep copy of tensor trains
+        """
+        Deep copy of tensor trains.
 
         Returns
         -------
-        tt_copy: instance of TT class
+        TT
             deep copy of self
         """
 
@@ -780,22 +795,23 @@ class TT(object):
         return tt_copy
 
     def element(self, indices):
-        """Single element of tensor trains
+        """
+        Single element of tensor trains.
 
         Parameters
         ----------
-        indices: list of ints
+        indices : list[int]
             indices of a single entry of self ([x_1, ..., x_d, y_1, ..., y_d])
 
         Returns
         -------
-        entry: float
+        float
             single entry of self
 
         Raises
         ------
         TypeError
-            if indices is not a list of ints
+            if indices is not a list[int]
         ValueError
             if length of indices does not match the order of self
         IndexError
@@ -842,11 +858,12 @@ class TT(object):
             raise TypeError('Unsupported parameter.')
 
     def full(self):
-        """Conversion to full format
+        """
+        Conversion to full format.
 
         Returns
         -------
-        full_tensor : ndarray
+        full_tensor : np.ndarray
             full tensor representation of self (dimensions: m_1 x ... x m_d x n_1 x ... x n_d)
         """
 
@@ -871,13 +888,14 @@ class TT(object):
         return full_tensor
 
     def matricize(self):
-        """Matricization of tensor trains
+        """
+        Matricization of tensor trains.
 
         If self is a TT operator, then tt_mat is a matrix. Otherwise, the result is a vector.
 
         Returns
         -------
-        tt_mat: ndarray
+        np.ndarray
             matricization of self
         """
 
@@ -902,26 +920,27 @@ class TT(object):
 
     def ortho_left(self, start_index=0, end_index=None, threshold=0, max_rank=np.infty, progress=False,
                    string='Left-orthonormalization'):
-        """left-orthonormalization of tensor trains
+        """
+        left-orthonormalization of tensor trains.
 
         Parameters
         ----------
-        start_index: int, optional
+        start_index : int, optional
             start index for orthonormalization, default is 0
-        end_index: int, optional
+        end_index : int, optional
             end index for orthonormalization, default is the index of the penultimate core
-        threshold: float, optional
+        threshold : float, optional
             threshold for reduced SVD decompositions, default is 0
-        max_rank: int, optional
+        max_rank : int, optional
             maximum rank of the left-orthonormalized tensor train, default is np.infty
-        progress: boolean, optional
+        progress : bool, optional
             whether to show progress bar, default is False
-        string: string, optional
+        string : string, optional
             title of the progress bar if progress is True
 
         Returns
         -------
-        tt_ortho: instance of TT class
+        TT
             left-orthonormalized representation of self
 
         Raises
@@ -990,22 +1009,23 @@ class TT(object):
             raise TypeError('Start and end indices must be integers.')
 
     def ortho_right(self, start_index=None, end_index=1, threshold=0, max_rank=np.infty):
-        """right-orthonormalization of tensor trains
+        """
+        right-orthonormalization of tensor trains.
 
         Parameters
         ----------
-        start_index: int, optional
+        start_index : int, optional
             start index for orthonormalization, default is the index of the last core
-        end_index: int, optional
+        end_index : int, optional
             end index for orthonormalization, default is 1
-        threshold: float, optional
+        threshold : float, optional
             threshold for reduced SVD decompositions, default is 0
-        max_rank: int, optional
+        max_rank : int, optional
             maximum rank of the left-orthonormalized tensor train, default is np.infty
 
         Returns
         -------
-        tt_ortho: instance of TT class
+        TT
             right-orthonormalized representation of self
 
         Raises
@@ -1070,18 +1090,19 @@ class TT(object):
             raise TypeError('Start and end indices must be integers.')
 
     def ortho(self, threshold=0, max_rank=np.infty):
-        """left- and right-orthonormalization of tensor trains
+        """
+        left- and right-orthonormalization of tensor trains.
 
         Parameters
         ----------
-        threshold: float, optional
+        threshold : float, optional
             threshold for reduced SVD decompositions, default is 0
-        max_rank: int
+        max_rank : int
             maximum rank of the right-orthonormalized tensor train
 
         Returns
         -------
-        tt_ortho: instance of TT class
+        TT
            right-orthonormalized representation of self
 
         Raises
@@ -1108,18 +1129,19 @@ class TT(object):
             raise ValueError('Threshold must be greater or equal 0.')
 
     def norm(self, p=2):
-        """Norm of tensor trains.
+        """
+        Norm of tensor trains.
 
         Counterpart of matrix and vector norms. This function is able to return four different norms of tensor trains.
 
         Parameters
         ----------
-        p: int
+        p : int
             order of the norm
 
         Returns
         -------
-        norm: float
+        float
             norm of self
 
         Notes
@@ -1205,7 +1227,8 @@ class TT(object):
             raise ValueError('p must be 1 or 2.')
 
     def tt2qtt(self, row_dims, col_dims, threshold=0):
-        """conversion from TT format into QTT format
+        """
+        conversion from TT format into QTT format.
 
         Split the TT cores of a given tensor train in order to obtain a QTT representation.
 
@@ -1220,16 +1243,16 @@ class TT(object):
 
         Parameters
         ----------
-        row_dims: list of lists of ints
+        row_dims : list[list[int]]
             row dimensions for the QTT representation
-        col_dims: list of lists of ints
+        col_dims : list[list[int]]
             col dimensions for the QTT representation
-        threshold: float, optional
+        threshold : float, optional
             threshold for reduced SVD decompositions, default is 0
 
         Returns
         -------
-        qtt_tensor: instance of TT class
+        TT
             QTT representation of self
         """
 
@@ -1287,7 +1310,8 @@ class TT(object):
         return qtt_tensor
 
     def qtt2tt(self, merge_numbers):
-        """conversion from QTT format into TT format
+        """
+        conversion from QTT format into TT format.
 
         Contract the QTT cores of a given quantized tensor train in order to obtain a TT representation.
 
@@ -1302,12 +1326,12 @@ class TT(object):
 
         Parameters
         ----------
-        merge_numbers: list of ints
+        merge_numbers : list[int]
             list of core numbers for contractions
 
         Returns
         -------
-        tt_tensor: instance of TT class
+        TT
             TT representation of self
         """
 
@@ -1345,32 +1369,33 @@ class TT(object):
         return tt_tensor
 
     def svd(self, index, threshold=0, ortho_l=True, ortho_r=True, overwrite=False):
-        """Computation of a global SVD of a tensor train.
+        """
+        Computation of a global SVD of a tensor train.
 
         Construct a singular value decomposition of a (non-operator) tensor train t in the form of tensor networks u, s,
         and v such that, by contraction, t=u*diag(s)*v. See [1]_ and [2]_ for details.
 
         Parameters
         ----------
-        index: int
+        index : int
             the cores 0 to index-1 represent the row dimensions and index to order-1 the column dimensions of the
             unfolded version of self
-        threshold: float, optional
+        threshold : float, optional
             threshold for reduced SVD decompositions, default is 0
-        ortho_l: bool, optional
+        ortho_l : bool, optional
             whether to apply left-orthonormalization or not, default is True
-        ortho_r: bool, optional
+        ortho_r : bool, optional
             whether to apply right-orthonormalization or not, default is True
-        overwrite: bool, optional
+        overwrite : bool, optional
             whether to overwrite self or not, default is False
 
         Returns
         -------
-        u: instance of TT class
+        u : TT
             left-orthonormal part of the global SVD
-        s: ndarray
+        s : np.ndarray
             vector of singular values of the global SVD
-        v: instance of TT class
+        v : TT
             right-orthonormal part of the global SVD
 
         References
@@ -1422,28 +1447,29 @@ class TT(object):
         return u, s, v
 
     def pinv(self, index, threshold=0, ortho_l=True, ortho_r=True, overwrite=False):
-        """Computation of the pseudoinverse of a tensor train
+        """
+        Computation of the pseudoinverse of a tensor train.
 
         Construct the pseudoinverse of a (non-operator) tensor train by a global SVD. See [1]_, [2]_ and [3]_ for
         details.
 
         Parameters
         ----------
-        index: int
+        index : int
             the cores 0 to index-1 represent the row dimensions and index to order-1 the column dimensions of the
             unfolded version of self
-        threshold: float, optional
+        threshold : float, optional
             threshold for reduced SVD decompositions, default is 0
-        ortho_l: bool, optional
+        ortho_l : bool, optional
             whether to apply left-orthonormalization or not, default is True
-        ortho_r: bool, optional
+        ortho_r : bool, optional
             whether to apply right-orthonormalization or not, default is True
-        overwrite: bool, optional
+        overwrite : bool, optional
             whether to overwrite self or not, default is False
 
         Returns
         -------
-        p_inv: instance of TT class
+        TT
             pseudoinverse of a given tensor train
 
         References
@@ -1475,20 +1501,21 @@ class TT(object):
 # ----------------------------------------------------
 
 def zeros(row_dims, col_dims, ranks=1):
-    """tensor train of all zeros
+    """
+    tensor train of all zeros.
 
     Parameters
     ----------
-    row_dims: list of ints
+    row_dims : list[int]
         list of the row dimensions of the tensor train of all zeros
-    col_dims: list of ints
+    col_dims : list[int]
         list of the column dimensions of the tensor train of all zeros
-    ranks: int or list of ints, optional
+    ranks : int or list[int], optional
         list of the ranks of the tensor train of all zeros, default is [1, ..., 1]
 
     Returns
     -------
-    tt_zeros: instance of TT class
+    TT
         tensor train of all zeros
     """
 
@@ -1506,20 +1533,21 @@ def zeros(row_dims, col_dims, ranks=1):
 
 
 def ones(row_dims, col_dims, ranks=1):
-    """tensor train of all ones
+    """
+    tensor train of all ones.
 
     Parameters
     ----------
-    row_dims: list of ints
+    row_dims : list[int]
         list of the row dimensions of the tensor train of all ones
-    col_dims: list of ints
+    col_dims : list[int]
         list of the column dimensions of the tensor train of all ones
-    ranks: int or list of ints, optional
+    ranks : int or list[int], optional
         list of the ranks of the tensor train of all ones, default is [1, ..., 1]
 
     Returns
     -------
-    tt_ones: instance of TT class
+    TT
         tensor train of all ones
     """
 
@@ -1537,16 +1565,17 @@ def ones(row_dims, col_dims, ranks=1):
 
 
 def eye(dims):
-    """identity tensor train
+    """
+    identity tensor train.
 
     Parameters
     ----------
-    dims: list of ints
+    dims : list[int]
         list of row/column dimensions of the identity tensor train
 
     Returns
     -------
-    tt_eye: instance of TT class
+    TT
         identity tensor train
     """
 
@@ -1562,20 +1591,21 @@ def eye(dims):
 
 
 def unit(dims, inds):
-    """Canonical unit tensor
+    """
+    Canonical unit tensor.
 
     Return specific canonical unit tensor in given dimensions.
 
     Parameters
     ----------
-    dims: list of ints
+    dims : list[int]
         dimensions of the tensor train
-    inds: list of ints
+    inds : list[int]
         positions of the 1s
 
     Returns
     -------
-    t: instance of TT class
+    TT
         unit tensor train
     """
 
@@ -1586,20 +1616,21 @@ def unit(dims, inds):
 
 
 def rand(row_dims, col_dims, ranks=1):
-    """random tensor train
+    """
+    random tensor train.
 
     Parameters
     ----------
-    row_dims: list of ints
+    row_dims : list[int]
         list of row dimensions of the random tensor train
-    col_dims: list of ints
+    col_dims : list[int]
         list of column dimensions of the random tensor train
-    ranks: int or list of ints, optional
+    ranks : int or list[int], optional
         list of the ranks of the random tensor train, default is [1, ..., 1]
 
     Returns
     -------
-    tt_rand: instance of TT class
+    TT
         random tensor train
     """
 
@@ -1617,20 +1648,21 @@ def rand(row_dims, col_dims, ranks=1):
 
 
 def uniform(row_dims, ranks=1, norm=1):
-    """uniformly distributed tensor train
+    """
+    uniformly distributed tensor train.
 
     Parameters
     ----------
-    row_dims: list of ints
+    row_dims : list[int]
         list of row dimensions of the random tensor train
-    ranks: int or list of ints, optional
+    ranks : int or list[int], optional
         list of the ranks of the uniformly distributed tensor train, default is [1, ..., 1]
-    norm: float, optional
+    norm : float, optional
         norm of the uniformly distributed tensor train, default is 1
 
     Returns
     -------
-    tt_uni: instance of TT class
+    TT
         uniformly distributed tensor train
     """
 

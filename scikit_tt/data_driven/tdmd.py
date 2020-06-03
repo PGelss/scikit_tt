@@ -2,31 +2,33 @@
 
 import numpy as np
 import scipy.linalg as lin
+from scikit_tt.tensor_train import TT
 
 
 def tdmd_exact(x, y, threshold=0, ortho_l=True, ortho_r=True):
-    """Exact TDMD
+    """
+    Exact TDMD.
 
     Tensor-based version of exact DMD. See [1]_ for details.
 
     Parameters
     ----------
-    x: instance of TT class
+    x : TT
         tensor train containing the snapshots
-    y: instance of TT class
+    y : TT
         tensor-train containing the shifted snapshots
-    threshold: float, optional
+    threshold : float, optional
         threshold for SVDs, default is 0
-    ortho_l: bool, optional
+    ortho_l : bool, optional
         whether to left-orthonormalize the first TT cores of x, default is True
-    ortho_r: bool, optional
+    ortho_r : bool, optional
         whether to right-orthonormalize the last TT cores of x, default is True
 
     Returns
     -------
-    dmd_eigenvalues: ndarray
+    dmd_eigenvalues : np.ndarray
         vector containing the DMD eigenvalues
-    dmd_modes: instance of TT class
+    dmd_modes : TT
         tensor train containing the DMD modes
 
     References
@@ -59,28 +61,29 @@ def tdmd_exact(x, y, threshold=0, ortho_l=True, ortho_r=True):
 
 
 def tdmd_standard(x, y, threshold=0, ortho_l=True, ortho_r=True):
-    """Standard TDMD
+    """
+    Standard TDMD.
 
     Tensor-based version of standard DMD. See [1]_ for details.
 
     Parameters
     ----------
-    x: instance of TT class
+    x : TT
         tensor train containing the snapshots
-    y: instance of TT class
+    y : TT
         tensor-train containing the shifted snapshots
-    threshold: float, optional
+    threshold : float, optional
         threshold for SVDs, default is 0
-    ortho_l: bool, optional
+    ortho_l : bool, optional
         whether to left-orthonormalize the first TT cores of x, default is True
-    ortho_r: bool, optional
+    ortho_r : bool, optional
         whether to right-orthonormalize the last TT cores of x, default is True
 
     Returns
     -------
-    dmd_eigenvalues: ndarray
+    dmd_eigenvalues : np.ndarray
         vector containing the DMD eigenvalues
-    dmd_modes: instance of TT class
+    dmd_modes : TT
         tensor train containing the DMD modes
 
     References
@@ -112,18 +115,19 @@ def tdmd_standard(x, y, threshold=0, ortho_l=True, ortho_r=True):
 
 
 def __tdmd_reduced_matrix(x, y):
-    """Compute the reduced matrix for finding DMD eigenvalues. See [1]_ for details.
+    """
+    Compute the reduced matrix for finding DMD eigenvalues. See [1]_ for details.
 
     Parameters
     ----------
-    x: instance of TT class
+    x : TT
         tensor train containing the snapshots
-    y: instance of TT class
+    y : TT
         tensor-train containing the shifted snapshots
 
     Returns
     -------
-    reduced_matrix: ndarray
+    np.ndarray
         reduced matrix
 
     References

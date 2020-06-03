@@ -3,34 +3,36 @@
 import scikit_tt.data_driven.transform as tdt
 import numpy as np
 from scipy import linalg
+from scikit_tt.tensor_train import TT
 
 
 def amuset_hosvd(data_matrix, x_indices, y_indices, basis_list, threshold=1e-2, progress=False):
-    """AMUSEt (AMUSE on tensors) using HOSVD.
+    """
+    AMUSEt (AMUSE on tensors) using HOSVD.
 
     Apply tEDMD to a given data matrix by using AMUSEt with HOSVD. This procedure is a tensor-based
     version of AMUSE using the tensor-train format. For more details, see [1]_.
 
     Parameters
     ----------
-    data_matrix: ndarray
+    data_matrix : np.ndarray
         snapshot matrix
-    x_indices: ndarray or list of ndarrays
+    x_indices : np.ndarray or list[np.ndarray]
         index sets for snapshot matrix x
-    y_indices: ndarray or list of ndarrays
+    y_indices : np.ndarray or list[np.ndarray]
         index sets for snapshot matrix y
-    basis_list: list of lists of lambda functions
+    basis_list : list[list[function]]
         list of basis functions in every mode
-    threshold: float, optional
+    threshold : float, optional
         threshold for SVD/HOSVD, default is 1e-2
-    progress: boolean, optional
+    progress : boolean, optional
         whether to show progress bar, default is False
 
     Returns
     -------
-    eigenvalues: ndarray or list of ndarrays
+    eigenvalues : np.ndarray or list[np.ndarray]
         tEDMD eigenvalues
-    eigentensors: instance of TT class or list of instances of TT class
+    eigentensors : TT or list[TT]
         tEDMD eigentensors in TT format
 
     References
@@ -85,33 +87,34 @@ def amuset_hosvd(data_matrix, x_indices, y_indices, basis_list, threshold=1e-2, 
 
 
 def amuset_hocur(data_matrix, x_indices, y_indices, basis_list, max_rank=1000, multiplier=2, progress=False):
-    """AMUSEt (AMUSE on tensors) using HOCUR.
+    """
+    AMUSEt (AMUSE on tensors) using HOCUR.
 
     Apply tEDMD to a given data matrix by using AMUSEt with HOCUR. This procedure is a tensor-based
     version of AMUSE using the tensor-train format. For more details, see [1]_.
 
     Parameters
     ----------
-    data_matrix: ndarray
+    data_matrix : np.ndarray
         snapshot matrix
-    x_indices: ndarray or list of ndarrays
+    x_indices : np.ndarray or list[np.ndarray]
         index sets for snapshot matrix x
-    y_indices: ndarray or list of ndarrays
+    y_indices : np.ndarray or list[np.ndarray]
         index sets for snapshot matrix y
-    basis_list: list of lists of lambda functions
+    basis_list : list[list[function]]
         list of basis functions in every mode
-    max_rank: int, optional
+    max_rank : int, optional
         maximum ranks for HOSVD as well as HOCUR, default is 1000
-    multiplier: int
+    multiplier : int
         multiplier for HOCUR
-    progress: boolean, optional
+    progress : boolean, optional
         whether to show progress bar, default is False
 
     Returns
     -------
-    eigenvalues: ndarray or list of ndarrays
+    eigenvalues : np.ndarray or list[np.ndarray]
         tEDMD eigenvalues
-    eigentensors: instance of TT class or list of instances of TT class
+    eigentensors : TT or list[TT]
         tEDMD eigentensors in TT format
 
     References
@@ -166,28 +169,29 @@ def amuset_hocur(data_matrix, x_indices, y_indices, basis_list, max_rank=1000, m
 
 
 def _reduced_matrix(last_core, x_indices, y_indices, threshold=1e-3):
-    """Compute reduced matrix for AMUSEt.
+    """
+    Compute reduced matrix for AMUSEt.
 
     Parameters
     ----------
-    last_core: ndarray
+    last_core : np.ndarray
         last TT core of left-orthonormalized psi_z
-    x_indices: ndarray
+    x_indices : np.ndarray
         index set for snapshot matrix x
-    y_indices: ndarray
+    y_indices : np.ndarray
         index set for snapshot matrix y
-    threshold: float, optional
+    threshold : float, optional
         threshold for SVD, default is 1e-4
 
     Returns
     -------
-    matrix: ndarray
+    matrix : np.ndarray
         reduced matrix
-    u: ndarray
+    u : np.ndarray
         left-orthonormal matrix of the SVD of the last core of psi_x
-    s: ndarray
+    s : np.ndarray
         vector of singular values of the SVD of the last core of psi_x
-    v: ndarray
+    v : np.ndarray
         right-orthonormal matrix of the SVD of the last core of psi_x
     """
 

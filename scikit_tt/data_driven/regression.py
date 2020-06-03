@@ -5,36 +5,39 @@ import sys
 import numpy as np
 import scipy.linalg as lin
 import scikit_tt.data_driven.transform as tdt
+from scikit_tt.tensor_train import TT
 import scikit_tt.utils as utl
 import time as _time
 
+
 def arr(x_data, y_data, basis_list, initial_guess, repeats=1, rcond=10**-2, string='ARR', progress=True):
-    """Alternating ridge regression on transformed data tensors.
+    """
+    Alternating ridge regression on transformed data tensors.
 
     Approximates the solution of a ridge regression in the TT format. For details, see [1]_.
 
     Parameters
     ----------
-    x_data: ndarray
+    x_data : np.ndarray
         snapshot matrix which is transformed
-    y_data: ndarray
+    y_data : np.ndarray
         snapshot matrix for the right-hand side
-    basis_list: list of lists of lambda functions
+    basis_list : list[list[function]]
         list of basis functions in every mode
-    initial_guess: instance of TT class
+    initial_guess : TT
         initial guess for the solution of operator @ x = right_hand_side
-    repeats: int, optional
+    repeats : int, optional
         number of repeats of the ALS, default is 1
-    rcond: float, optional
+    rcond : float, optional
         cut-off ratio for singular values of the subproblems, parameter for NumPy's lstsq, default is 1e-2
-    string: string
+    string : string, optional
         string to show above progress bar
-    progress: boolean, optional
+    progress : boolean, optional
         whether to show progress bar, default is True
 
     Returns
     -------
-    solution: instance of TT class
+    TT
         approximated solution of the regression problem
 
     References
@@ -124,24 +127,25 @@ def arr(x_data, y_data, basis_list, initial_guess, repeats=1, rcond=10**-2, stri
 
 
 def mandy_cm(x, y, phi, threshold=0):
-    """Multidimensional Approximation of Nonlinear Dynamics (MANDy)
+    """
+    Multidimensional Approximation of Nonlinear Dynamics (MANDy).
 
     Coordinate-major approach for construction of the tensor train xi. See [1]_ for details.
 
     Parameters
     ----------
-    x: ndarray
+    x : np.ndarray
         snapshot matrix of size d x m (e.g., coordinates)
-    y: ndarray
+    y : np.ndarray
         corresponding snapshot matrix of size d x m (e.g., derivatives)
-    phi: list of lambda functions
+    phi : list[function]
         list of basis functions
-    threshold: float, optional
+    threshold : float, optional
         threshold for SVDs, default is 0
 
     Returns
     -------
-    xi: instance of TT class
+    TT
         tensor train of coefficients for chosen basis functions
 
     References
@@ -170,26 +174,27 @@ def mandy_cm(x, y, phi, threshold=0):
 
 
 def mandy_fm(x, y, phi, threshold=0, add_one=True):
-    """Multidimensional Approximation of Nonlinear Dynamics (MANDy)
+    """
+    Multidimensional Approximation of Nonlinear Dynamics (MANDy).
 
     Function-major approach for construction of the tensor train xi. See [1]_ for details.
 
     Parameters
     ----------
-    x: ndarray
+    x : np.ndarray
         snapshot matrix of size d x m (e.g., coordinates)
-    y: ndarray
+    y : np.ndarray
         corresponding snapshot matrix of size d x m (e.g., derivatives)
-    phi: list of lambda functions
+    phi : list[function]
         list of basis functions
-    threshold: float, optional
+    threshold : float, optional
         threshold for SVDs, default is 0
-    add_one: bool, optional
+    add_one : bool, optional
         whether to add the basis function 1 to the cores or not, default is True
 
     Returns
     -------
-    xi: instance of TT class
+    TT
         tensor train of coefficients for chosen basis functions
 
     References
@@ -217,24 +222,26 @@ def mandy_fm(x, y, phi, threshold=0, add_one=True):
 
     return xi
 
+
 def mandy_kb(x, y, basis_list):
-    """Kernel-based MANDy.
+    """
+    Kernel-based MANDy.
 
     Kernel-based version of MANDy for solving regression problems on transformed data tensors. See [1]_ and _[2] 
     for details.
 
     Parameters
     ----------
-    x: ndarray
+    x : np.ndarray
         snapshot matrix of size d x m (e.g., coordinates)
-    y: ndarray
+    y : np.ndarray
         corresponding snapshot matrix of size d' x m (e.g., derivatives)
-    basis_list: list of lists of lambda functions
+    basis_list : list[list[function]]
         list of basis functions in every mode
 
     Returns
     -------
-    z: ndarray
+    np.ndarray
         matrix such that the solution of the regression problem can be expressed as z@psi_1^T
 
     References
@@ -258,20 +265,22 @@ def mandy_kb(x, y, basis_list):
 
 # private functions # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
+
 def __arr_construct_stack_left(i, stack_left, x_data, basis_list, solution):
-    """Construct left stack for ARR
+    """
+    Construct left stack for ARR
 
     Parameters
     ----------
-    i: int
+    i : int
         core index
-    stack_left: list of ndarrays
+    stack_left : list[np.ndarray]
         left stack
-    x_data: ndarray
+    x_data : np.ndarray
         snapshot matrix which is transformed
-    basis_list: list of lists of lambda functions
+    basis_list : list[list[function]]
         list of basis functions in every mode
-    solution: instance of TT class
+    solution : TT
         approximated solution of the system of linear equations
     """
 
@@ -292,19 +301,20 @@ def __arr_construct_stack_left(i, stack_left, x_data, basis_list, solution):
 
 
 def __arr_construct_stack_right(i, stack_right, x_data, basis_list, solution):
-    """Construct right stack for ARR
+    """
+    Construct right stack for ARR.
 
     Parameters
     ----------
-    i: int
+    i : int
         core index
-    stack_right: list of ndarrays
+    stack_right : list[np.ndarray]
         right stack
-    x_data: ndarray
+    x_data : np.ndarray
         snapshot matrix which is transformed
-    basis_list: list of lists of lambda functions
+    basis_list : list[list[function]]
         list of basis functions in every mode
-    solution: instance of TT class
+    solution : TT
         approximated solution of the system of linear equations
     """
 
@@ -325,26 +335,27 @@ def __arr_construct_stack_right(i, stack_right, x_data, basis_list, solution):
 
 
 def __arr_construct_micro_matrix(i, stack_left, stack_right, x_data, basis_list, solution):
-    """Construct micro matrix for ARR
+    """
+    Construct micro matrix for ARR.
 
     Parameters
     ----------
-    i: int
+    i : int
         core index
-    stack_left: list of ndarrays
+    stack_left : list[np.ndarray]
         left stack
-    stack_right: list of ndarrays
+    stack_right : list[np.ndarray]
         right stack
-    x_data: ndarray
+    x_data : np.ndarray
         snapshot matrix which is transformed
-    basis_list: list of lists of lambda functions
+    basis_list : list[list[function]]
         list of basis functions in every mode
-    solution: instance of TT class
+    solution : TT
         approximated solution of the system of linear equations
 
     Returns
     -------
-    micro_matrix: ndarray
+    np.ndarray
         ith micro matrix
     """
 
@@ -359,22 +370,24 @@ def __arr_construct_micro_matrix(i, stack_left, stack_right, x_data, basis_list,
 
     return micro_matrix
 
+
 def __arr_update_core(i, micro_matrix, rhs, solution, rcond, direction):
-    """Update TT core for ARR
+    """
+    Update TT core for ARR.
 
     Parameters
     ----------
-    i: int
+    i : int
         core index
-    micro_op: ndarray
+    micro_op : np.ndarray
         micro matrix for ith TT core
-    rhs: ndarray
+    rhs : np.ndarray
         right-hand side for ith TT core
-    solution: instance of TT class
+    solution : TT
         approximated solution of the system of linear equations
-    rcond: float
+    rcond : float
         cut-off ratio for singular values of the subproblems, parameter for NumPy's lstsq
-    direction: string
+    direction : string
         'forward' if first half sweep, 'backward' if second half sweep
     """
 
