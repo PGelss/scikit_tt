@@ -94,7 +94,7 @@ def errors_expl_euler(operator, solution, step_sizes):
     return errors
 
 
-def symmetric_euler(operator, initial_value, previous_value=None, step_sizes, threshold=1e-12, max_rank=50, normalize=1, progress=True):
+def symmetric_euler(operator, initial_value, step_sizes, previous_value=None, threshold=1e-12, max_rank=50, normalize=1, progress=True):
     """
     Time-symmetrized explicit Euler ('second order differencing' in quantum mechanics) for linear differential
     equations in the TT format, see [1]_.
@@ -105,10 +105,10 @@ def symmetric_euler(operator, initial_value, previous_value=None, step_sizes, th
         TT operator of the differential equation
     initial_value : TT
         initial value of the differential equation
-    previous_value: TT, optional, default is None
-        previous step for symmetric Euler; if not given one explicit Euler step is computed backwards in time
     step_sizes : list[float]
         step sizes
+    previous_value: TT, optional, default is None
+        previous step for symmetric Euler; if not given one explicit Euler step is computed backwards in time
     threshold : float, optional
         threshold for reduced SVD decompositions, default is 1e-12
     max_rank : int, optional
