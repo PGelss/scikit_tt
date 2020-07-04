@@ -969,10 +969,10 @@ class TT(object):
                     for i in range(start_index, end_index + 1):
 
                         # apply SVD to ith TT core
-                        [u, s, v] = linalg.svd(
-                            self.cores[i].reshape(self.ranks[i] * self.row_dims[i] * self.col_dims[i],
-                                                  self.ranks[i + 1]),
-                            full_matrices=False, overwrite_a=True, check_finite=False)
+                        try:
+                            [u, s, v] = linalg.svd(self.cores[i].reshape(self.ranks[i] * self.row_dims[i] * self.col_dims[i], self.ranks[i + 1]),full_matrices=False, overwrite_a=True, check_finite=False)
+                        except:
+                            [u, s, v] = linalg.svd(self.cores[i].reshape(self.ranks[i] * self.row_dims[i] * self.col_dims[i], self.ranks[i + 1]),full_matrices=False, overwrite_a=True, check_finite=False, lapack_driver='gesvd')
 
                         # rank reduction
                         if threshold != 0:
@@ -1051,10 +1051,10 @@ class TT(object):
                     for i in range(start_index, end_index - 1, -1):
 
                         # apply SVD to ith TT core
-                        [u, s, v] = linalg.svd(
-                            self.cores[i].reshape(self.ranks[i],
-                                                  self.row_dims[i] * self.col_dims[i] * self.ranks[i + 1]),
-                            full_matrices=False, overwrite_a=True, check_finite=False)
+                        try:
+                            [u, s, v] = linalg.svd(self.cores[i].reshape(self.ranks[i], self.row_dims[i] * self.col_dims[i] * self.ranks[i + 1]), full_matrices=False, overwrite_a=True, check_finite=False)
+                        except:
+                            [u, s, v] = linalg.svd(self.cores[i].reshape(self.ranks[i], self.row_dims[i] * self.col_dims[i] * self.ranks[i + 1]), full_matrices=False, overwrite_a=True, check_finite=False, lapack_driver='gesvd')
 
                         # rank reduction
                         if threshold != 0:
