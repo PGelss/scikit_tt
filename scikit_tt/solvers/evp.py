@@ -58,7 +58,7 @@ def als(operator, initial_guess, previous=[], shift=0, operator_gevp=None, numbe
     trains = Object()
     trains.operator = operator
     trains.operator_gevp = operator_gevp
-    trains.solution = initial_guess
+    trains.solution = initial_guess.copy()
     trains.previous = previous
 
     # define stacks
@@ -290,7 +290,7 @@ def __construct_micro_matrices(i, trains, stacks, shift):
         trains.solution.ranks[i] * trains.operator.row_dims[i] * trains.solution.ranks[i + 1],
         trains.solution.ranks[i] * trains.operator.col_dims[i] * trains.solution.ranks[i + 1])
     if trains.operator_gevp is not None:
-        micro_op_gevp = np.tensordot(stacks.op_gevp_left[i], trains.operator.cores[i], axes=(1, 0))
+        micro_op_gevp = np.tensordot(stacks.op_gevp_left[i], trains.operator_gevp.cores[i], axes=(1, 0))
         micro_op_gevp = np.tensordot(micro_op_gevp, stacks.op_gevp_right[i], axes=(4, 1))
         micro_op_gevp = micro_op_gevp.transpose([1, 2, 5, 0, 3, 4]).reshape(
             trains.solution.ranks[i] * trains.operator_gevp.row_dims[i] * trains.solution.ranks[i + 1],
@@ -301,7 +301,7 @@ def __construct_micro_matrices(i, trains, stacks, shift):
         tmp = np.tensordot(stacks.previous_left[j][i], trains.previous[j].cores[i][:, :, 0, :], axes=(0, 0))
         tmp = np.tensordot(tmp, stacks.previous_right[j][i], axes=(2, 0))
         tmp = tmp.reshape(trains.solution.ranks[i] * trains.previous[j].row_dims[i] * trains.solution.ranks[i + 1], 1)
-        micro_op += shift*tmp@tmp.T 
+        micro_op += shift*tmp.dot(tmp.T)
 
     return micro_op, micro_op_gevp
 
