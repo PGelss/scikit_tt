@@ -8,8 +8,10 @@ import scikit_tt.tensor_train as tt
 import scikit_tt.solvers.sle as sle
 from scikit_tt.tensor_train import TT
 
+class Object(object):
+    pass
 
-def als(operator, initial_guess, operator_gevp=None, number_ev=1, repeats=1, solver='eig', sigma=1, real=True):
+def als(operator, initial_guess, previous=[], shift=0, operator_gevp=None, number_ev=1, repeats=1, solver='eig', sigma=1, real=True):
     """
     Alternating linear scheme.
 
@@ -22,6 +24,10 @@ def als(operator, initial_guess, operator_gevp=None, number_ev=1, repeats=1, sol
         TT operator, left-hand side
     initial_guess : TT
         initial guess for the solution
+    previous : list of TT, optional
+        list of known eigentensors whose eigenvalues should be shifted
+    shift : float, optional
+        shift parameter for known eigenpairs
     operator_gevp : TT, optional
         TT operator, right-hand side (for generalized eigenvalue problems), default is None
     number_ev : int, optional
@@ -48,27 +54,25 @@ def als(operator, initial_guess, operator_gevp=None, number_ev=1, repeats=1, sol
           Train Format", SIAM Journal on Scientific Computing 34 (2), 2012
     """
 
-    # define solution tensor and eigenvalues
-    solution = initial_guess.copy()
-    eigenvalues = None
+    # define tensor trains
+    trains = Object()
+    trains.operator = operator
+    trains.operator_gevp = operator_gevp
+    trains.solution = initial_guess
+    trains.previous = previous
 
     # define stacks
-    stack_left_op = [None] * operator.order
-    stack_right_op = [None] * operator.order
-    stack_left_op_gevp = [None] * operator.order
-    stack_right_op_gevp = [None] * operator.order
-
-    # define micro operator for generalized eigenvalue problems
-    micro_op_gevp = None
+    stacks = Object()
+    stacks.op_left = [None] * operator.order
+    stacks.op_right = [None] * operator.order
+    stacks.op_gevp_left = [None] * operator.order
+    stacks.op_gevp_right = [None] * operator.order
+    stacks.previous_left = [[None] * operator.order for _ in range(len(previous))]
+    stacks.previous_right = [[None] * operator.order for _ in range(len(previous))]
 
     # construct right stacks for the left-hand side
     for i in range(operator.order - 1, -1, -1):
-        __construct_stack_right_op(i, stack_right_op, operator, solution)
-
-    # construct right stacks for the right-hand side
-    if operator_gevp is not None:
-        for i in range(operator.order - 1, -1, -1):
-            __construct_stack_right_op(i, stack_right_op_gevp, operator_gevp, solution)
+        __construct_right_stacks(i, trains, stacks)
 
     # define iteration number
     current_iteration = 1
@@ -80,41 +84,27 @@ def als(operator, initial_guess, operator_gevp=None, number_ev=1, repeats=1, sol
         for i in range(operator.order):
 
             # update left stack for the left-hand side
-            __construct_stack_left_op(i, stack_left_op, operator, solution)
-
-            # update left stack for the right-hand side
-            if operator_gevp is not None:
-                __construct_stack_left_op(i, stack_left_op_gevp, operator_gevp, solution)
+            __construct_left_stacks(i, trains, stacks)
 
             if i < operator.order - 1:
 
                 # construct micro system
-                micro_op = __construct_micro_matrix_als(i, stack_left_op, stack_right_op, operator, solution)
-                if operator_gevp is not None:
-                    micro_op_gevp = __construct_micro_matrix_als(i, stack_left_op_gevp, stack_right_op_gevp,
-                                                                 operator_gevp, solution)
+                micro_op, micro_op_gevp = __construct_micro_matrices(i, trains, stacks, shift)
 
                 # update solution
-                eigenvalues = __update_core_als(i, micro_op, micro_op_gevp, number_ev, solution, solver, sigma, real,
+                eigenvalues = __update_core(i, micro_op, micro_op_gevp, number_ev, trains.solution, solver, sigma, real,
                                                 'forward')
 
         # second half sweep
         for i in range(operator.order - 1, -1, -1):
             # update right stack for the left-hand side
-            __construct_stack_right_op(i, stack_right_op, operator, solution)
-
-            # update right stack for the right-hand side
-            if operator_gevp is not None:
-                __construct_stack_right_op(i, stack_right_op_gevp, operator_gevp, solution)
+            __construct_right_stacks(i, trains, stacks)
 
             # construct micro system
-            micro_op = __construct_micro_matrix_als(i, stack_left_op, stack_right_op, operator, solution)
-            if operator_gevp is not None:
-                micro_op_gevp = __construct_micro_matrix_als(i, stack_left_op_gevp, stack_right_op_gevp, operator_gevp,
-                                                             solution)
+            micro_op, micro_op_gevp = __construct_micro_matrices(i, trains, stacks, shift)
 
             # update solution
-            eigenvalues = __update_core_als(i, micro_op, micro_op_gevp, number_ev, solution, solver, sigma, real,
+            eigenvalues = __update_core(i, micro_op, micro_op_gevp, number_ev, trains.solution, solver, sigma, real,
                                             'backward')
 
         # increase iteration number
@@ -122,12 +112,12 @@ def als(operator, initial_guess, operator_gevp=None, number_ev=1, repeats=1, sol
 
     # define form of the final solution depending on the number of eigenvalues to compute
     if number_ev == 1:
-        eigentensors = TT([solution.cores[0][:, :, :, :, 0]] + solution.cores[1:])
+        eigentensors = TT([trains.solution.cores[0][:, :, :, :, 0]] + trains.solution.cores[1:])
         eigenvalues = eigenvalues[0]
     else:
         eigentensors = []
         for i in range(number_ev):
-            eigentensors.append(TT([solution.cores[0][:, :, :, :, i]] + solution.cores[1:]))
+            eigentensors.append(TT([trains.solution.cores[0][:, :, :, :, i]] + trains.solution.cores[1:]))
 
     return eigenvalues, eigentensors
 
@@ -195,7 +185,7 @@ def power_method(operator, initial_guess, operator_gevp=None, repeats=10, sigma=
     return eigenvalue, eigentensor
 
 
-def __construct_stack_left_op(i, stack_left_op, operator, solution):
+def __construct_left_stacks(i, trains, stacks):
     """
     Construct left stack for left-hand side.
 
@@ -203,57 +193,76 @@ def __construct_stack_left_op(i, stack_left_op, operator, solution):
     ----------
     i : int
         core index
-    stack_left_op : list[np.ndarray]
-        left stack for left-hand side
-    operator : TT
-        TT operator of the system of linear equations
-    solution : TT
-        approximated solution of the system of linear equations
+    trains : Object
+        collection of tensor trains
+    stacks: Object
+        collection of stacks
     """
 
     if i == 0:
 
         # first stack element is 1
-        stack_left_op[i] = np.array([1], ndmin=3)
+        stacks.op_left[i] = np.array([1], ndmin=3)
+        if trains.operator_gevp is not None:
+            stacks.op_gevp_left[i] = np.array([1], ndmin=3)
+        for j in range(len(trains.previous)):
+            stacks.previous_left[j][i] = np.array([1], ndmin=2)
 
     else:
 
         # contract previous stack element with solution and operator cores
-        stack_left_op[i] = np.tensordot(stack_left_op[i - 1], solution.cores[i - 1][:, :, 0, :], axes=(0, 0))
-        stack_left_op[i] = np.tensordot(stack_left_op[i], operator.cores[i - 1], axes=([0, 2], [0, 2]))
-        stack_left_op[i] = np.tensordot(stack_left_op[i], solution.cores[i - 1][:, :, 0, :], axes=([0, 2], [0, 1]))
+        stacks.op_left[i] = np.tensordot(stacks.op_left[i - 1], trains.solution.cores[i - 1][:, :, 0, :], axes=(0, 0))
+        stacks.op_left[i] = np.tensordot(stacks.op_left[i], trains.operator.cores[i - 1], axes=([0, 2], [0, 2]))
+        stacks.op_left[i] = np.tensordot(stacks.op_left[i], trains.solution.cores[i - 1][:, :, 0, :], axes=([0, 2], [0, 1]))
+        if trains.operator_gevp is not None:
+            stacks.op_gevp_left[i] = np.tensordot(stacks.op_gevp_left[i - 1], trains.solution.cores[i - 1][:, :, 0, :], axes=(0, 0))
+            stacks.op_gevp_left[i] = np.tensordot(stacks.op_gevp_left[i], trains.operator_gevp.cores[i - 1], axes=([0, 2], [0, 2]))
+            stacks.op_gevp_left[i] = np.tensordot(stacks.op_gevp_left[i], trains.solution.cores[i - 1][:, :, 0, :], axes=([0, 2], [0, 1]))
+        for j in range(len(trains.previous)):
+            stacks.previous_left[j][i] = np.tensordot(stacks.previous_left[j][i - 1], trains.previous[j].cores[i - 1][:, :, 0, :], axes=(0, 0))
+            stacks.previous_left[j][i] = np.tensordot(stacks.previous_left[j][i], trains.solution.cores[i - 1][:, :, 0, :], axes=([0, 1], [0, 1]))
 
 
-def __construct_stack_right_op(i, stack_right_op, operator, solution):
+
+def __construct_right_stacks(i, trains, stacks):
     """
-    Construct right stack for left-hand side.
+    Construct right stacks.
 
     Parameters
     ----------
     i : int
         core index
-    stack_right_op : list[np.ndarray]
-        right stack for left-hand side
-    operator : TT
-        TT operator side of the system of linear equations
-    solution : TT
-        approximated solution of the system of linear equations
+    trains : Object
+        collection of tensor trains
+    stacks: Object
+        collection of stacks
     """
 
-    if i == operator.order - 1:
+    if i == trains.operator.order - 1:
 
         # last stack element is 1
-        stack_right_op[i] = np.array([1], ndmin=3)
+        stacks.op_right[i] = np.array([1], ndmin=3)
+        if trains.operator_gevp is not None:
+            stacks.op_gevp_right[i] = np.array([1], ndmin=3)
+        for j in range(len(trains.previous)):
+            stacks.previous_right[j][i] = np.array([1], ndmin=2)
 
     else:
 
         # contract previous stack element with solution and operator cores
-        stack_right_op[i] = np.tensordot(solution.cores[i + 1][:, :, 0, :], stack_right_op[i + 1], axes=(2, 2))
-        stack_right_op[i] = np.tensordot(operator.cores[i + 1], stack_right_op[i], axes=([1, 3], [1, 3]))
-        stack_right_op[i] = np.tensordot(solution.cores[i + 1][:, :, 0, :], stack_right_op[i], axes=([1, 2], [1, 3]))
+        stacks.op_right[i] = np.tensordot(trains.solution.cores[i + 1][:, :, 0, :], stacks.op_right[i + 1], axes=(2, 2))
+        stacks.op_right[i] = np.tensordot(trains.operator.cores[i + 1], stacks.op_right[i], axes=([1, 3], [1, 3]))
+        stacks.op_right[i] = np.tensordot(trains.solution.cores[i + 1][:, :, 0, :], stacks.op_right[i], axes=([1, 2], [1, 3]))
+        if trains.operator_gevp is not None:
+            stacks.op_gevp_right[i] = np.tensordot(trains.solution.cores[i + 1][:, :, 0, :], stacks.op_gevp_right[i + 1], axes=(2, 2))
+            stacks.op_gevp_right[i] = np.tensordot(trains.operator_gevp.cores[i + 1], stacks.op_gevp_right[i], axes=([1, 3], [1, 3]))
+            stacks.op_gevp_right[i] = np.tensordot(trains.solution.cores[i + 1][:, :, 0, :], stacks.op_gevp_right[i], axes=([1, 2], [1, 3]))
+        for j in range(len(trains.previous)):
+            stacks.previous_right[j][i] = np.tensordot(trains.solution.cores[i + 1][:, :, 0, :], stacks.previous_right[j][i + 1], axes=(2, 1))   
+            stacks.previous_right[j][i] = np.tensordot(trains.previous[j].cores[i + 1][:, :, 0, :], stacks.previous_right[j][i], axes=([1, 2], [1, 2]))
 
 
-def __construct_micro_matrix_als(i, stack_left_op, stack_right_op, operator, solution):
+def __construct_micro_matrices(i, trains, stacks, shift):
     """
     Construct micro matrix for ALS.
 
@@ -261,14 +270,12 @@ def __construct_micro_matrix_als(i, stack_left_op, stack_right_op, operator, sol
     ----------
     i : int
         core index
-    stack_left_op : list[np.ndarray]
-        left stack for left-hand side
-    stack_right_op : list[np.ndarray]
-        right stack for left-hand side
-    operator : TT
-        TT operator of the system of linear equations
-    solution : TT
-        approximated solution of the system of linear equations
+    trains : Object
+        collection of tensor trains
+    stacks: Object
+        collection of stacks
+    shift : float
+        shift parameter for known eigenvalues
 
     Returns
     -------
@@ -277,17 +284,29 @@ def __construct_micro_matrix_als(i, stack_left_op, stack_right_op, operator, sol
     """
 
     # contract stack elements and operator core
-    micro_op = np.tensordot(stack_left_op[i], operator.cores[i], axes=(1, 0))
-    micro_op = np.tensordot(micro_op, stack_right_op[i], axes=(4, 1))
-
-    # transpose and reshape micro matrix
+    micro_op = np.tensordot(stacks.op_left[i], trains.operator.cores[i], axes=(1, 0))
+    micro_op = np.tensordot(micro_op, stacks.op_right[i], axes=(4, 1))
     micro_op = micro_op.transpose([1, 2, 5, 0, 3, 4]).reshape(
-        solution.ranks[i] * operator.row_dims[i] * solution.ranks[i + 1],
-        solution.ranks[i] * operator.col_dims[i] * solution.ranks[i + 1])
-    return micro_op
+        trains.solution.ranks[i] * trains.operator.row_dims[i] * trains.solution.ranks[i + 1],
+        trains.solution.ranks[i] * trains.operator.col_dims[i] * trains.solution.ranks[i + 1])
+    if trains.operator_gevp is not None:
+        micro_op_gevp = np.tensordot(stacks.op_gevp_left[i], trains.operator.cores[i], axes=(1, 0))
+        micro_op_gevp = np.tensordot(micro_op_gevp, stacks.op_gevp_right[i], axes=(4, 1))
+        micro_op_gevp = micro_op_gevp.transpose([1, 2, 5, 0, 3, 4]).reshape(
+            trains.solution.ranks[i] * trains.operator_gevp.row_dims[i] * trains.solution.ranks[i + 1],
+            trains.solution.ranks[i] * trains.operator_gevp.col_dims[i] * trains.solution.ranks[i + 1])
+    else:
+        micro_op_gevp = None
+    for j in range(len(trains.previous)):
+        tmp = np.tensordot(stacks.previous_left[j][i], trains.previous[j].cores[i][:, :, 0, :], axes=(0, 0))
+        tmp = np.tensordot(tmp, stacks.previous_right[j][i], axes=(2, 0))
+        tmp = tmp.reshape(trains.solution.ranks[i] * trains.previous[j].row_dims[i] * trains.solution.ranks[i + 1], 1)
+        micro_op += shift*tmp@tmp.T 
+
+    return micro_op, micro_op_gevp
 
 
-def __update_core_als(i, micro_op, micro_op_gevp, number_ev, solution, solver, sigma, real, direction):
+def __update_core(i, micro_op, micro_op_gevp, number_ev, solution, solver, sigma, real, direction):
     """
     Update TT core for ALS.
 
