@@ -11,7 +11,7 @@ from scikit_tt.tensor_train import TT
 class Object(object):
     pass
 
-def als(operator, initial_guess, previous=[], shift=0, operator_gevp=None, number_ev=1, repeats=1, solver='eig', sigma=1, real=True):
+def als(operator, initial_guess, previous=[], shift=0, operator_gevp=None, number_ev=1, repeats=1, conv_eps=1e-8, solver='eig', sigma=1, real=True):
     """
     Alternating linear scheme.
 
@@ -34,6 +34,8 @@ def als(operator, initial_guess, previous=[], shift=0, operator_gevp=None, numbe
         number of eigenvalues and corresponding eigentensor to compute, default is 1
     repeats : int, optional
         number of repeats of the ALS, default is 1
+    conv_eps : float, optional
+        threshold for convergence of the eigenvalue, default is 0
     solver : string, optional
         algorithm for obtaining the solutions of the micro systems, can be 'eig', 'eigs' or 'eigh', default is 'eig'
     sigma : float, optional
@@ -77,8 +79,12 @@ def als(operator, initial_guess, previous=[], shift=0, operator_gevp=None, numbe
     # define iteration number
     current_iteration = 1
 
+    # initialize variables for convergence detection
+    eigenvalues_pre = np.array([np.infty]*number_ev)[None,:]
+    conv_tf = False
+
     # begin ALS
-    while current_iteration <= repeats:
+    while current_iteration <= repeats and not conv_tf:
 
         # first half sweep
         for i in range(operator.order):
@@ -109,6 +115,13 @@ def als(operator, initial_guess, previous=[], shift=0, operator_gevp=None, numbe
 
         # increase iteration number
         current_iteration += 1
+
+        # check for convergence
+        last = eigenvalues_pre[-np.amin([3, eigenvalues_pre.shape[0]]):, :]
+        last_rel_diff = np.abs(np.dot(last - eigenvalues, np.diag(np.reciprocal(eigenvalues))))
+        if np.amax(last_rel_diff)<conv_eps:
+            conv_tf = True
+        eigenvalues_pre = np.vstack((eigenvalues_pre, eigenvalues))
 
     # define form of the final solution depending on the number of eigenvalues to compute
     if number_ev == 1:
