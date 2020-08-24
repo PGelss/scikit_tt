@@ -118,8 +118,9 @@ def als(operator, initial_guess, previous=[], shift=0, operator_gevp=None, numbe
 
         # check for convergence
         last = eigenvalues_pre[-np.amin([3, eigenvalues_pre.shape[0]]):, :]
-        last_rel_diff = np.abs(np.dot(last - eigenvalues, np.diag(np.reciprocal(eigenvalues))))
-        if np.amax(last_rel_diff)<conv_eps:
+        # last_rel_diff = np.abs(np.dot(last - eigenvalues, np.diag(np.reciprocal(eigenvalues))))
+        last_diff = np.abs(last - eigenvalues)
+        if np.amax(last_diff)<conv_eps:
             conv_tf = True
         eigenvalues_pre = np.vstack((eigenvalues_pre, eigenvalues))
 
