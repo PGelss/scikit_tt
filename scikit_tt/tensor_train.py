@@ -970,9 +970,15 @@ class TT(object):
 
                         # apply SVD to ith TT core
                         try:
-                            [u, s, v] = linalg.svd(self.cores[i].reshape(self.ranks[i] * self.row_dims[i] * self.col_dims[i], self.ranks[i + 1]),full_matrices=False, overwrite_a=True, check_finite=False)
+                            [u, s, v] = linalg.svd(
+                                self.cores[i].reshape(self.ranks[i] * self.row_dims[i] * self.col_dims[i],
+                                                      self.ranks[i + 1]), full_matrices=False, overwrite_a=True,
+                                check_finite=False)
                         except:
-                            [u, s, v] = linalg.svd(self.cores[i].reshape(self.ranks[i] * self.row_dims[i] * self.col_dims[i], self.ranks[i + 1]),full_matrices=False, overwrite_a=True, check_finite=False, lapack_driver='gesvd')
+                            [u, s, v] = linalg.svd(
+                                self.cores[i].reshape(self.ranks[i] * self.row_dims[i] * self.col_dims[i],
+                                                      self.ranks[i + 1]), full_matrices=False, overwrite_a=True,
+                                check_finite=False, lapack_driver='gesvd')
 
                         # rank reduction
                         if threshold != 0:
@@ -1052,9 +1058,15 @@ class TT(object):
 
                         # apply SVD to ith TT core
                         try:
-                            [u, s, v] = linalg.svd(self.cores[i].reshape(self.ranks[i], self.row_dims[i] * self.col_dims[i] * self.ranks[i + 1]), full_matrices=False, overwrite_a=True, check_finite=False)
+                            [u, s, v] = linalg.svd(self.cores[i].reshape(self.ranks[i],
+                                                                         self.row_dims[i] * self.col_dims[i] *
+                                                                         self.ranks[i + 1]), full_matrices=False,
+                                                   overwrite_a=True, check_finite=False)
                         except:
-                            [u, s, v] = linalg.svd(self.cores[i].reshape(self.ranks[i], self.row_dims[i] * self.col_dims[i] * self.ranks[i + 1]), full_matrices=False, overwrite_a=True, check_finite=False, lapack_driver='gesvd')
+                            [u, s, v] = linalg.svd(self.cores[i].reshape(self.ranks[i],
+                                                                         self.row_dims[i] * self.col_dims[i] *
+                                                                         self.ranks[i + 1]), full_matrices=False,
+                                                   overwrite_a=True, check_finite=False, lapack_driver='gesvd')
 
                         # rank reduction
                         if threshold != 0:
@@ -1118,7 +1130,8 @@ class TT(object):
             if (isinstance(max_rank, (int, np.integer)) and max_rank > 0) or max_rank == np.infty:
 
                 # left- and right-orthonormalize self
-                self.ortho_left(threshold=threshold, max_rank=np.infty).ortho_right(threshold=threshold,max_rank=max_rank)
+                self.ortho_left(threshold=threshold, max_rank=np.infty).ortho_right(threshold=threshold,
+                                                                                    max_rank=max_rank)
 
                 return self
 
@@ -1645,6 +1658,54 @@ def rand(row_dims, col_dims, ranks=1):
     tt_rand = TT(cores)
 
     return tt_rand
+
+
+def canonical(row_dims, max_rank):
+    """
+    full-rank tensor train consisting of tensor products of the canonical basis.
+
+    Parameters
+    ----------
+    row_dims : list[int]
+        list of row dimensions of the random tensor train
+    max_rank : int
+        maximum rank of the TT decomposition
+
+    Returns
+    -------
+    TT
+        canonical tensor train
+    """
+
+    # initialize core list
+    order = len(row_dims)
+    cores = [None for _ in range(order)]
+
+    # define cores from the left
+    r_tmp_left = 1
+    for i in range(order // 2):
+        print([r_tmp_left * row_dims[i], np.amin([r_tmp_left * row_dims[i], max_rank])])
+        cores[i] = np.eye(r_tmp_left * row_dims[i], np.amin([r_tmp_left * row_dims[i], max_rank]))
+        cores[i] = cores[i].reshape(r_tmp_left, row_dims[i], 1, np.amin([r_tmp_left * row_dims[i], max_rank]))
+        r_tmp_left = np.amin([r_tmp_left * row_dims[i], max_rank])
+
+    # define cores from the right
+    r_tmp_right = 1
+    for i in range(order // 2):
+        cores[-i - 1] = np.eye(np.amin([r_tmp_right * row_dims[-i], max_rank]), row_dims[-i] * r_tmp_right)
+        cores[-i - 1] = cores[-i - 1].reshape(
+            [np.amin([r_tmp_right * row_dims[-i], max_rank]), row_dims[-i], 1, r_tmp_right])
+        r_tmp_right = np.amin([r_tmp_right * row_dims[-i], max_rank])
+
+    # define core in the middle (if order is odd)
+    if np.mod(order, 2) == 1:
+        cores[order // 2] = np.eye(r_tmp_left * row_dims[order // 2], r_tmp_right).reshape(
+            [r_tmp_left, row_dims[order // 2], 1, r_tmp_right])
+
+    # define tensor train
+    tt_canonical = TT(cores)
+
+    return tt_canonical
 
 
 def uniform(row_dims, ranks=1, norm=1):
