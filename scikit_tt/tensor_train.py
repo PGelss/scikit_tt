@@ -1684,7 +1684,6 @@ def canonical(row_dims, max_rank):
     # define cores from the left
     r_tmp_left = 1
     for i in range(order // 2):
-        print([r_tmp_left * row_dims[i], np.amin([r_tmp_left * row_dims[i], max_rank])])
         cores[i] = np.eye(r_tmp_left * row_dims[i], np.amin([r_tmp_left * row_dims[i], max_rank]))
         cores[i] = cores[i].reshape(r_tmp_left, row_dims[i], 1, np.amin([r_tmp_left * row_dims[i], max_rank]))
         r_tmp_left = np.amin([r_tmp_left * row_dims[i], max_rank])
