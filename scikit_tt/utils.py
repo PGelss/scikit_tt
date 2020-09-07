@@ -2,6 +2,7 @@
 
 import sys
 import numpy as np
+import scipy as sp
 import time
 
 
@@ -104,3 +105,45 @@ class timer(object):
 
     def __exit__(self, exc_type, exc_value, traceback):
         self.elapsed = time.time() - self.start_time
+
+def truncated_svd(matrix, threshold=0, max_rank=np.infty):
+    """
+    Compute truncated SVD.
+
+    Parameters
+    ----------
+    matrix : ndarray
+        matrix to be decomposed
+    threshold : float, optional
+        threshold for truncated SVD, default is 0
+    max_rank : int
+        maximum rank of truncated SVD
+
+    Returns
+    -------
+    u : ndarray
+        matrix of left singular vectors
+    s : ndarray
+        vector of singular values
+    v : ndarray
+        matrix of right singular vectors
+    """
+
+    # try different Lapack driver if necessary
+    try:
+        [u, s, v] = sp.linalg.svd(matrix, full_matrices=False, overwrite_a=True, check_finite=False)
+    except:
+        [u, s, v] = sp.linalg.svd(matrix, full_matrices=False, overwrite_a=True, check_finite=False, lapack_driver='gesvd')
+
+    # rank reduction
+    if threshold != 0:
+        indices = np.where(s / s[0] > threshold)[0]
+        u = u[:, indices]
+        s = s[indices]
+        v = v[indices, :]
+    if max_rank != np.infty:
+        u = u[:, :np.minimum(u.shape[1], max_rank)]
+        s = s[:np.minimum(s.shape[0], max_rank)]
+        v = v[:np.minimum(v.shape[0], max_rank), :]
+
+    return u, s, v
