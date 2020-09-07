@@ -544,6 +544,10 @@ def split(S, L, I, M, initial_value, step_size, number_of_steps, threshold=1e-12
         numerical solution of the differential equation
     """
 
+    if len(L.shape) == 2:
+        L = L[:,:,None]
+        M = M[None, :, :]
+
     def stage_a():
 
         # first and third stage (site pairs (0,1), (2,3), ...)
