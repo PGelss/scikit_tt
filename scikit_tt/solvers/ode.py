@@ -559,7 +559,7 @@ def split(S, L, I, M, initial_value, step_size, number_of_steps, threshold=1e-12
 
             # update cores
             tmp.cores[2*j] = u.reshape([tmp.ranks[2*j], tmp.row_dims[2*j], 1, u.shape[1]])
-            tmp.cores[2*j+1] = (np.diag(s)@v).reshape([u.shape[1], tmp.row_dims[2*j+1], 1, tmp.ranks[2*j+2]])
+            tmp.cores[2*j+1] = (np.dot(np.diag(s),v)).reshape([u.shape[1], tmp.row_dims[2*j+1], 1, tmp.ranks[2*j+2]])
             tmp.ranks[2*j+1] = u.shape[1]
 
         # apply single-site operator if chain length is a odd number
@@ -584,7 +584,7 @@ def split(S, L, I, M, initial_value, step_size, number_of_steps, threshold=1e-12
 
             # update cores
             tmp.cores[2 * j + 1] = u.reshape([tmp.ranks[2 * j + 1], tmp.row_dims[2 * j +1], 1, u.shape[1]])
-            tmp.cores[2 * j + 2] = (np.diag(s) @ v).reshape([u.shape[1], tmp.row_dims[2 * j + 2], 1, tmp.ranks[2 * j + 3]])
+            tmp.cores[2 * j + 2] = (np.dot(np.diag(s),v)).reshape([u.shape[1], tmp.row_dims[2 * j + 2], 1, tmp.ranks[2 * j + 3]])
             tmp.ranks[2 * j + 2] = u.shape[1]
 
         # apply single-site operator if chain length is a odd number
