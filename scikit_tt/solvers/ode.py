@@ -511,7 +511,7 @@ def adaptive_step_size(operator, initial_value, initial_guess, time_end, step_si
 
 
 
-def split(S, L, I, M, initial_value, step_size, number_of_steps, threshold=1e-12, max_rank=50, periodic=False):
+def split(S, L, I, M, initial_value, step_size, number_of_steps, threshold=1e-12, max_rank=50):
     """
     Strang splitting for ODEs with SLIM operators.
 
@@ -595,11 +595,6 @@ def split(S, L, I, M, initial_value, step_size, number_of_steps, threshold=1e-12
         if np.mod(order, 2) == 0:
             tmp.cores[-1] = np.einsum('ijkl, mj -> imkl', tmp.cores[-1], exp_op_S_2)
 
-
-
-    if periodic:
-        print('Warning: periodic boundary conditions are currently ignored!')
-
     # chain length
     order = initial_value.order
 
@@ -617,8 +612,8 @@ def split(S, L, I, M, initial_value, step_size, number_of_steps, threshold=1e-12
 
         # compute local operators
         d = S.shape[0]
-        op_local_SLM = -1j*(np.kron(I, 0.5*S) + np.kron(0.5*S, I) + np.einsum('ijk, klm -> iljm', L, M).reshape([d**2, d**2]))
-        op_local_S = -1j*0.5*S
+        op_local_SLM = (np.kron(I, 0.5*S) + np.kron(0.5*S, I) + np.einsum('ijk, klm -> iljm', L, M).reshape([d**2, d**2]))
+        op_local_S = 0.5*S
 
         exp_op_SLM_1 = sp.linalg.expm(op_local_SLM*0.5*step_size)
         exp_op_SLM_2 = sp.linalg.expm(op_local_SLM*step_size)
