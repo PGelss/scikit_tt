@@ -12,19 +12,17 @@ References
 import os
 import sys
 import time as _time
-from typing import Iterable
-
-import numpy as np
-import scipy.linalg as splin
-
-from scikit_tt.tensor_train import TT
-import scikit_tt.data_driven.transform as tdt
-import scikit_tt.data_driven.tedmd as tedmd
-import scikit_tt.utils as utl
 
 import matplotlib.pyplot as plt
+import numpy as np
+import scipy.linalg as splin
 # noinspection PyUnresolvedReferences
 from mpl_toolkits.mplot3d import Axes3D
+
+import scikit_tt.data_driven.tedmd as tedmd
+import scikit_tt.data_driven.transform as tdt
+import scikit_tt.utils as utl
+from scikit_tt.tensor_train import TT
 
 sys.path.insert(0, "/storage/mi/gelssp/software/d3s/d3s")
 # noinspection PyUnresolvedReferences
@@ -228,7 +226,7 @@ def amuset(z, eigenvalues_amuse, eigenvectors_amuse, thresholds: list, max_ranks
 
         # apply AMUSEt using HOSVD
         eigenvalues, eigentensors = tedmd.amuset_hosvd(z, np.arange(0, z.shape[1] - 1), np.arange(1, z.shape[1]),
-                                                 basis_list, threshold=thresholds[i + 1])
+                                                       basis_list, threshold=thresholds[i + 1])
         # matricize eigentensors
         eigentensors = eigentensors.transpose(cores=2).matricize()
 
@@ -253,7 +251,8 @@ def amuset(z, eigenvalues_amuse, eigenvectors_amuse, thresholds: list, max_ranks
     for i in range(len(max_ranks)):
 
         # apply AMUSEt using HOCUR
-        eigenvalues, eigentensors = tedmd.amuset_hocur(z, np.arange(0, z.shape[1] - 1), np.arange(1, z.shape[1]), basis_list, max_rank=max_ranks[i], multiplier=100)
+        eigenvalues, eigentensors = tedmd.amuset_hocur(z, np.arange(0, z.shape[1] - 1), np.arange(1, z.shape[1]),
+                                                       basis_list, max_rank=max_ranks[i], multiplier=100)
 
         # matricize eigentensors
         eigentensors = eigentensors.transpose(cores=2).matricize()
@@ -393,8 +392,8 @@ diam = 12 / number_of_boxes
 basis_list_1 = []
 basis_list_2 = []
 for i in range(number_of_boxes):
-    basis_list_1.append(tdt.indicator_function(0, -6 + i * diam, -6 + (i + 1) * diam))
-    basis_list_2.append(tdt.indicator_function(1, -6 + i * diam, -6 + (i + 1) * diam))
+    basis_list_1.append(tdt.IndicatorFunction(0, -6 + i * diam, -6 + (i + 1) * diam))
+    basis_list_2.append(tdt.IndicatorFunction(1, -6 + i * diam, -6 + (i + 1) * diam))
 basis_list = [basis_list_1, basis_list_2]
 
 # construct transformed data matrices
@@ -413,7 +412,7 @@ ranks_hosvd, errors_hosvd, ranks_hocur, errors_hocur = approximate(z[:, :-1], ps
 
 # print approximation errors
 print(85 * '-' + '\n' + 'Method         Threshold/maximum rank          TT ranks           Approximation error' + '\n'
-	  + 85 * '-')
+      + 85 * '-')
 for i in range(len(thresholds)):
     str_thr = str("%.0e" % thresholds[i])
     len_thr = len(str_thr)

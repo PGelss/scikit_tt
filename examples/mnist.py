@@ -53,7 +53,7 @@ def classification_mandy(data_path, m_start, m_final, m_step):
     alpha = 19 / 100 * np.pi
     basis_list = []
     for i in range(order):
-        basis_list.append([tdt.cos(i, alpha), tdt.sin(i, alpha)])
+        basis_list.append([tdt.Cos(i, alpha), tdt.Sin(i, alpha)])
 
     # define lists
     classification_rates = []
@@ -134,7 +134,7 @@ def classification_arr(data_path, m_start, m_final, m_step, rank):
     alpha = 19 / 100 * np.pi
     basis_list = []
     for i in range(order):
-        basis_list.append([tdt.cos(i, alpha), tdt.sin(i, alpha)])
+        basis_list.append([tdt.Cos(i, alpha), tdt.Sin(i, alpha)])
 
     # initial guess
     ranks = [1] + [rank for _ in range(order - 1)] + [1]

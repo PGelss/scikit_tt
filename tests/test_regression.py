@@ -1,13 +1,16 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import division
+
 from unittest import TestCase
+
 import numpy as np
 import scipy.integrate as spint
-import scikit_tt.tensor_train as tt
-import scikit_tt.models as mdl
+
 import scikit_tt.data_driven.regression as reg
 import scikit_tt.data_driven.transform as tdt
+import scikit_tt.models as mdl
+import scikit_tt.tensor_train as tt
 
 
 class TestMANDy(TestCase):
@@ -32,7 +35,8 @@ class TestMANDy(TestCase):
         self.kuramoto_t = 100
         self.kuramoto_m = 1000
         self.kuramoto_psi = [lambda t: np.sin(t), lambda t: np.cos(t)]
-        self.kuramoto_basis = [[tdt.constant_function()] + [tdt.sin(i,1) for i in range(self.kuramoto_d)], [tdt.constant_function()] + [tdt.cos(i,1) for i in range(self.kuramoto_d)]]
+        self.kuramoto_basis = [[tdt.ConstantFunction()] + [tdt.Sin(i, 1) for i in range(self.kuramoto_d)],
+                               [tdt.ConstantFunction()] + [tdt.Cos(i, 1) for i in range(self.kuramoto_d)]]
         self.kuramoto_initial = tt.ones([11, 11], [1, 1], 11)
 
         # exact coefficient tensors
@@ -98,7 +102,7 @@ class TestMANDy(TestCase):
 
         # construct coefficient tensor
         xi = tdt.basis_decomposition(self.kuramoto_x, self.kuramoto_basis)
-        xi.cores[-1] = np.tensordot(xi.cores[-1], z.T, axes=(1,0)).transpose([0, 3, 1, 2])
+        xi.cores[-1] = np.tensordot(xi.cores[-1], z.T, axes=(1, 0)).transpose([0, 3, 1, 2])
         xi.row_dims[-1] = z.shape[0]
 
         # compute relative error
@@ -111,19 +115,21 @@ class TestMANDy(TestCase):
         """test ARR"""
 
         # apply ARR
-        _ = reg.arr(self.kuramoto_x, self.kuramoto_y, self.kuramoto_basis, [self.kuramoto_initial.copy() for _ in range(10)], repeats=1, rcond=10**-12, progress=False)
-        xi = reg.arr(self.kuramoto_x, self.kuramoto_y, self.kuramoto_basis, self.kuramoto_initial, repeats=10, rcond=10**-12, progress=False)
+        _ = reg.arr(self.kuramoto_x, self.kuramoto_y, self.kuramoto_basis,
+                    [self.kuramoto_initial.copy() for _ in range(10)], repeats=1, rcond=10 ** -12, progress=False)
+        xi = reg.arr(self.kuramoto_x, self.kuramoto_y, self.kuramoto_basis, self.kuramoto_initial, repeats=10,
+                     rcond=10 ** -12, progress=False)
 
         # merge tensor-trains
         for i in range(self.kuramoto_d):
-        	xi[i].order += 1
-        	xi[i].cores.append(np.eye(self.kuramoto_d)[:,i].reshape([1, 10, 1, 1]))
-        	xi[i].row_dims.append(10)
-        	xi[i].col_dims.append(1)
-        	xi[i].ranks.append(1)
+            xi[i].order += 1
+            xi[i].cores.append(np.eye(self.kuramoto_d)[:, i].reshape([1, 10, 1, 1]))
+            xi[i].row_dims.append(10)
+            xi[i].col_dims.append(1)
+            xi[i].ranks.append(1)
         xi_comb = xi[0]
         for i in range(1, self.kuramoto_d):
-        	xi_comb = xi_comb + xi[i]
+            xi_comb = xi_comb + xi[i]
 
         # compute relative error
         rel_err = (xi_comb - self.kuramoto_xi_exact).norm() / self.kuramoto_xi_exact.norm()

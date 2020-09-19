@@ -93,10 +93,10 @@ utl.header(title='Deca-alanine')
 # define basis functions
 basis_list = []
 for i in range(5):
-    basis_list.append([tdt.constant_function(), tdt.periodic_gauss_function(2 * i, -2, 0.8),
-                       tdt.periodic_gauss_function(2 * i, 1, 0.5)])
-    basis_list.append([tdt.constant_function(), tdt.periodic_gauss_function(2 * i + 1, -0.5, 0.8),
-                       tdt.periodic_gauss_function(2 * i + 1, 0, 4), tdt.periodic_gauss_function(2 * i + 1, 2, 0.8)])
+    basis_list.append([tdt.ConstantFunction(), tdt.PeriodicGaussFunction(2 * i, -2, 0.8),
+                       tdt.PeriodicGaussFunction(2 * i, 1, 0.5)])
+    basis_list.append([tdt.ConstantFunction(), tdt.PeriodicGaussFunction(2 * i + 1, -0.5, 0.8),
+                       tdt.PeriodicGaussFunction(2 * i + 1, 0, 4), tdt.PeriodicGaussFunction(2 * i + 1, 2, 0.8)])
 
 # parameters
 downsampling_rate = 500

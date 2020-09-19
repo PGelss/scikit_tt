@@ -413,9 +413,9 @@ class TT(object):
 
                 # multiply TT cores
                 cores = [
-                    np.tensordot(self.cores[i], tt_mul.cores[i], axes=(2, 1)).transpose([0, 3, 1, 4, 2, 5]).reshape(
+                    np.tensordot(self.cores[i], tt_mul.cores[i], axes=(2, 1)).transpose([0, 3, 1, 4, 2, 5]).reshape((
                         self.ranks[i] * tt_mul.ranks[i], self.row_dims[i], tt_mul.col_dims[i],
-                        self.ranks[i + 1] * tt_mul.ranks[i + 1]) for i in range(self.order)]
+                        self.ranks[i + 1] * tt_mul.ranks[i + 1])) for i in range(self.order)]
 
                 # define product tensor
                 tt_prod = TT(cores)
@@ -905,8 +905,8 @@ class TT(object):
         for i in range(1, self.order):
             # contract tt_mat with next TT core, permute and reshape
             tt_mat = np.tensordot(tt_mat, self.cores[i], axes=(2, 0))
-            tt_mat = tt_mat.transpose([0, 2, 1, 3, 4]).reshape(np.prod(self.row_dims[:i + 1]),
-                                                               np.prod(self.col_dims[:i + 1]), self.ranks[i + 1])
+            tt_mat = tt_mat.transpose([0, 2, 1, 3, 4]).reshape((np.prod(self.row_dims[:i + 1]),
+                                                               np.prod(self.col_dims[:i + 1]), self.ranks[i + 1]))
 
         # reshape into vector or matrix
         m = np.prod(self.row_dims)
@@ -1200,8 +1200,8 @@ class TT(object):
 
             # sum over row axes
             tt_tensor.cores = [
-                np.sum(tt_tensor.cores[i], axis=1).reshape(tt_tensor.ranks[i], 1, tt_tensor.col_dims[i],
-                                                           tt_tensor.ranks[i + 1]) for i in
+                np.sum(tt_tensor.cores[i], axis=1).reshape((tt_tensor.ranks[i], 1, tt_tensor.col_dims[i],
+                                                           tt_tensor.ranks[i + 1])) for i in
                 range(tt_tensor.order)]
 
             # define new row dimensions
@@ -1366,9 +1366,9 @@ class TT(object):
             # begin contractions
             for j in range(k + 1, k + merge_numbers[i]):
                 # contract with next core and reshape
-                core = np.tensordot(core, qtt_tensor.cores[j], axes=(3, 0)).transpose(0, 1, 3, 2, 4, 5)
-                core = core.reshape(core.shape[0], core.shape[1] * core.shape[2], core.shape[3] * core.shape[4],
-                                    core.shape[5])
+                core = np.tensordot(core, qtt_tensor.cores[j], axes=(3, 0)).transpose((0, 1, 3, 2, 4, 5))
+                core = core.reshape((core.shape[0], core.shape[1] * core.shape[2], core.shape[3] * core.shape[4],
+                                    core.shape[5]))
 
             # define TT core
             tt_cores.append(core)
@@ -1685,7 +1685,7 @@ def canonical(row_dims, max_rank):
     r_tmp_left = 1
     for i in range(order // 2):
         cores[i] = np.eye(r_tmp_left * row_dims[i], np.amin([r_tmp_left * row_dims[i], max_rank]))
-        cores[i] = cores[i].reshape(r_tmp_left, row_dims[i], 1, np.amin([r_tmp_left * row_dims[i], max_rank]))
+        cores[i] = cores[i].reshape((r_tmp_left, row_dims[i], 1, np.amin([r_tmp_left * row_dims[i], max_rank])))
         r_tmp_left = np.amin([r_tmp_left * row_dims[i], max_rank])
 
     # define cores from the right

@@ -5,172 +5,440 @@ import scikit_tt.utils as utl
 import scipy.linalg as splin
 import time as _time
 from scikit_tt.tensor_train import TT
+import sympy
+from sympy.functions.special.polynomials import legendre
 
 
-def constant_function():
-    """Constant function.
-
-    Returns
-    -------
-    f: function
-        constant function
+# ################################## basis functions ###################################
+class Function:
+    """
+    Function from R^n -> R.
+    All implemented basis functions should inherit from this class.
+    Can be called to evaluate function.
+    Features first and second order partial derivatives, as well as gradient and hessian matrix.
+    Can be initialized with or without dimension n. For every call, checks validity of input.
     """
 
-    f = lambda t: 1 + 0 * t[0]
+    def __init__(self, dimension=None):
+        if dimension is None:
+            self.dimension = 1
+            self.initialized = False
+        else:
+            if dimension < 1:
+                raise ValueError('dimension has to be >= 1')
+            self.dimension = dimension
+            self.initialized = True
 
-    return f
+    def __call__(self, t):
+        self.check_call_input(t)
+        return 0
+
+    def partial(self, t, direction):
+        self.check_partial_input(t, direction)
+        return 0
+
+    def partial2(self, t, direction1, direction2):
+        self.check_partial2_input(t, direction1, direction2)
+        return 0
+
+    def gradient(self, t):
+        self.check_call_input(t)
+        return np.array([self.partial(t, i) for i in range(self.dimension)])
+
+    def hessian(self, t):
+        self.check_call_input(t)
+        hess = np.zeros((self.dimension, self.dimension))
+        for i in range(self.dimension):
+            for j in range(self.dimension):
+                hess[i, j] = self.partial2(t, i, j)
+        return hess
+
+    def check_call_input(self, t):
+        if not self.initialized:
+            self.dimension = len(t)
+            self.initialized = True
+        elif len(t) != self.dimension:
+            raise ValueError('wrong dimension of t')
+
+    def check_partial_input(self, t, direction):
+        if not self.initialized:
+            self.dimension = len(t)
+            self.initialized = True
+        elif len(t) != self.dimension:
+            raise ValueError('wrong dimension of t')
+        elif not 0 <= direction < self.dimension:
+            raise ValueError('direction has to be >= 0 and < self.dimension')
+
+    def check_partial2_input(self, t, direction1, direction2):
+        if not self.initialized:
+            self.dimension = len(t)
+            self.initialized = True
+        elif len(t) != self.dimension:
+            raise ValueError('wrong dimension of t')
+        elif not 0 <= direction1 < self.dimension or not 0 <= direction2 < self.dimension:
+            raise ValueError('direction has to be >= 0 and < self.dimension')
 
 
-def indicator_function(index, a, b):
-    """Indicator function.
-
-    Parameters
-    ----------
-    index: int
-        define which entry of a snapshot is passed to the indicator function
-    a: float
-        lower bound of the interval
-    b: float
-        upper bound of the interval
-
-    Returns
-    -------
-    f: function
-        indicator function
+class OneCoordinateFunction(Function):
+    """
+    Function from R^n -> R, that only depends on one coordinate.
+    All implemented functions, that only depend on one coordinate,
+    should inherit from this class.
+    The checks are modified to secure that the coordinate is valid.
     """
 
-    #f = lambda t: __indicator_function_callback(t[index], a, b)
-    f = lambda t: 1 * ((a <= t[index]) & (t[index] < b))
+    def __init__(self, index, dimension=None):
+        super().__init__(dimension)
+        if self.initialized and not 0 <= index < self.dimension:
+            raise ValueError('index has to be >= 0 and < dimension')
+        self.index = index
 
-    return f
+    def check_call_input(self, t):
+        if not self.initialized:
+            self.dimension = len(t)
+            if not 0 <= self.index < self.dimension:
+                raise ValueError('index has to be >= 0 and < dimension')
+            self.initialized = True
+        elif len(t) != self.dimension:
+            raise ValueError('wrong dimension of t')
 
-def identity(index):
-    """Identiy function.
+    def check_partial_input(self, t, direction):
+        if not self.initialized:
+            self.dimension = len(t)
+            if not 0 <= self.index < self.dimension:
+                raise ValueError('index has to be >= 0 and < dimension')
+            self.initialized = True
+        elif len(t) != self.dimension:
+            raise ValueError('wrong dimension of t')
+        elif not 0 <= direction < self.dimension:
+            raise ValueError('direction has to be >= 0 and < self.dimension')
 
-    Parameters
-    ----------
-    index: int
-        define which entry of a snapshot is passed to the identity function
+    def check_partial2_input(self, t, direction1, direction2):
+        if not self.initialized:
+            self.dimension = len(t)
+            if not 0 <= self.index < self.dimension:
+                raise ValueError('index has to be >= 0 and < dimension')
+            self.initialized = True
+        elif len(t) != self.dimension:
+            raise ValueError('wrong dimension of t')
+        elif not 0 <= direction1 < self.dimension or not 0 <= direction2 < self.dimension:
+            raise ValueError('direction has to be >= 0 and < self.dimension')
 
-    Returns
-    -------
-    f: function
-        identity function at given index
+    def gradient(self, t):
+        partial = self.partial(t, self.index)
+        out = np.zeros((self.dimension,))
+        out[self.index] = partial
+        return out
+
+    def hessian(self, t):
+        partial2 = self.partial2(t, self.index, self.index)
+        hess = np.zeros((self.dimension, self.dimension))
+        hess[self.index, self.index] = partial2
+        return hess
+
+
+class ConstantFunction(Function):
+    """
+    Constant 1 function.
     """
 
-    f = lambda t: t[index]
+    def __init__(self, dimension=None):
+        super().__init__(dimension)
 
-    return f
+    def __call__(self, t):
+        self.check_call_input(t)
+        return 1.0
 
-def monomial(index, exponent):
-    """Monomial function.
+    def partial(self, t, direction):
+        self.check_partial_input(t, direction)
+        return 0.0
 
-    Parameters
-    ----------
-    index: int
-        define which entry of a snapshot is passed to the identity function
-    exponent: int
-        degree of the monomial
+    def partial2(self, t, direction1, direction2):
+        self.check_partial2_input(t, direction1, direction2)
+        return 0.0
 
-    Returns
-    -------
-    f: function
-        monomial function at given index
-    """
+    def gradient(self, t):
+        self.check_call_input(t)
+        return np.zeros((self.dimension,))
 
-    f = lambda t: (t[index])**exponent
-
-    return f
-
-
-def sin(index, alpha):
-    """Sine function.
-
-    Parameters
-    ----------
-    index: int
-        define which entry of a snapshot is passed to the sine function
-    alpha: float
-        prefactor
-
-    Returns
-    -------
-    f: function
-        sine function at given index
-    """
-
-    f = lambda t: np.sin(alpha * t[index])
-
-    return f
+    def hessian(self, t):
+        self.check_call_input(t)
+        return np.zeros((self.dimension, self.dimension))
 
 
-def cos(index, alpha):
-    """Cosine function.
-
-    Parameters
-    ----------
-    index: int
-        define which entry of a snapshot is passed to the cosine function
-    alpha: float
-        prefactor
-
-    Returns
-    -------
-    f: function
-        cosine function at given index
-    """
-
-    f = lambda t: np.cos(alpha * t[index])
-
-    return f
-
-
-def gauss_function(index, mean, variance):
-    """Gauss function.
-
-    Parameters
-    ----------
-    index: int
-        define which entry of a snapshot is passed to the Gauss function
-    mean: float
-        mean of the distribution
-    variance: float (>0)
-        variance
-
-    Returns
-    -------
-    f: function
-        Gauss function
-    """
-
-    f = lambda t: np.exp(-0.5 * (t[index] - mean) ** 2 / variance)
-
-    return f
-
-
-def periodic_gauss_function(index, mean, variance):
-    """Periodic Gauss function.
+class IndicatorFunction(OneCoordinateFunction):
+    def __init__(self, index, a, b, dimension=None):
+        """
+        Indicator function in one coordiante.
 
         Parameters
         ----------
-        index: int
-            define which entry of a snapshot is passed to the periodic Gauss function
-        mean: float
-            mean of the distribution
-        variance: float (>0)
-            variance
-
-        Returns
-        -------
-        f: function
-            Gauss function
+        index : int
+            define which entry of a snapshot is passed to the indicator function
+        a : float
+            lower bound of the interval
+        b : float
+            upper bound of the interval
         """
+        super().__init__(index, dimension)
+        self.a = a
+        self.b = b
 
-    f = lambda t: np.exp(-0.5 * np.sin(0.5 * (t[index] - mean)) ** 2 / variance)
+    def __call__(self, t):
+        self.check_call_input(t)
+        return 1 * ((self.a <= t[self.index]) & (t[self.index] < self.b))
 
-    return f
+    def partial(self, t, direction):
+        raise NotImplementedError('indicator function is not differentiable')
+
+    def partial2(self, t, direction1, direction2):
+        raise NotImplementedError('indicator function is not differentiable')
 
 
+class Identity(OneCoordinateFunction):
+    def __init__(self, index, dimension=None):
+        """
+        Identiy function.
+
+        Parameters
+        ----------
+        index : int
+            define which entry of a snapshot is passed to the identity function
+        """
+        super().__init__(index, dimension)
+
+    def __call__(self, t):
+        self.check_call_input(t)
+        return t[self.index]
+
+    def partial(self, t, direction):
+        self.check_partial_input(t, direction)
+        if direction == self.index:
+            return 1.0
+        return 0.0
+
+    def partial2(self, t, direction1, direction2):
+        self.check_partial2_input(t, direction1, direction2)
+        return 0.0
+
+
+class Monomial(OneCoordinateFunction):
+    def __init__(self, index, exponent, dimension=None):
+        """
+        Monomial function.
+
+        Parameters
+        ----------
+        index : int
+            define which entry of a snapshot is passed to the Monomial function
+        exponent : int
+            degree of the monomial, >= 0
+        """
+        super().__init__(index, dimension)
+        if exponent < 0:
+            raise ValueError('exponent needs to be >= 0')
+        self.exponent = exponent
+
+    def __call__(self, t):
+        self.check_call_input(t)
+        return t[self.index] ** self.exponent
+
+    def partial(self, t, direction):
+        self.check_partial_input(t, direction)
+        if direction == self.index:
+            if self.exponent > 0:
+                return self.exponent * t[self.index] ** (self.exponent - 1)
+        return 0.0
+
+    def partial2(self, t, direction1, direction2):
+        self.check_partial2_input(t, direction1, direction2)
+        if direction1 == self.index and direction2 == self.index:
+            if self.exponent > 1:
+                return self.exponent * (self.exponent - 1) * t[self.index] ** (self.exponent - 2)
+        return 0.0
+
+
+class Legendre(OneCoordinateFunction):
+    def __init__(self, index, degree, domain=1, dimension=None):
+        """
+        Legendre Polynomial.
+
+        Parameters
+        ----------
+        index : int
+            define which entry of a snapshot is passed to the polynomial
+        degree : int
+            degree of the polynomial, >= 0
+        domain : float
+                scale the polynomial to the domain [-domain, domain]
+        """
+        super().__init__(index, dimension)
+        if degree < 0:
+            raise ValueError('exponent needs to be >= 0')
+        self.degree = degree
+        self.domain = domain
+
+        x, n = sympy.symbols("x, n")
+        lp = legendre(n, x/domain).subs(n, degree)
+        dlp = lp.diff(x)
+        self.poly = sympy.lambdify([x], lp, 'numexpr')
+        self.dpoly = sympy.lambdify([x], dlp, 'numexpr')
+        self.ddpoly = sympy.lambdify([x], dlp.diff(x), 'numexpr')
+
+    def __call__(self, t):
+        self.check_call_input(t)
+        return self.poly(t[self.index])
+
+    def partial(self, t, direction):
+        self.check_partial_input(t, direction)
+        if direction == self.index:
+            return self.dpoly(t[self.index])
+        return 0.0
+
+    def partial2(self, t, direction1, direction2):
+        self.check_partial2_input(t, direction1, direction2)
+        if direction1 == self.index and direction2 == self.index:
+            return self.ddpoly(t[self.index])
+        return 0.0
+
+
+class Sin(OneCoordinateFunction):
+    def __init__(self, index, alpha, dimension=None):
+        """
+        Sine function.
+
+        Parameters
+        ----------
+        index : int
+            define which entry of a snapshot is passed to the sine function
+        alpha : float
+            prefactor
+        """
+        super().__init__(index, dimension)
+        self.index = index
+        self.alpha = alpha
+
+    def __call__(self, t):
+        self.check_call_input(t)
+        return np.sin(self.alpha * t[self.index])
+
+    def partial(self, t, direction):
+        self.check_partial_input(t, direction)
+        if direction == self.index:
+            return self.alpha * np.cos(self.alpha * t[self.index])
+        return 0.0
+
+    def partial2(self, t, direction1, direction2):
+        self.check_partial2_input(t, direction1, direction2)
+        if direction1 == self.index and direction2 == self.index:
+            return -(self.alpha ** 2) * np.sin(self.alpha * t[self.index])
+        return 0.0
+
+
+class Cos(OneCoordinateFunction):
+    def __init__(self, index, alpha, dimension=None):
+        """
+        Cosine function.
+
+        Parameters
+        ----------
+        index : int
+            define which entry of a snapshot is passed to the cosine function
+        alpha : float
+            prefactor
+        """
+        super().__init__(index, dimension)
+        self.alpha = alpha
+
+    def __call__(self, t):
+        self.check_call_input(t)
+        return np.cos(self.alpha * t[self.index])
+
+    def partial(self, t, direction):
+        self.check_partial_input(t, direction)
+        if direction == self.index:
+            return -self.alpha * np.sin(self.alpha * t[self.index])
+        return 0.0
+
+    def partial2(self, t, direction1, direction2):
+        self.check_partial2_input(t, direction1, direction2)
+        if direction1 == self.index and direction2 == self.index:
+            return -(self.alpha ** 2) * np.cos(self.alpha * t[self.index])
+        return 0.0
+
+
+class GaussFunction(OneCoordinateFunction):
+    def __init__(self, index, mean, variance, dimension=None):
+        """
+        Gauss function.
+
+        Parameters
+        ----------
+        index : int
+            define which entry of a snapshot is passed to the Gauss function
+        mean : float
+            mean of the distribution
+        variance : float
+        dimension : int, optional
+        """
+        super().__init__(index, dimension)
+        self.mean = mean
+        if variance <= 0:
+            raise ValueError('variance must be > 0')
+        self.variance = variance
+
+    def __call__(self, t):
+        self.check_call_input(t)
+        return np.exp(-0.5 * (t[self.index] - self.mean) ** 2 / self.variance)
+
+    def partial(self, t, direction):
+        self.check_partial_input(t, direction)
+        if direction == self.index:
+            return -np.exp(-(0.5 * (self.mean - t[self.index]) ** 2) / self.variance) * \
+                   (-self.mean + t[self.index]) / self.variance
+        return 0.0
+
+    def partial2(self, t, direction1, direction2):
+        raise NotImplementedError('not yet implemented')
+
+
+class PeriodicGaussFunction(OneCoordinateFunction):
+    def __init__(self, index, mean, variance, dimension=None):
+        """
+        Periodic Gauss function.
+
+        Parameters
+        ----------
+        index : int
+            define which entry of a snapshot is passed to the periodic Gauss function
+        mean : float
+            mean of the distribution
+        variance : float
+        dimension : int, optional
+        """
+        super().__init__(index, dimension)
+        self.mean = mean
+        if variance <= 0:
+            raise ValueError('variance must be > 0')
+        self.variance = variance
+
+    def __call__(self, t):
+        self.check_call_input(t)
+        return np.exp(-0.5 * np.sin(0.5 * (t[self.index] - self.mean)) ** 2 / self.variance)
+
+    def partial(self, t, direction):
+        self.check_partial_input(t, direction)
+        if direction == self.index:
+            return (0.5 * np.exp(-(0.5 * np.sin(0.5 * self.mean - 0.5 * t[self.index]) ** 2) / self.variance) *
+                    np.cos(0.5 * self.mean - 0.5 * t[self.index]) * np.sin(0.5 * self.mean - 0.5 * t[self.index])) \
+                   / self.variance
+        return 0.0
+
+    def partial2(self, t, direction1, direction2):
+        raise NotImplementedError('not yet implemented')
+
+
+# ################################## decompositions ###################################
 def basis_decomposition(x, phi, single_core=None):
     """Construct a transformed data tensor in TT format.
 
@@ -194,14 +462,14 @@ def basis_decomposition(x, phi, single_core=None):
     ----------
     x: np.ndarray
         snapshot matrix of size d x m
-    phi: list[list[function]]
+    phi: list[list[Function]]
         list of basis functions in every mode
     single_core: None or int, optional
         return only the ith core of psi if single_core=i (<p), default is None
 
     Returns
     -------
-    psi: instance of TT class or np.ndarray
+    psi: TT or np.ndarray
         tensor train of basis function evaluations if single_core=None, 4-dimensional array if single core
         is an integer
 
@@ -288,14 +556,14 @@ def coordinate_major(x, phi, single_core=None):
     ----------
     x: np.ndarray
         snapshot matrix of size d x m
-    phi: list[function]
+    phi: list[Function]
         list of basis functions
     single_core: None or int, optional
         return only the ith core of psi if single_core=i (<p), default is None
 
     Returns
     -------
-    psi: instance of TT class
+    psi: TT
         tensor train of basis function evaluations
 
     References
@@ -377,16 +645,16 @@ def function_major(x, phi, add_one=True, single_core=None):
 
     Parameters
     ----------
-    x : np.np.ndarray
+    x : np.ndarray
         snapshot matrix of size d x m
-    phi : list[function]
+    phi : list[Function]
         list of basis functions
     add_one: bool, optional
         whether to add the basis function 1 to the cores or not, default is True
 
     Returns
     -------
-    psi: instance of TT class
+    psi: TT
         tensor train of basis function evaluations
 
     References
@@ -476,7 +744,7 @@ def gram(x_1, x_2, basis_list):
         data matrix for psi_1
     x_2: np.ndarray
         data matrix for psi_2
-    basis_list: list[list[function]]
+    basis_list: list[list[Function]]
         list of basis functions in every mode
 
     Returns
@@ -510,7 +778,7 @@ def hocur(x, basis_list, ranks, repeats=1, multiplier=10, progress=True, string=
     ----------
     x: np.ndarray
         data matrix
-    basis_list: list[list[function]]
+    basis_list: list[list[Function]]
         list of basis functions in every mode
     ranks: list[int] or int
         maximum TT ranks of the resulting TT representation; if type is int, then the ranks are set to
@@ -528,7 +796,7 @@ def hocur(x, basis_list, ranks, repeats=1, multiplier=10, progress=True, string=
 
     Returns
     -------
-    psi: instance of TT class
+    psi: TT
         TT representation of the transformed data tensor
 
     References
@@ -719,7 +987,7 @@ def __hocur_extract_matrix(data, basis_list, row_coordinates_list, col_coordinat
     ----------
     data: np.ndarray
         data matrix
-    basis_list: list[list[function]]
+    basis_list: list[list[Function]]
         list of basis functions in every mode
     row_coordinates_list: list[list[int]]
         list of row indices
@@ -846,8 +1114,8 @@ def __hocur_find_li_cols(matrix, tol=1e-14):
 
     Parameters
     ----------
-    matrix: np.ndarray (m,n)
-        rectangular matrix
+    matrix: np.ndarray
+        rectangular matrix, (m,n)
 
     Returns
     -------

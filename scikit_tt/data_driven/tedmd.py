@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import scikit_tt.data_driven.transform as tdt
+from scikit_tt.data_driven.transform import Function
 import numpy as np
 from scipy import linalg
 from scikit_tt.tensor_train import TT
@@ -21,7 +22,7 @@ def amuset_hosvd(data_matrix, x_indices, y_indices, basis_list, threshold=1e-2, 
         index sets for snapshot matrix x
     y_indices : np.ndarray or list[np.ndarray]
         index sets for snapshot matrix y
-    basis_list : list[list[function]]
+    basis_list : list[list[Function]]
         list of basis functions in every mode
     threshold : float, optional
         threshold for SVD/HOSVD, default is 1e-2
@@ -101,7 +102,7 @@ def amuset_hocur(data_matrix, x_indices, y_indices, basis_list, max_rank=1000, m
         index sets for snapshot matrix x
     y_indices : np.ndarray or list[np.ndarray]
         index sets for snapshot matrix y
-    basis_list : list[list[function]]
+    basis_list : list[list[Function]]
         list of basis functions in every mode
     max_rank : int, optional
         maximum ranks for HOSVD as well as HOCUR, default is 1000

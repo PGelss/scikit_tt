@@ -5,6 +5,7 @@ import sys
 import numpy as np
 import scipy.linalg as lin
 import scikit_tt.data_driven.transform as tdt
+from scikit_tt.data_driven.transform import Function
 from scikit_tt.tensor_train import TT
 import scikit_tt.utils as utl
 import time as _time
@@ -22,7 +23,7 @@ def arr(x_data, y_data, basis_list, initial_guess, repeats=1, rcond=10**-2, stri
         snapshot matrix which is transformed
     y_data : np.ndarray
         snapshot matrix for the right-hand side
-    basis_list : list[list[function]]
+    basis_list : list[list[Function]]
         list of basis functions in every mode
     initial_guess : TT
         initial guess for the solution of operator @ x = right_hand_side
@@ -138,7 +139,7 @@ def mandy_cm(x, y, phi, threshold=0):
         snapshot matrix of size d x m (e.g., coordinates)
     y : np.ndarray
         corresponding snapshot matrix of size d x m (e.g., derivatives)
-    phi : list[function]
+    phi : list[Function]
         list of basis functions
     threshold : float, optional
         threshold for SVDs, default is 0
@@ -185,7 +186,7 @@ def mandy_fm(x, y, phi, threshold=0, add_one=True):
         snapshot matrix of size d x m (e.g., coordinates)
     y : np.ndarray
         corresponding snapshot matrix of size d x m (e.g., derivatives)
-    phi : list[function]
+    phi : list[Function]
         list of basis functions
     threshold : float, optional
         threshold for SVDs, default is 0
@@ -236,7 +237,7 @@ def mandy_kb(x, y, basis_list):
         snapshot matrix of size d x m (e.g., coordinates)
     y : np.ndarray
         corresponding snapshot matrix of size d' x m (e.g., derivatives)
-    basis_list : list[list[function]]
+    basis_list : list[list[Function]]
         list of basis functions in every mode
 
     Returns
@@ -278,7 +279,7 @@ def __arr_construct_stack_left(i, stack_left, x_data, basis_list, solution):
         left stack
     x_data : np.ndarray
         snapshot matrix which is transformed
-    basis_list : list[list[function]]
+    basis_list : list[list[Function]]
         list of basis functions in every mode
     solution : TT
         approximated solution of the system of linear equations
@@ -312,7 +313,7 @@ def __arr_construct_stack_right(i, stack_right, x_data, basis_list, solution):
         right stack
     x_data : np.ndarray
         snapshot matrix which is transformed
-    basis_list : list[list[function]]
+    basis_list : list[list[Function]]
         list of basis functions in every mode
     solution : TT
         approximated solution of the system of linear equations
@@ -348,7 +349,7 @@ def __arr_construct_micro_matrix(i, stack_left, stack_right, x_data, basis_list,
         right stack
     x_data : np.ndarray
         snapshot matrix which is transformed
-    basis_list : list[list[function]]
+    basis_list : list[list[Function]]
         list of basis functions in every mode
     solution : TT
         approximated solution of the system of linear equations
