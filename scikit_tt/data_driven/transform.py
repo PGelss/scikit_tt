@@ -732,6 +732,7 @@ def function_major(x, phi, add_one=True, single_core=None):
 
     return psi
 
+
 def gram(x_1, x_2, basis_list):
     """Gram matrix.
 
@@ -756,12 +757,19 @@ def gram(x_1, x_2, basis_list):
     ----------
     .. [1] S. Klus, P. Gelß, "Tensor-Based Algorithms for Image Classification", Algorithms, 2019
     """
-
     # compute gram by iteratively applying the Hadarmard product
     gram = np.ones([x_1.shape[1], x_2.shape[1]])
     for i in range(len(basis_list)):
-        theta_1 = np.array([basis_list[i][k](x_1) for k in range(len(basis_list[i]))])
-        theta_2 = np.array([basis_list[i][k](x_2) for k in range(len(basis_list[i]))])
+        theta_1 = np.array([[basis_list[i][k](x_1[:, j]) for j in range(x_1.shape[1])]
+                            for k in range(len(basis_list[i]))])
+        theta_2 = np.array([[basis_list[i][k](x_2[:, j]) for j in range(x_2.shape[1])]
+                            for k in range(len(basis_list[i]))])
+
+        # theta_1 = np.zeros((len(basis_list[i]), x_1.shape[1]))
+        # theta_2 = np.zeros((len(basis_list[i]), x_2.shape[1]))
+        # for k in range(len(basis_list[i])):
+        #     theta_1[k, :] = [basis_list[i][k](x_1[:, j]) for j in range(x_1.shape[1])]
+        #     theta_2[k, :] = [basis_list[i][k](x_2[:, j]) for j in range(x_2.shape[1])]
         gram *= (theta_1.T.dot(theta_2))
 
     return gram

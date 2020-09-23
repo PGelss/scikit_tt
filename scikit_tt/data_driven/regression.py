@@ -297,7 +297,7 @@ def __arr_construct_stack_left(i, stack_left, x_data, basis_list, solution):
         m = x_data.shape[1]
 
         # contract previous stack element with solution and TDT cores
-        stack_left[i] = np.array([basis_list[i-1][k](x_data) for k in range(n)])
+        stack_left[i] = np.array([[basis_list[i-1][k](x_data[:, j]) for j in range(m)] for k in range(n)])
         stack_left[i] = np.einsum('ij, kj, ikl -> lj', stack_left[i - 1], stack_left[i], solution.cores[i - 1][:,:,0,:])
 
 
@@ -331,7 +331,7 @@ def __arr_construct_stack_right(i, stack_right, x_data, basis_list, solution):
         m = x_data.shape[1]
 
         # contract previous stack element with solution and TDT cores
-        stack_right[i] = np.array([basis_list[i+1][k](x_data) for k in range(n)])
+        stack_right[i] = np.array([[basis_list[i+1][k](x_data[:, j]) for j in range(m)] for k in range(n)])
         stack_right[i] = np.einsum('ikl, kj, lj -> ij', solution.cores[i + 1][:,:,0,:], stack_right[i], stack_right[i + 1])
 
 
@@ -365,7 +365,7 @@ def __arr_construct_micro_matrix(i, stack_left, stack_right, x_data, basis_list,
     m = x_data.shape[1]
 
     # contract stack elements and TDT core
-    micro_matrix = np.array([basis_list[i][k](x_data) for k in range(n)])
+    micro_matrix = np.array([[basis_list[i][k](x_data[:, j]) for j in range(m)] for k in range(n)])
     micro_matrix = np.einsum('ij,kj,lj->iklj', stack_left[i], micro_matrix, stack_right[i])
     micro_matrix = micro_matrix.reshape([solution.ranks[i] * solution.row_dims[i] * solution.ranks[i + 1], m])
 
