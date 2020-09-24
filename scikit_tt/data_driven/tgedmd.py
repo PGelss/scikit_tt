@@ -1,17 +1,18 @@
 import numpy as np
 from scikit_tt.tensor_train import TT
 from scikit_tt.data_driven.transform import basis_decomposition, Function
-from scipy.interpolate import NearestNDInterpolator
 
 # This file contains functions related to tensor-based generator EDMD.
 
 # Structure of this file:
-# 1. the three main functions
-#       amuset_hosvd : AMUSEt for the general case
-#       amuset_hosvd_reversible : AMUSEt for the reversible case
-#       generator_on_product : Evaluate the action of the Koopman generator on a product of functions
-# 2. private functions related to the general case  todo: add line numbers
-# 3. private functions related to the reversible case
+# 1. the four main functions
+#       amuset_hosvd : AMUSEt for the general case (line 18)
+#       amuset_hosvd_reversible : AMUSEt for the reversible case (line 107)
+#       generator_on_product : Evaluate the action of the Koopman generator on a product of functions (line 192)
+#       generator_on_product_reversible : Analog to generator_on_product in the reversible case, as it can be used
+#                                         to calculate the entries of dPsi(x) (line 238)
+# 2. private functions related to the general case  (line 272)
+# 3. private functions related to the reversible case (line 624)
 
 
 def amuset_hosvd(data_matrix, basis_list, b, sigma, num_eigvals=np.infty, threshold=1e-2, max_rank=np.infty,
@@ -193,6 +194,7 @@ def generator_on_product(basis_list, s, x, b, sigma):
     Evaluate the Koopman generator operating on the following function
     f = basis_list[1][s[1]] * ... * basis_list[p][s[p]]
     in x.
+    It holds dPsi(x)_{s_1,...,s_p} = generator_on_product
 
     Parameters
     ----------
@@ -233,6 +235,39 @@ def generator_on_product(basis_list, s, x, b, sigma):
     return out
 
 
+def generator_on_product_reversible(basis_list, s, i, x, sigma):
+    """
+    It holds dPsi(x)_{s_1,...,s_p, i} = nabla psi_{s_1,...,s_p} cdot sigma_{:, i} = generator_on_product
+
+    Parameters
+    ----------
+    basis_list : list[list[Function]]
+    s : tuple
+        indices of basis functions
+    i : int
+        index of column of sigma
+    x : np.ndarray
+        shape(d,)
+    sigma : np.ndarray
+        diffusion at the snapshot x, shape (d, d2)
+
+    Returns
+    -------
+    float
+        dPsi(x)_{s_1,...,s_p, i}
+    """
+    p = len(s)
+    out = 0
+    for j in range(p):
+        product = np.inner(sigma[:, i], basis_list[j][s[j]].gradient(x))
+        for l in range(p):
+            if l == j:
+                continue
+            product *= basis_list[l][s[l]](x)
+        out += product
+    return out
+
+
 # ################ private functions for the general case ##########################################
 def _amuset_efficient(u, s, v, x, basis_list, b, sigma):
     """
@@ -262,7 +297,7 @@ def _amuset_efficient(u, s, v, x, basis_list, b, sigma):
     k = 0
 
     # for outputting progress
-    next_print = 0.05
+    next_print = 0.1
 
     s_inv = np.diag(1.0 / s)
 
@@ -273,7 +308,7 @@ def _amuset_efficient(u, s, v, x, basis_list, b, sigma):
         k = k + 1
         if k / m > next_print:
             print('progress: {}%'.format(int(round(next_print * 100))))
-            next_print += 0.05
+            next_print += 0.1
         dPsi = _tt_decomposition_one_snapshot(x[:, k], basis_list, b[:, k], sigma[:, :, k])
         M += _calc_M_k_amuset(u, v, s_inv, dPsi, k)
 
@@ -611,7 +646,7 @@ def _amuset_efficient_reversible(u, s, x, basis_list, sigma):
     k = 0
 
     # for outputting progress
-    next_print = 0.05
+    next_print = 0.1
 
     s_inv = np.diag(1.0 / s)
 
@@ -622,7 +657,7 @@ def _amuset_efficient_reversible(u, s, x, basis_list, sigma):
         k = k + 1
         if k / m > next_print:
             print('progress: {}%'.format(int(round(next_print * 100))))
-            next_print += 0.05
+            next_print += 0.1
         dPsi = _tt_decomposition_one_snapshot_reversible(x[:, k], basis_list, sigma[:, :, k])
         M += _calc_M_k_amuset_reversible(u, s_inv, dPsi)
 

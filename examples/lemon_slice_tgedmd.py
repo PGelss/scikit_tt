@@ -6,7 +6,6 @@ from msmtools.analysis.dense.pcca import _pcca_connected_isa
 from matplotlib import pyplot as plt
 
 
-
 def main():
     """ Run a simulation of overdamped Langevin dynamics induced by the Lemon-Slice potential and analyse the data
      using tgEDMD. """
