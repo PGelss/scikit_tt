@@ -1832,3 +1832,45 @@ def uniform(row_dims, ranks=1, norm=1):
     tt_uni = TT(cores)
 
     return tt_uni
+
+
+def residual_error(operator, lhs, rhs):
+    """
+    Compute the residual error ||A@x-b|| in TT format. Since the ranks of A@x may be too large for storing
+    the complete tensor train, the residual error is computed in a core-wise manner. 
+
+    Parameters
+    ----------
+    operator : TT
+        TT operator
+    lhs : TT
+        left-hand side in TT format
+    rhs : TT
+        right-hand side in TT format
+
+    Returns
+    -------
+    error : float
+        residual error
+    """
+
+    for i in range(operator.order):
+        Ax = np.tensordot(operator.cores[i], lhs.cores[i], axes=(2,1)).transpose([0, 3, 1, 4, 2, 5]).reshape([operator.ranks[i]*lhs.ranks[i], operator.row_dims[i], operator.ranks[i+1]*lhs.ranks[i+1]])
+        b = rhs.cores[i].reshape(rhs.ranks[i], rhs.row_dims[i], rhs.ranks[i+1])
+        if i==0:
+            core = np.append(Ax, -b, axis=2)
+            [u, s, v] = linalg.svd(core.reshape([core.shape[0]*core.shape[1], core.shape[2]]), full_matrices=False)
+            M = np.diag(s).dot(v)
+        elif i==operator.order-1:
+            core = np.append(Ax, b, axis=0)
+            core = np.tensordot(M, core, axes=(1,0))
+            error = np.linalg.norm(core.flatten())
+        else:
+            core_1 = np.append(Ax, np.zeros([Ax.shape[0], Ax.shape[1], b.shape[2]]), axis=2)
+            core_2 = np.append(np.zeros([b.shape[0], b.shape[1], Ax.shape[2]]), b, axis=2)
+            core = np.append(core_1, core_2, axis=0)
+            core = np.tensordot(M, core, axes=(1,0))
+            [u, s, v] = linalg.svd(core.reshape([core.shape[0]*core.shape[1], core.shape[2]]), full_matrices=False)
+            M = np.diag(s).dot(v)
+
+    return error
