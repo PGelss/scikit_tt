@@ -9,12 +9,14 @@ References
           systems", arXiv:1908.04741, 2019
 """
 
+import time as _time
+
+import matplotlib.pyplot as plt
 import numpy as np
-import scikit_tt.utils as utl
+
 import scikit_tt.data_driven.tedmd as tedmd
 import scikit_tt.data_driven.transform as tdt
-import matplotlib.pyplot as plt
-import time as _time
+import scikit_tt.utils as utl
 
 
 def load_data(path, downsampling_rate, contact_indices, progress=True):
@@ -67,7 +69,7 @@ def xy_indices(trajectory_lengths: list, integer_lag_time):
     integer_lag_time: int
         integer lag time
 
-    Returns:
+    Returns
     ----------
     x_indices: ndarray of ints
         indices of snapshots that form x
@@ -87,6 +89,7 @@ def xy_indices(trajectory_lengths: list, integer_lag_time):
         pos += trajectory_lengths[i]
 
     return x_indices, y_indices
+
 
 def plot_basis_functions(dimension, downsampling_rate, directory):
     """Plot basis functions
@@ -111,9 +114,9 @@ def plot_basis_functions(dimension, downsampling_rate, directory):
     plt.figure(dpi=300)
     plt.hist(data[:10].flatten(), 10000, histtype='bar')
     x_values = np.arange(0, 1, 0.001)[:, None]
-    y_values = tdt.gauss_function(0, 0.285, 0.001)(x_values.T)
+    y_values = tdt.GaussFunction(0, 0.285, 0.001)(x_values.T)
     plt.plot(x_values, 170000 * y_values, linewidth=2)
-    y_values = tdt.gauss_function(0, 0.62, 0.01)(x_values.T)
+    y_values = tdt.GaussFunction(0, 0.62, 0.01)(x_values.T)
     plt.plot(x_values, 2500 * y_values, linewidth=2)
     plt.xlim([0, 1])
     plt.xlabel(r"$\Delta [\mathrm{nm}]$")
@@ -121,25 +124,26 @@ def plot_basis_functions(dimension, downsampling_rate, directory):
     plt.show()
     plt.figure(dpi=300)
     x = np.arange(0, 1, 0.001)[:, None]
-    plt.plot(x, tdt.constant_function(0)(x.T), linewidth=2)
-    plt.plot(x, tdt.gauss_function(0, 0.285, 0.001)(x.T), linewidth=2)
-    plt.plot(x, tdt.gauss_function(0, 0.62, 0.01)(x.T), linewidth=2)
+    plt.plot(x, tdt.ConstantFunction(0)(x.T), linewidth=2)
+    plt.plot(x, tdt.GaussFunction(0, 0.285, 0.001)(x.T), linewidth=2)
+    plt.plot(x, tdt.GaussFunction(0, 0.62, 0.01)(x.T), linewidth=2)
     plt.xlim([0, 1])
     plt.ylim([0, 1.2])
     plt.xlabel(r"$\Delta [\mathrm{nm}]$")
     plt.savefig(directory + 'ntl9_basis_functions_2.pdf')
     plt.show()
 
+
 def tedmd_hosvd(dimensions, downsampling_rate, integer_lag_times, threshold, directory):
     """tEDMD using AMUSEt with HOSVD
 
     Parameters
     ----------
-    dimensions: list of ints
+    dimensions: list[int]
         numbers of contact indices
     downsampling_rate: int
         downsampling rate for trajectory data
-    integer_lag_times: list of ints
+    integer_lag_times: list[int]
         integer lag times for application of tEDMD
     threshold: float
         threshold for SVD/HOSVD
@@ -149,19 +153,20 @@ def tedmd_hosvd(dimensions, downsampling_rate, integer_lag_times, threshold, dir
 
     # progress
     start_time = utl.progress('Apply AMUSEt (HOSVD)', 0)
-    
+
     for i in range(len(dimensions)):
 
         # parameters
         time_step = 2e-3
         lag_times = time_step * downsampling_rate * integer_lag_times
-        
+
         # define basis list
-        basis_list = [[tdt.constant_function(), tdt.gauss_function(i, 0.285, 0.001), tdt.gauss_function(i, 0.62, 0.01)] for
+        basis_list = [[tdt.ConstantFunction(), tdt.GaussFunction(i, 0.285, 0.001), tdt.GaussFunction(i, 0.62, 0.01)] for
                       i in range(dimensions[i])]
 
         # progress
-        utl.progress('Apply AMUSEt (HOSVD, p=' + str(dimensions[i]) + ')', 100 * i / len(dimensions), cpu_time=_time.time() - start_time)
+        utl.progress('Apply AMUSEt (HOSVD, p=' + str(dimensions[i]) + ')', 100 * i / len(dimensions),
+                     cpu_time=_time.time() - start_time)
 
         # load contact indices (sorted by relevance)
         contact_indices = np.load(directory + 'ntl9_contact_indices.npz')['indices'][:dimensions[i]]
@@ -194,16 +199,17 @@ def tedmd_hosvd(dimensions, downsampling_rate, integer_lag_times, threshold, dir
 
         utl.progress('Apply AMUSEt (HOSVD)', 100 * (i + 1) / len(dimensions), cpu_time=_time.time() - start_time)
 
+
 def tedmd_hocur(dimensions, downsampling_rate, integer_lag_times, max_rank, directory):
     """tEDMD using AMUSEt with HOSVD
 
     Parameters
     ----------
-    dimensions: list of ints
+    dimensions: list[int]
         numbers of contact indices
     downsampling_rate: int
         downsampling rate for trajectory data
-    integer_lag_times: list of ints
+    integer_lag_times: list[int]
         integer lag times for application of tEDMD
     max_rank: int
         maximum rank for HOCUR
@@ -213,19 +219,20 @@ def tedmd_hocur(dimensions, downsampling_rate, integer_lag_times, max_rank, dire
 
     # progress
     start_time = utl.progress('Apply AMUSEt (HOCUR)', 0)
-    
+
     for i in range(len(dimensions)):
 
         # parameters
         time_step = 2e-3
         lag_times = time_step * downsampling_rate * integer_lag_times
-        
+
         # define basis list
-        basis_list = [[tdt.constant_function(), tdt.gauss_function(i, 0.285, 0.001), tdt.gauss_function(i, 0.62, 0.01)] for
+        basis_list = [[tdt.ConstantFunction(), tdt.GaussFunction(i, 0.285, 0.001), tdt.GaussFunction(i, 0.62, 0.01)] for
                       i in range(dimensions[i])]
 
         # progress
-        utl.progress('Apply AMUSEt (HOCUR, p=' + str(dimensions[i]) + ')', 100 * i / len(dimensions), cpu_time=_time.time() - start_time)
+        utl.progress('Apply AMUSEt (HOCUR, p=' + str(dimensions[i]) + ')', 100 * i / len(dimensions),
+                     cpu_time=_time.time() - start_time)
 
         # load contact indices (sorted by relevance)
         contact_indices = np.load(directory + 'ntl9_contact_indices.npz')['indices'][:dimensions[i]]
@@ -257,6 +264,7 @@ def tedmd_hocur(dimensions, downsampling_rate, integer_lag_times, max_rank, dire
         np.savez_compressed(directory + "Results_NTL9_HOCUR_d" + str(dimensions[i]) + ".npz", **dic)
 
         utl.progress('Apply AMUSEt (HOCUR)', 100 * (i + 1) / len(dimensions), cpu_time=_time.time() - start_time)
+
 
 # title
 utl.header(title='NTL9')

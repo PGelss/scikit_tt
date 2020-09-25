@@ -413,9 +413,9 @@ class TT(object):
 
                 # multiply TT cores
                 cores = [
-                    np.tensordot(self.cores[i], tt_mul.cores[i], axes=(2, 1)).transpose([0, 3, 1, 4, 2, 5]).reshape(
+                    np.tensordot(self.cores[i], tt_mul.cores[i], axes=(2, 1)).transpose([0, 3, 1, 4, 2, 5]).reshape((
                         self.ranks[i] * tt_mul.ranks[i], self.row_dims[i], tt_mul.col_dims[i],
-                        self.ranks[i + 1] * tt_mul.ranks[i + 1]) for i in range(self.order)]
+                        self.ranks[i + 1] * tt_mul.ranks[i + 1])) for i in range(self.order)]
 
                 # define product tensor
                 tt_prod = TT(cores)
@@ -625,6 +625,95 @@ class TT(object):
         tdot.ranks = [tdot.cores[i].shape[0] for i in range(tdot.order)] + [tdot.cores[-1].shape[3]]
 
         return tdot
+
+    def rank_tensordot(self, matrix, mode='last', overwrite=False):
+        """
+        Return index contraction between self and a 2D-array matrix along the first/last rank axis of the first/last
+        core of self. Thus, this method is only useful in the unusual case where self.ranks[0] or self.ranks[-1] != 1.
+        For example, these type of TT's appear as an output of the TT.svd method.
+
+        Parameters
+        ----------
+        matrix: np.ndarray
+            2D array
+        mode: string
+            one of the following: 'last', 'first'
+        overwrite: bool
+            whether to overwrite self or not, default is False
+
+        Returns
+        -------
+        tdot : TT
+            tensordot of self and matrix along the first/last rank axis of the first/last core of self
+        """
+        if len(matrix.shape) != 2:
+            raise ValueError('argument matrix has to be 2D-Array')
+
+        # copy self
+        if overwrite is False:
+            tdot = self.copy()
+        else:
+            tdot = self
+
+        if mode == 'last':
+            if tdot.ranks[-1] != matrix.shape[0]:
+                raise ValueError('dimensions do not match')
+            tdot.cores[-1] = np.tensordot(tdot.cores[-1], matrix, axes=([3], [0]))
+        elif mode == 'first':
+            if tdot.ranks[0] != matrix.shape[1]:
+                raise ValueError('dimensions do not match')
+            tdot.cores[0] = np.tensordot(matrix, tdot.cores[0], axes=([1], [0]))
+        else:
+            raise ValueError('unknown mode')
+
+        tdot.ranks = [tdot.cores[i].shape[0] for i in range(tdot.order)] + [tdot.cores[-1].shape[3]]
+        return tdot
+
+    def concatenate(self, other, overwrite=False):
+        """
+        Expand the list of cores of self by appending more cores.
+        If other is a TT, concatenate the cores of self and the cores of other.
+        If other is a list of cores, the cores are appended to self.cores.
+        For example, this method can be used to reconstruct the original tensor from u,s,v from TT.svd.
+
+        Parameters
+        ----------
+        other : TT or list[np.ndarray]
+        overwrite : bool, optional
+
+        Returns
+        -------
+        TT
+        """
+
+        # copy self
+        if overwrite is False:
+            tt = self.copy()
+        else:
+            tt = self
+
+        if isinstance(other, TT):
+            if tt.ranks[-1] != other.ranks[0]:
+                raise ValueError('ranks do not match!')
+            tt.cores.extend(other.cores)
+
+        elif isinstance(other, list):
+            # check if orders of list elements are correct
+            if not np.all([other[i].ndim == 4 for i in range(len(other))]):
+                raise ValueError('list elements must be 4-dimensional arrays')
+            # check if ranks are correct
+            if not np.all([other[i].shape[3] == other[i + 1].shape[0] for i in range(len(other) - 1)]):
+                raise ValueError('List elements must be 4-dimensional arrays.')
+            if tt.ranks[-1] != other[0].shape[0]:
+                raise ValueError('ranks do not match!')
+            tt.cores.extend(other)
+
+        tt.order = len(tt.cores)
+        tt.row_dims = [tt.cores[i].shape[1] for i in range(tt.order)]
+        tt.col_dims = [tt.cores[i].shape[2] for i in range(tt.order)]
+        tt.ranks = [tt.cores[i].shape[0] for i in range(tt.order)] + [tt.cores[-1].shape[3]]
+
+        return tt
 
     def transpose(self, cores=None, conjugate=False, overwrite=False):
         """
@@ -905,8 +994,8 @@ class TT(object):
         for i in range(1, self.order):
             # contract tt_mat with next TT core, permute and reshape
             tt_mat = np.tensordot(tt_mat, self.cores[i], axes=(2, 0))
-            tt_mat = tt_mat.transpose([0, 2, 1, 3, 4]).reshape(np.prod(self.row_dims[:i + 1]),
-                                                               np.prod(self.col_dims[:i + 1]), self.ranks[i + 1])
+            tt_mat = tt_mat.transpose([0, 2, 1, 3, 4]).reshape((np.prod(self.row_dims[:i + 1]),
+                                                               np.prod(self.col_dims[:i + 1]), self.ranks[i + 1]))
 
         # reshape into vector or matrix
         m = np.prod(self.row_dims)
@@ -1200,8 +1289,8 @@ class TT(object):
 
             # sum over row axes
             tt_tensor.cores = [
-                np.sum(tt_tensor.cores[i], axis=1).reshape(tt_tensor.ranks[i], 1, tt_tensor.col_dims[i],
-                                                           tt_tensor.ranks[i + 1]) for i in
+                np.sum(tt_tensor.cores[i], axis=1).reshape((tt_tensor.ranks[i], 1, tt_tensor.col_dims[i],
+                                                           tt_tensor.ranks[i + 1])) for i in
                 range(tt_tensor.order)]
 
             # define new row dimensions
@@ -1366,9 +1455,9 @@ class TT(object):
             # begin contractions
             for j in range(k + 1, k + merge_numbers[i]):
                 # contract with next core and reshape
-                core = np.tensordot(core, qtt_tensor.cores[j], axes=(3, 0)).transpose(0, 1, 3, 2, 4, 5)
-                core = core.reshape(core.shape[0], core.shape[1] * core.shape[2], core.shape[3] * core.shape[4],
-                                    core.shape[5])
+                core = np.tensordot(core, qtt_tensor.cores[j], axes=(3, 0)).transpose((0, 1, 3, 2, 4, 5))
+                core = core.reshape((core.shape[0], core.shape[1] * core.shape[2], core.shape[3] * core.shape[4],
+                                    core.shape[5]))
 
             # define TT core
             tt_cores.append(core)
@@ -1381,10 +1470,9 @@ class TT(object):
 
         return tt_tensor
 
-    def svd(self, index, threshold=0, ortho_l=True, ortho_r=True, overwrite=False):
+    def svd(self, index, threshold=0, max_rank=np.infty, ortho_l=True, ortho_r=True, overwrite=False):
         """
         Computation of a global SVD of a tensor train.
-
         Construct a singular value decomposition of a (non-operator) tensor train t in the form of tensor networks u, s,
         and v such that, by contraction, t=u*diag(s)*v. See [1]_ and [2]_ for details.
 
@@ -1395,13 +1483,14 @@ class TT(object):
             unfolded version of self
         threshold : float, optional
             threshold for reduced SVD decompositions, default is 0
-        ortho_l : bool, optional
+        max_rank : int, optional
+            maximal rank of reduced svd
+        ortho_l: bool, optional
             whether to apply left-orthonormalization or not, default is True
         ortho_r : bool, optional
             whether to apply right-orthonormalization or not, default is True
         overwrite : bool, optional
             whether to overwrite self or not, default is False
-
         Returns
         -------
         u : TT
@@ -1410,7 +1499,6 @@ class TT(object):
             vector of singular values of the global SVD
         v : TT
             right-orthonormal part of the global SVD
-
         References
         ----------
         .. [1] P. Gelß. "The Tensor-Train Format and Its Applications: Modeling and Analysis of Chemical Reaction
@@ -1427,11 +1515,11 @@ class TT(object):
 
         # left-orthonormalize cores 0 to index-2
         if ortho_l is True:
-            t = t.ortho_left(end_index=index - 2, threshold=threshold)
+            t = t.ortho_left(end_index=index - 2, threshold=threshold, max_rank=max_rank)
 
         # right-orthonormalize cores index to order -1
         if ortho_r is True:
-            t = t.ortho_right(end_index=index, threshold=threshold)
+            t = t.ortho_right(end_index=index, threshold=threshold, max_rank=max_rank)
 
         # decompose (index-1)th core
         [u, s, v] = linalg.svd(t.cores[index - 1].reshape(t.ranks[index - 1] * t.row_dims[index - 1], t.ranks[index]),
@@ -1443,6 +1531,10 @@ class TT(object):
             u = u[:, indices]
             s = s[indices]
             v = v[indices, :]
+        if max_rank != np.infty:
+            u = u[:, :np.minimum(u.shape[1], max_rank)]
+            s = s[:np.minimum(s.shape[0], max_rank)]
+            v = v[:np.minimum(v.shape[0], max_rank), :]
 
         # set new rank
         t.ranks[index] = u.shape[1]
@@ -1685,7 +1777,7 @@ def canonical(row_dims, max_rank):
     r_tmp_left = 1
     for i in range(order // 2):
         cores[i] = np.eye(r_tmp_left * row_dims[i], np.amin([r_tmp_left * row_dims[i], max_rank]))
-        cores[i] = cores[i].reshape(r_tmp_left, row_dims[i], 1, np.amin([r_tmp_left * row_dims[i], max_rank]))
+        cores[i] = cores[i].reshape((r_tmp_left, row_dims[i], 1, np.amin([r_tmp_left * row_dims[i], max_rank])))
         r_tmp_left = np.amin([r_tmp_left * row_dims[i], max_rank])
 
     # define cores from the right
