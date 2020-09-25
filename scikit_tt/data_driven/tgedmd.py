@@ -214,7 +214,7 @@ def generator_on_product(basis_list, s, x, b, sigma):
     """
 
     p = len(s)
-    a = sigma @ sigma.T
+    a = sigma.dot(sigma.T)
 
     out = 0
     for j in range(p):
@@ -375,7 +375,7 @@ def _dPsix(psi_k, x, b, sigma, position='middle'):
     d = x.shape[0]
     nk = len(psi_k)
     psi_kx = [fun(x) for fun in psi_k]
-    a = sigma @ sigma.T
+    a = sigma.dot(sigma.T)
 
     partial_psi_kx = np.zeros((nk, d))
 
@@ -450,7 +450,7 @@ def _calc_M_k_amuset(u, v, s_inv, dpsi, k):
         # M_new.shape (r_{i-1}, r_i, s_{i-1}, s_i)
         M = _special_tensordot(M, M_new)
 
-    return np.outer(v[k, :], s_inv @ M[0, 0, 0, :])
+    return np.outer(v[k, :], s_inv.dot(M[0, 0, 0, :]))
 
 
 def _special_tensordot(A, B):
@@ -481,32 +481,32 @@ def _special_tensordot(A, B):
     if B.shape[1] > 1:  # B is a matrix
         # diagonal
         for i in range(min(A.shape[0], B.shape[1])):
-            C[i, i, :, :] = A[i, i, :, :] @ B[i, i, :, :]
+            C[i, i, :, :] = A[i, i, :, :].dot(B[i, i, :, :])
 
         # entry(0, 1)
         for i in range(A.shape[1]):
-            C[0, 1, :, :] += A[0, i, :, :] @ B[i, 1, :, :]
+            C[0, 1, :, :] += A[0, i, :, :].dot(B[i, 1, :, :])
 
         # first row
         for i in range(2, B.shape[0]):
-            C[0, i, :, :] = A[0, 0, :, :] @ B[0, i, :, :] + A[0, i, :, :] @ B[i, i, :, :]
+            C[0, i, :, :] = A[0, 0, :, :].dot(B[0, i, :, :]) + A[0, i, :, :].dot(B[i, i, :, :])
 
         # second column
         for i in range(2, A.shape[0]):
-            C[i, 1, :, :] = A[i, 1, :, :] @ B[1, 1, :, :] + A[i, i, :, :] @ B[i, 1, :, :]
+            C[i, 1, :, :] = A[i, 1, :, :].dot(B[1, 1, :, :]) + A[i, i, :, :].dot(B[i, 1, :, :])
 
     else:  # B is a vector
         # entry(0, 0)
         for i in range(A.shape[1]):
-            C[0, 0, :, :] += A[0, i, :, :] @ B[i, 0, :, :]
+            C[0, 0, :, :] += A[0, i, :, :].dot(B[i, 0, :, :])
 
         if A.shape[0] > 1:
             # entry(1, 0)
-            C[1, 0, :, :] = A[1, 1, :, :] @ B[1, 0, :, :]
+            C[1, 0, :, :] = A[1, 1, :, :].dot(B[1, 0, :, :])
 
             # others
             for i in range(2, A.shape[0]):
-                C[i, 0, :, :] = A[i, 1, :, :] @ B[1, 0, :, :] + A[i, i, :, :] @ B[i, 0, :, :]
+                C[i, 0, :, :] = A[i, 1, :, :].dot(B[1, 0, :, :]) + A[i, i, :, :].dot(B[i, 0, :, :])
 
     return C
 
@@ -586,7 +586,7 @@ def _generator(f, x, b, sigma):
     -------
     float
     """
-    a = sigma @ sigma.T
+    a = sigma.dot(sigma.T)
     return np.inner(b, f.gradient(x)) + 0.5 * _frob_inner(a, f.hessian(x))
 
 
@@ -785,8 +785,8 @@ def _calc_M_k_amuset_reversible(u, s_inv, dpsi):
 
     M = M[0, :, 0, :].T
     sigma = dpsi.cores[p][:, :, 0, 0]
-    M = s_inv @ M @ sigma
-    return -0.5 * M @ M.T
+    M = s_inv.dot(M).dot(sigma)
+    return -0.5 * M.dot(M.T)
 
 
 def _special_kron_reversible(dPsi, B):
@@ -866,19 +866,19 @@ def _special_tensordot_reversible(A, B):
     if B.shape[0] == B.shape[1]:
         # diagonal
         for i in range(min(A.shape[0], B.shape[1])):
-            C[i, i, :, :] = A[i, i, :, :] @ B[i, i, :, :]
+            C[i, i, :, :] = A[i, i, :, :].dot(B[i, i, :, :])
 
         # first row
         for i in range(1, B.shape[0]):
-            C[0, i, :, :] = A[0, 0, :, :] @ B[0, i, :, :] + A[0, i, :, :] @ B[i, i, :, :]
+            C[0, i, :, :] = A[0, 0, :, :].dot(B[0, i, :, :]) + A[0, i, :, :].dot(B[i, i, :, :])
     else:
         # diagonal
         if A.shape[0] > 1:
             for i in range(B.shape[1]):
-                C[i + 1, i, :, :] = A[i + 1, i + 1, :, :] @ B[i + 1, i, :, :]
+                C[i + 1, i, :, :] = A[i + 1, i + 1, :, :].dot(B[i + 1, i, :, :])
 
         # first row
         for i in range(0, B.shape[0] - 1):
-            C[0, i, :, :] = A[0, 0, :, :] @ B[0, i, :, :] + A[0, i + 1, :, :] @ B[i + 1, i, :, :]
+            C[0, i, :, :] = A[0, 0, :, :].dot(B[0, i, :, :]) + A[0, i + 1, :, :].dot(B[i + 1, i, :, :])
 
     return C
