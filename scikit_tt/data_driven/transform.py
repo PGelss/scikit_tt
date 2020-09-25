@@ -10,7 +10,7 @@ from sympy.functions.special.polynomials import legendre
 
 
 # ################################## basis functions ###################################
-class Function:
+class Function(object):
     """
     Function from R^n -> R.
     All implemented basis functions should inherit from this class.
