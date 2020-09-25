@@ -88,7 +88,7 @@ class OneCoordinateFunction(Function):
     """
 
     def __init__(self, index, dimension=None):
-        super().__init__(dimension)
+        super(OneCoordinateFunction, self).__init__(dimension)
         if self.initialized and not 0 <= index < self.dimension:
             raise ValueError('index has to be >= 0 and < dimension')
         self.index = index
@@ -143,7 +143,7 @@ class ConstantFunction(Function):
     """
 
     def __init__(self, dimension=None):
-        super().__init__(dimension)
+        super(ConstantFunction, self).__init__(dimension)
 
     def __call__(self, t):
         self.check_call_input(t)
@@ -180,7 +180,7 @@ class IndicatorFunction(OneCoordinateFunction):
         b : float
             upper bound of the interval
         """
-        super().__init__(index, dimension)
+        super(IndicatorFunction, self).__init__(index, dimension)
         self.a = a
         self.b = b
 
@@ -205,7 +205,7 @@ class Identity(OneCoordinateFunction):
         index : int
             define which entry of a snapshot is passed to the identity function
         """
-        super().__init__(index, dimension)
+        super(Identity, self).__init__(index, dimension)
 
     def __call__(self, t):
         self.check_call_input(t)
@@ -234,7 +234,7 @@ class Monomial(OneCoordinateFunction):
         exponent : int
             degree of the monomial, >= 0
         """
-        super().__init__(index, dimension)
+        super(Monomial, self).__init__(index, dimension)
         if exponent < 0:
             raise ValueError('exponent needs to be >= 0')
         self.exponent = exponent
@@ -272,7 +272,7 @@ class Legendre(OneCoordinateFunction):
         domain : float
                 scale the polynomial to the domain [-domain, domain]
         """
-        super().__init__(index, dimension)
+        super(Legendre, self).__init__(index, dimension)
         if degree < 0:
             raise ValueError('exponent needs to be >= 0')
         self.degree = degree
@@ -314,7 +314,7 @@ class Sin(OneCoordinateFunction):
         alpha : float
             prefactor
         """
-        super().__init__(index, dimension)
+        super(Sin, self).__init__(index, dimension)
         self.index = index
         self.alpha = alpha
 
@@ -347,7 +347,7 @@ class Cos(OneCoordinateFunction):
         alpha : float
             prefactor
         """
-        super().__init__(index, dimension)
+        super(Cos, self).__init__(index, dimension)
         self.alpha = alpha
 
     def __call__(self, t):
@@ -381,7 +381,7 @@ class GaussFunction(OneCoordinateFunction):
         variance : float
         dimension : int, optional
         """
-        super().__init__(index, dimension)
+        super(GaussFunction, self).__init__(index, dimension)
         self.mean = mean
         if variance <= 0:
             raise ValueError('variance must be > 0')
@@ -416,7 +416,7 @@ class PeriodicGaussFunction(OneCoordinateFunction):
         variance : float
         dimension : int, optional
         """
-        super().__init__(index, dimension)
+        super(PeriodicGaussFunction, self).__init__(index, dimension)
         self.mean = mean
         if variance <= 0:
             raise ValueError('variance must be > 0')
