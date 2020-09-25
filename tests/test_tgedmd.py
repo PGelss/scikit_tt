@@ -75,7 +75,7 @@ class TestAmuse(TestCase):
         G = np.reshape(G, (8, 8))
         A = -0.5 * np.tensordot(dPsiX, dPsiX, axes=((3, 4), (3, 4)))
         A = np.reshape(A, (8, 8))
-        L = np.linalg.inv(G) @ A
+        L = np.dot(np.linalg.inv(G), A)
         eigvals2, eigenvalues2 = np.linalg.eig(L)
 
         # check if the eigenvalues match
