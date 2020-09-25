@@ -5,6 +5,7 @@ scipy >= 1.0.1; python_version >= '3.5'
 scipy == 1.2.2; python_version == '2.7'
 
 sympy
+numexpr==2.4.6
 
 
 
