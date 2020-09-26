@@ -695,7 +695,7 @@ def _tt_decomposition_one_snapshot_reversible(x_k, basis_list, sigma_k):
     cores.append(_dPsix_reversible(basis_list[p - 1], x_k, position='last'))
 
     # insert elements of core p + 1
-    cores.append(np.expand_dims(sigma_k, axis=(-1, -2)))
+    cores.append(sigma_k[:, :, None, None])
 
     return TT(cores)
 
