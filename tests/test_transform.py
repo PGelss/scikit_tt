@@ -141,11 +141,11 @@ class TestBasisFunctions(TestCase):
         hess = np.zeros((3, 3))
         hess[1, 1] = 15 * x[1]
 
-        self.assertEqual(f(x), 5 * x[1] ** 3 / 2 - 3 * x[1] / 2)
-        self.assertEqual(f.partial(x, 0), 0)
-        self.assertEqual(f.partial(x, 1), 15 * x[1] ** 2 / 2 - 3 / 2)
-        self.assertEqual(f.partial2(x, 0, 0), 0)
-        self.assertEqual(f.partial2(x, 1, 1), 15 * x[1])
+        self.assertAlmostEqual(f(x), 5 * x[1] ** 3 / 2 - 3 * x[1] / 2)
+        self.assertAlmostEqual(f.partial(x, 0), 0)
+        self.assertAlmostEqual(f.partial(x, 1), 15 * x[1] ** 2 / 2 - 3 / 2)
+        self.assertAlmostEqual(f.partial2(x, 0, 0), 0)
+        self.assertAlmostEqual(f.partial2(x, 1, 1), 15 * x[1])
         self.assertTrue((f.gradient(x) - grad == 0).all())
         self.assertTrue((f.hessian(x) - hess == 0).all())
 
@@ -156,11 +156,11 @@ class TestBasisFunctions(TestCase):
         hess = np.zeros((3, 3))
         hess[1, 1] = 30 * x[1] / 16
 
-        self.assertEqual(f(x), 5 * x[1] ** 3 / 16 - 3 * x[1] / 4)
-        self.assertEqual(f.partial(x, 0), 0)
-        self.assertEqual(f.partial(x, 1), 15 * x[1] ** 2 / 16 - 3 / 4)
-        self.assertEqual(f.partial2(x, 0, 0), 0)
-        self.assertEqual(f.partial2(x, 1, 1), 30 * x[1] / 16)
+        self.assertAlmostEqual(f(x), 5 * x[1] ** 3 / 16 - 3 * x[1] / 4)
+        self.assertAlmostEqual(f.partial(x, 0), 0)
+        self.assertAlmostEqual(f.partial(x, 1), 15 * x[1] ** 2 / 16 - 3 / 4)
+        self.assertAlmostEqual(f.partial2(x, 0, 0), 0)
+        self.assertAlmostEqual(f.partial2(x, 1, 1), 30 * x[1] / 16)
         self.assertTrue((f.gradient(x) - grad == 0).all())
         self.assertTrue((f.hessian(x) - hess == 0).all())
 
