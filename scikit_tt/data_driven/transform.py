@@ -5,8 +5,7 @@ import scikit_tt.utils as utl
 import scipy.linalg as splin
 import time as _time
 from scikit_tt.tensor_train import TT
-import sympy
-from sympy.functions.special.polynomials import legendre
+from scipy.special import legendre
 
 
 # ################################## basis functions ###################################
@@ -278,27 +277,20 @@ class Legendre(OneCoordinateFunction):
         self.degree = degree
         self.domain = domain
 
-        x, n = sympy.symbols("x, n")
-        lp = legendre(n, x/domain).subs(n, degree)
-        dlp = lp.diff(x)
-        self.poly = sympy.lambdify([x], lp, 'numexpr')
-        self.dpoly = sympy.lambdify([x], dlp, 'numexpr')
-        self.ddpoly = sympy.lambdify([x], dlp.diff(x), 'numexpr')
-
     def __call__(self, t):
         self.check_call_input(t)
-        return self.poly(t[self.index])
+        return legendre(self.degree)(t[self.index]/self.domain)
 
     def partial(self, t, direction):
         self.check_partial_input(t, direction)
         if direction == self.index:
-            return self.dpoly(t[self.index])
+            return legendre(self.degree).deriv(1)(t[self.index]/self.domain)
         return 0.0
 
     def partial2(self, t, direction1, direction2):
         self.check_partial2_input(t, direction1, direction2)
         if direction1 == self.index and direction2 == self.index:
-            return self.ddpoly(t[self.index])
+            return legendre(self.degree).deriv(2)(t[self.index]/self.domain)
         return 0.0
 
 
