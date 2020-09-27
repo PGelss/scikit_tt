@@ -284,13 +284,13 @@ class Legendre(OneCoordinateFunction):
     def partial(self, t, direction):
         self.check_partial_input(t, direction)
         if direction == self.index:
-            return legendre(self.degree).deriv(1)(t[self.index]/self.domain)
+            return ((1/self.domain)*(legendre(self.degree).deriv(1)))(t[self.index]/self.domain)
         return 0.0
 
     def partial2(self, t, direction1, direction2):
         self.check_partial2_input(t, direction1, direction2)
         if direction1 == self.index and direction2 == self.index:
-            return legendre(self.degree).deriv(2)(t[self.index]/self.domain)
+            return ((1/self.domain**2)*(legendre(self.degree).deriv(2)))(t[self.index]/self.domain)
         return 0.0
 
 
