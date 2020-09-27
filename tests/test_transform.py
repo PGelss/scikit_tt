@@ -146,8 +146,8 @@ class TestBasisFunctions(TestCase):
         self.assertAlmostEqual(f.partial(x, 1), 15 * x[1] ** 2 / 2 - 3 / 2)
         self.assertAlmostEqual(f.partial2(x, 0, 0), 0)
         self.assertAlmostEqual(f.partial2(x, 1, 1), 15 * x[1])
-        self.assertTrue((f.gradient(x) - grad == 0).all())
-        self.assertTrue((f.hessian(x) - hess == 0).all())
+        self.assertTrue((np.abs(f.gradient(x) - grad) <= 1e-10).all())
+        self.assertTrue((np.abs(f.hessian(x) - hess) <= 1e-10).all())
 
         f = tdt.Legendre(1, 3, domain=2)
         x = np.random.random((3,))
@@ -161,8 +161,8 @@ class TestBasisFunctions(TestCase):
         self.assertAlmostEqual(f.partial(x, 1), 15 * x[1] ** 2 / 16 - 3 / 4)
         self.assertAlmostEqual(f.partial2(x, 0, 0), 0)
         self.assertAlmostEqual(f.partial2(x, 1, 1), 30 * x[1] / 16)
-        self.assertTrue((f.gradient(x) - grad == 0).all())
-        self.assertTrue((f.hessian(x) - hess == 0).all())
+        self.assertTrue((np.abs(f.gradient(x) - grad) <= 1e-10).all())
+        self.assertTrue((np.abs(f.hessian(x) - hess) <= 1e-10).all())
 
         with self.assertRaises(ValueError):
             f = tdt.Legendre(1, -4)
