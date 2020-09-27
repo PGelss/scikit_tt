@@ -6,6 +6,7 @@ import scipy.linalg as splin
 import time as _time
 from scikit_tt.tensor_train import TT
 from scipy.special import legendre
+from __future__ import division
 
 
 # ################################## basis functions ###################################
