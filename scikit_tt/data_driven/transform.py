@@ -826,6 +826,9 @@ def hocur(x, basis_list, ranks, repeats=1, multiplier=10, progress=True, string=
     if not isinstance(ranks, list):
         ranks = [1] + [ranks for _ in range(len(n) - 1)] + [1]
 
+    # cut ranks larger than number of snapshots
+    ranks = [np.minimum(ranks[k], m) for k in range(len(n)+1)]
+
     # initial definitions
     # -------------------
 
