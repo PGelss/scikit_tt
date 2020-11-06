@@ -9,7 +9,7 @@ class TestAmuse(TestCase):
     Tests for the two functions amuset_hosvd and amuset_hosvd_reversible.
     """
     def setUp(self):
-        self.tol = 1e-8
+        self.tol = 1e-5
         self.d = 3
         self.m = 10
         self.n = 2
@@ -81,4 +81,5 @@ class TestAmuse(TestCase):
         # check if the eigenvalues match
         eigvals.sort()
         eigvals2.sort()
+        
         self.assertTrue((np.abs(eigvals - eigvals2) < self.tol).all())
