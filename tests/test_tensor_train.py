@@ -2,7 +2,7 @@
 
 import numpy as np
 import scikit_tt.tensor_train as tt
-from scikit_tt.tensor_train import TT
+from scikit_tt.tensor_train import TT, rand
 import unittest as ut
 from unittest import TestCase
 
@@ -115,6 +115,9 @@ class TestTT(TestCase):
         # check if no wrong entry exists
         self.assertEqual(err, 0)
 
+        with self.assertRaises(ValueError):
+            rand([1, 2], [2, 3], [2, 2, 2]).full()
+
     def test_matricize(self):
         """test matricization of tensor trains"""
 
@@ -197,6 +200,49 @@ class TestTT(TestCase):
         # check if relative error is smaller than tolerance
         self.assertLess(rel_err, self.tol)
 
+    def test_rank_transpose(self):
+        t_trans = self.t.rank_transpose()
+        p = self.t.order
+        for i in range(p):
+            err = self.t.cores[i] - np.transpose(t_trans.cores[p - 1 - i], [3, 1, 2, 0])
+            self.assertLess(np.linalg.norm(err), self.tol)
+
+    def test_concatenate(self):
+        # test concatenate with other TT
+        p = self.t.order
+        t_other = rand(row_dims=[2, 3], col_dims=[3, 2], ranks=[1, 3, 1])
+        concat = self.t.concatenate(t_other)
+        for i in range(concat.order):
+            if i < p:
+                err = concat.cores[i] - self.t.cores[i]
+            else:
+                err = concat.cores[i] - t_other.cores[i - p]
+            self.assertLess(np.linalg.norm(err), self.tol)
+
+        t_other = rand(row_dims=[2, 3], col_dims=[3, 2], ranks=[3, 3, 1])
+        with self.assertRaises(ValueError):
+            concat = self.t.concatenate(t_other)
+
+        # test concatenate with list of cores
+        t_other = []
+        ranks = [1, 2, 3, 1]
+        for i in range(len(ranks) - 1):
+            t_other.append(np.random.random((ranks[i], np.random.randint(1, 4), np.random.randint(1, 4), ranks[i + 1])))
+        concat = self.t.concatenate(t_other)
+        for i in range(concat.order):
+            if i < p:
+                err = concat.cores[i] - self.t.cores[i]
+            else:
+                err = concat.cores[i] - t_other[i - p]
+            self.assertLess(np.linalg.norm(err), self.tol)
+
+        t_other.append(np.zeros((2, 3)))
+        with self.assertRaises(ValueError):
+            concat = self.t.concatenate(t_other)
+        t_other = [np.random.random((3, 2, 2, 2))]
+        with self.assertRaises(ValueError):
+            concat = self.t.concatenate(t_other)
+
     def test_multiplication(self):
         """test multiplication of tensor trains"""
 
@@ -227,6 +273,26 @@ class TestTT(TestCase):
         # check if multiplication fails when input is not a tensor train
         with self.assertRaises(TypeError):
             self.t.dot(0)
+
+    def test_rank_tensordot(self):
+        t = rand([2, 3, 4], [4, 2, 1], [2, 3, 4, 2])
+        mat_front = np.random.random((1, 2))
+        mat_back = np.random.random((2, 1))
+        t2 = t.rank_tensordot(mat_back)
+        t2 = t2.rank_tensordot(mat_front, mode='first')
+
+        t.cores[-1] = np.tensordot(t.cores[-1], mat_back, axes=([3], [0]))
+        t.cores[0] = np.tensordot(mat_front, t.cores[0], axes=([1], [0]))
+        t.ranks = [t.cores[i].shape[0] for i in range(t.order)] + [t.cores[-1].shape[3]]
+        err = t.full() - t2.full()
+        self.assertLess(np.linalg.norm(err), self.tol)
+
+        with self.assertRaises(ValueError):
+            t.rank_tensordot(np.zeros((2, 3, 2)))
+        with self.assertRaises(ValueError):
+            t.rank_tensordot(np.zeros((3, 3)))
+        with self.assertRaises(ValueError):
+            t.rank_tensordot(np.zeros((3, 3)), mode='first')
 
     def test_construction_from_array(self):
         """test tensor train class for arrays"""

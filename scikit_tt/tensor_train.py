@@ -58,6 +58,10 @@ class TT(object):
         multiplication of two tensor trains
     tensordot
         index contraction between two tensortrains
+    rank_tensordot
+        index contraction between TT and matrix along the rank-dimension
+    concatenate
+        concatenate cores of two TT
     transpose(t)
         transpose of a tensor train
     rank_transpose
@@ -82,6 +86,14 @@ class TT(object):
         left- and right-orthonormalization of a tensor train
     norm(t)
         norm of a tensor train
+    tt2qtt
+        conversion from TT format into QTT format
+    qtt2tt
+        conversion from QTT format into TT format
+    svd
+        Computation of a global SVD of a tensor train
+    pinv
+        Computation of the pseudoinverse of a tensor train
 
     References
     ----------
@@ -955,6 +967,8 @@ class TT(object):
         full_tensor : np.ndarray
             full tensor representation of self (dimensions: m_1 x ... x m_d x n_1 x ... x n_d)
         """
+        if self.ranks[0] != 1 or self.ranks[-1] != 1:
+            raise ValueError("The first and last rank have to be 1!")
 
         # reshape first core
         full_tensor = self.cores[0].reshape(self.row_dims[0] * self.col_dims[0], self.ranks[1])

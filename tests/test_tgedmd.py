@@ -83,3 +83,17 @@ class TestAmuse(TestCase):
         eigvals2.sort()
         
         self.assertTrue((np.abs(eigvals - eigvals2) < self.tol).all())
+
+    def test_is_special(self):
+        A = np.zeros((3, 3, 2, 2))
+        for i in range(A.shape[0]):
+            A[i, i, :, :] = np.random.random((2, 2))
+            A[0, i, :, :] = np.random.random((2, 2))
+            A[i, 1, :, :] = np.random.random((2, 2))
+        self.assertTrue(tgedmd._is_special(A))
+
+        A[1, 2, 0, 0] = 1
+        self.assertFalse(tgedmd._is_special(A))
+
+        A = np.zeros((2, 3, 2, 2))
+        self.assertFalse(tgedmd._is_special(A))
