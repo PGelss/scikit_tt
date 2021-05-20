@@ -49,6 +49,8 @@ def als(operator, initial_guess, previous=[], shift=0, operator_gevp=None, numbe
         approximated eigenvalues, if number_ev>1 eigenvalues is a list[float]
     eigentensors: TT or list[TT]
         approximated eigentensors, if number_ev>1 eigentensors is a list of tensor trains
+    iterations: int
+    	number of ALS iterations, if conv_eps<=0 iterations is equal to repeats
 
     References
     ----------
@@ -133,7 +135,9 @@ def als(operator, initial_guess, previous=[], shift=0, operator_gevp=None, numbe
         for i in range(number_ev):
             eigentensors.append(TT([trains.solution.cores[0][:, :, :, :, i]] + trains.solution.cores[1:]))
 
-    return eigenvalues, eigentensors
+    iterations = current_iteration - 1
+
+    return eigenvalues, eigentensors, iterations
 
 
 def power_method(operator, initial_guess, operator_gevp=None, repeats=10, sigma=0.999):

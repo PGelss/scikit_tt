@@ -100,7 +100,7 @@ for i in range(8):
     operator = mdl.co_oxidation(20, 10 ** (8 + p_CO_exp[i])).ortho_left().ortho_right()
     initial_guess = tt.ones(operator.row_dims, [1] * operator.order, ranks=R[i]).ortho_left().ortho_right()
     with utl.timer() as time:
-        eigenvalues, solution = evp.als(tt.eye(operator.row_dims) + operator, initial_guess, repeats=20, solver='eigs')
+        eigenvalues, solution, _ = evp.als(tt.eye(operator.row_dims) + operator, initial_guess, repeats=20, solver='eigs')
         solution = (1 / solution.norm(p=1)) * solution
 
     # compute turn-over frequency of CO2 desorption

@@ -48,11 +48,11 @@ class TestEVP(TestCase):
         """test for ALS with solver='eig'"""
 
         # solve eigenvalue problem in TT format (number_ev=1 and operator_gevp is defined as identity tensor)
-        _, eigentensor = evp.als(self.operator_tt, self.initial_tt, operator_gevp=self.operator_gevp, repeats=10)
+        _, eigentensor, _ = evp.als(self.operator_tt, self.initial_tt, operator_gevp=self.operator_gevp, repeats=10)
         self.assertTrue(isinstance(eigentensor, TT))
 
         # solve eigenvalue problem in TT format (number_ev=self.number_ev)
-        eigenvalues_tt, eigenvectors_tt = evp.als(self.operator_tt, self.initial_tt, number_ev=self.number_ev,
+        eigenvalues_tt, eigenvectors_tt, _ = evp.als(self.operator_tt, self.initial_tt, number_ev=self.number_ev,
                                                   repeats=10)
 
         # solve eigenvalue problem in matrix format
@@ -85,7 +85,7 @@ class TestEVP(TestCase):
         """test for ALS with solver='eigs'"""
 
         # solve eigenvalue problem in TT format (number_ev=self.number_ev)
-        eigenvalues_tt, eigenvectors_tt = evp.als(self.operator_tt, self.initial_tt, number_ev=self.number_ev,
+        eigenvalues_tt, eigenvectors_tt, _ = evp.als(self.operator_tt, self.initial_tt, number_ev=self.number_ev,
                                                   repeats=10, solver='eigs')
 
         # solve eigenvalue problem in matrix format
@@ -121,7 +121,7 @@ class TestEVP(TestCase):
         self.operator_mat = 0.5 * (self.operator_mat + self.operator_mat.transpose())
 
         # solve eigenvalue problem in TT format (number_ev=self.number_ev)
-        eigenvalues_tt, eigenvectors_tt = evp.als(self.operator_tt, self.initial_tt, number_ev=self.number_ev,
+        eigenvalues_tt, eigenvectors_tt, _ = evp.als(self.operator_tt, self.initial_tt, number_ev=self.number_ev,
                                                   repeats=10, solver='eigh')
 
         # solve eigenvalue problem in matrix format

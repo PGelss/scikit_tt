@@ -50,7 +50,7 @@ utl.progress('Construct operator', 100, cpu_time=_time.time() - start_time)
 
 start_time = utl.progress('Approximate eigenfunctions in the TT format', 0)
 initial = tt.uniform(operator.row_dims, ranks=[1, 20, 10, 1])
-eigenvalues, eigenfunctions = evp.als(operator, initial, number_ev=number_ev, repeats=2)
+eigenvalues, eigenfunctions, _ = evp.als(operator, initial, number_ev=number_ev, repeats=2)
 utl.progress('Approximate eigenfunctions in the TT format', 100, cpu_time=_time.time() - start_time)
 
 # compute exact eigenvectors
