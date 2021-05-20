@@ -1873,7 +1873,7 @@ def residual_error(operator, lhs, rhs):
         b = rhs.cores[i].reshape(rhs.ranks[i], rhs.row_dims[i], rhs.ranks[i+1])
         if i==0:
             core = np.append(Ax, -b, axis=2)
-            [u, s, v] = linalg.svd(core.reshape([core.shape[0]*core.shape[1], core.shape[2]]), full_matrices=False, overwrite_a=True, check_finite=False, lapack_driver='gesvd'))
+            [u, s, v] = linalg.svd(core.reshape([core.shape[0]*core.shape[1], core.shape[2]]), full_matrices=False, overwrite_a=True, check_finite=False, lapack_driver='gesvd')
             M = np.diag(s).dot(v)
         elif i==operator.order-1:
             core = np.append(Ax, b, axis=0)
@@ -1884,7 +1884,7 @@ def residual_error(operator, lhs, rhs):
             core_2 = np.append(np.zeros([b.shape[0], b.shape[1], Ax.shape[2]]), b, axis=2)
             core = np.append(core_1, core_2, axis=0)
             core = np.tensordot(M, core, axes=(1,0))
-            [u, s, v] = linalg.svd(core.reshape([core.shape[0]*core.shape[1], core.shape[2]]), full_matrices=False, overwrite_a=True, check_finite=False, lapack_driver='gesvd'))
+            [u, s, v] = linalg.svd(core.reshape([core.shape[0]*core.shape[1], core.shape[2]]), full_matrices=False, overwrite_a=True, check_finite=False, lapack_driver='gesvd')
             M = np.diag(s).dot(v)
 
     return error
