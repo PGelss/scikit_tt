@@ -98,7 +98,7 @@ def errors_expl_euler(operator, solution, step_sizes):
 def symmetric_euler(operator, initial_value, step_sizes, previous_value=None, threshold=1e-12, max_rank=50, normalize=1, progress=True):
     """
     Time-symmetrized explicit Euler ('second order differencing' in quantum mechanics) for linear differential
-    equations in the TT format, see [1]_.
+    equations in the TT format, see [1]_, [2]_.
 
     Parameters
     ----------
@@ -128,6 +128,7 @@ def symmetric_euler(operator, initial_value, step_sizes, previous_value=None, th
     ----------
     .. [1] A. Askar, A. S. Cakmak, "Explicit integration method for the time-dependent Schrodinger equation for
            collision problems", J. Chem. Phys. 68, 2794, 1978
+    .. [2] R. Kosloff, "Time-dependent quantum-mechanical methods for molecular dynamics", J. Phys. Chem. 92, 2087, 1988
     """
 
     # return current time
@@ -152,11 +153,16 @@ def symmetric_euler(operator, initial_value, step_sizes, previous_value=None, th
             if normalize > 0:
                 solution_prev = (1 / solution_prev.norm(p=normalize)) * solution_prev
 
+            solution_prev = solution_prev.ortho(threshold=threshold, max_rank=max_rank)
+
         else:
             solution_prev = solution[i-1].copy()
 
         # compute next time step from current and previous time step
         tt_tmp = solution_prev + 2*step_sizes[i]*operator.dot(solution[i])
+
+        # two-step Adams-Bashforth
+        # tt_tmp = -0.5*step_sizes[i]*operator.dot(solution_prev) + (tt.eye(operator.row_dims)+1.5*step_sizes[i]*operator).dot(solution[i])
 
         # truncate ranks of the solution
         tt_tmp = tt_tmp.ortho(threshold=threshold, max_rank=max_rank)
