@@ -570,7 +570,7 @@ def strang_splitting(S, L, I, M, initial_value, step_size, number_of_steps, thre
 
                 tmp.cores[-1] = np.einsum('ijkl, mj -> imkl', tmp.cores[-1], K[-1])
 
-    	return tmp
+        return tmp
 
     # chain length
     order = initial_value.order
