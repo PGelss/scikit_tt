@@ -556,7 +556,7 @@ def strang_splitting(S, L, I, M, initial_value, step_size, number_of_steps, thre
 
                 # contract cores
                 tmp_vec = np.einsum('ijkl,lmno -> ijkmno', tmp.cores[i], tmp.cores[i+1]).reshape([tmp.ranks[i], tmp.row_dims[i]*tmp.row_dims[i+1], tmp.ranks[i+2]])
-                tmp_vec = np.einsum('ijk, lj -> ilk', tmp_vec, K[i]).reshape([tmp.ranks[i]*tmp.row_dims[i], tmp.row_dims[í+1]*tmp.ranks[i+2]])
+                tmp_vec = np.einsum('ijk, lj -> ilk', tmp_vec, K[i]).reshape([tmp.ranks[i]*tmp.row_dims[i], tmp.row_dims[i+1]*tmp.ranks[i+2]])
 
                 # apply SVD in order to isolate modes
                 u, s, v = utl.truncated_svd(tmp_vec, threshold=threshold, max_rank=max_rank)
