@@ -569,7 +569,8 @@ def strang_splitting(S, L, I, M, initial_value, step_size, number_of_steps, thre
             else:
 
                 tmp.cores[-1] = np.einsum('ijkl, mj -> imkl', tmp.cores[-1], K[-1])
-    return tmp
+
+    	return tmp
 
     # chain length
     order = initial_value.order
@@ -597,12 +598,10 @@ def strang_splitting(S, L, I, M, initial_value, step_size, number_of_steps, thre
             else:
                 K[i] = sp.linalg.expm(K[i]*step_size)
 
-        K[-1] = S[-1]
-
         if np.mod(order-1, 2) == 0:
-                K[-1] = sp.linalg.expm(K[-1]*0.5*step_size)
-            else:
-                K[-1] = sp.linalg.expm(K[-1]*step_size)
+            K[-1] = sp.linalg.expm(S[-1]*0.5*step_size)
+        else:
+            K[-1] = sp.linalg.expm(S[-1]*step_size)
 
         for i in range(number_of_steps):
 
