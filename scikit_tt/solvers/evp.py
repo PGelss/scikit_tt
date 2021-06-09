@@ -85,6 +85,10 @@ def als(operator, initial_guess, previous=[], shift=0, operator_gevp=None, numbe
     eigenvalues_pre = np.array([np.infty]*number_ev)[None,:]
     conv_tf = False
 
+    # initialize variables for optimal eigenpair (number_ev=1)
+    eigenvalue_opt = np.infty
+    eigentensor_opt = None
+
     # begin ALS
     while current_iteration <= repeats and not conv_tf:
 
@@ -118,6 +122,13 @@ def als(operator, initial_guess, previous=[], shift=0, operator_gevp=None, numbe
         # increase iteration number
         current_iteration += 1
 
+        # save optimal eigenpair
+        if number_ev==1:
+
+        	if np.abs(eigenvalues[0]-sigma)<np.abs(eigenvalue_opt-sigma):
+        		eigenvalue_opt = eigenvalues[0].copy()
+        		eigentensor_opt = trains.solution.copy()
+
         # check for convergence
         last = eigenvalues_pre[-np.amin([3, eigenvalues_pre.shape[0]]):, :]
         # last_rel_diff = np.abs(np.dot(last - eigenvalues, np.diag(np.reciprocal(eigenvalues))))
@@ -128,8 +139,8 @@ def als(operator, initial_guess, previous=[], shift=0, operator_gevp=None, numbe
 
     # define form of the final solution depending on the number of eigenvalues to compute
     if number_ev == 1:
-        eigentensors = TT([trains.solution.cores[0][:, :, :, :, 0]] + trains.solution.cores[1:])
-        eigenvalues = eigenvalues[0]
+        eigentensors = TT([eigentensor_opt.cores[0][:, :, :, :, 0]] + eigentensor_opt.cores[1:])
+        eigenvalues = eigenvalues_opt
     else:
         eigentensors = []
         for i in range(number_ev):
@@ -354,7 +365,7 @@ def __update_core(i, micro_op, micro_op_gevp, number_ev, solution, solver, sigma
     if solver == 'eigs':
         v0 = np.ones(micro_op.shape[0])
         eigenvalues, eigenvectors = splin.eigs(micro_op, M=micro_op_gevp, sigma=sigma, k=number_ev, v0=v0)
-        idx = eigenvalues.argsort()[::-1]
+        idx = np.abs(eigenvalues-sigma).argsort()[::-1]
         eigenvalues = eigenvalues[idx]
         eigenvectors = eigenvectors[:, idx]
     if solver == 'eig':
