@@ -130,7 +130,7 @@ def plot_basis_functions(dimension, downsampling_rate, directory):
     plt.xlim([0, 1])
     plt.ylim([0, 1.2])
     plt.xlabel(r"$\Delta [\mathrm{nm}]$")
-    plt.savefig(directory + 'ntl9_basis_functions_2.pdf')
+    plt.savefig('ntl9_basis_functions_2.pdf')
     plt.show()
 
 
@@ -151,22 +151,20 @@ def tedmd_hosvd(dimensions, downsampling_rate, integer_lag_times, threshold, dir
         directory data to load
     """
 
-    # progress
-    start_time = utl.progress('Apply AMUSEt (HOSVD)', 0)
 
     for i in range(len(dimensions)):
+
+        # progress
+        if i==0:
+             start_time = utl.progress('Apply AMUSEt (HOSVD, p=' + str(dimensions[i]) + ')', 0)
 
         # parameters
         time_step = 2e-3
         lag_times = time_step * downsampling_rate * integer_lag_times
 
         # define basis list
-        basis_list = [[tdt.ConstantFunction(), tdt.GaussFunction(i, 0.285, 0.001), tdt.GaussFunction(i, 0.62, 0.01)] for
+        basis_list = [[tdt.ConstantFunction(i), tdt.GaussFunction(i, 0.285, 0.001), tdt.GaussFunction(i, 0.62, 0.01)] for
                       i in range(dimensions[i])]
-
-        # progress
-        utl.progress('Apply AMUSEt (HOSVD, p=' + str(dimensions[i]) + ')', 100 * i / len(dimensions),
-                     cpu_time=_time.time() - start_time)
 
         # load contact indices (sorted by relevance)
         contact_indices = np.load(directory + 'ntl9_contact_indices.npz')['indices'][:dimensions[i]]
@@ -197,7 +195,10 @@ def tedmd_hosvd(dimensions, downsampling_rate, integer_lag_times, threshold, dir
         dic["cpu_time"] = cpu_time
         np.savez_compressed(directory + "Results_NTL9_HOSVD_d" + str(dimensions[i]) + ".npz", **dic)
 
-        utl.progress('Apply AMUSEt (HOSVD)', 100 * (i + 1) / len(dimensions), cpu_time=_time.time() - start_time)
+        # progress
+        utl.progress('Apply AMUSEt (HOSVD, p=' + str(dimensions[i]) + ')', 100 * (i+1) / len(dimensions),
+                     cpu_time=_time.time() - start_time)
+
 
 
 def tedmd_hocur(dimensions, downsampling_rate, integer_lag_times, max_rank, directory):
@@ -217,22 +218,19 @@ def tedmd_hocur(dimensions, downsampling_rate, integer_lag_times, max_rank, dire
         directory data to load
     """
 
-    # progress
-    start_time = utl.progress('Apply AMUSEt (HOCUR)', 0)
-
     for i in range(len(dimensions)):
+
+        if i==0:
+            # progress
+            start_time = utl.progress('Apply AMUSEt (HOCUR, p=' + str(dimensions[i]) + ')', 0)
 
         # parameters
         time_step = 2e-3
         lag_times = time_step * downsampling_rate * integer_lag_times
 
         # define basis list
-        basis_list = [[tdt.ConstantFunction(), tdt.GaussFunction(i, 0.285, 0.001), tdt.GaussFunction(i, 0.62, 0.01)] for
+        basis_list = [[tdt.ConstantFunction(i), tdt.GaussFunction(i, 0.285, 0.001), tdt.GaussFunction(i, 0.62, 0.01)] for
                       i in range(dimensions[i])]
-
-        # progress
-        utl.progress('Apply AMUSEt (HOCUR, p=' + str(dimensions[i]) + ')', 100 * i / len(dimensions),
-                     cpu_time=_time.time() - start_time)
 
         # load contact indices (sorted by relevance)
         contact_indices = np.load(directory + 'ntl9_contact_indices.npz')['indices'][:dimensions[i]]
@@ -330,7 +328,7 @@ plt.ylabel(r"$t_2$")
 plt.legend(loc=4, ncol=2, fontsize=15)
 plt.xlim([10 ** -2, 40])
 plt.ylim([10 ** -1, 30])
-plt.savefig(directory + 'ntl9_timescales.pdf')
+plt.savefig('ntl9_timescales.pdf')
 plt.show()
 
 # contact matrices (computed with msm_tools)
@@ -342,22 +340,22 @@ plt.rcParams.update({'axes.grid': False})
 plt.figure(dpi=300)
 cm = contact_mat_hocur["State_0"]
 cm += contact_mat_msm["State_2"]
-plt.imshow(cm, aspect=1, vmin=0.0, vmax=1.0)
+plt.imshow(np.flipud(cm), aspect=1, vmin=0.0, vmax=1.0)
 plt.colorbar()
 plt.xlabel('residue number')
 plt.ylabel('residue number')
-plt.yticks([8, 18, 28, 38], ["30", "20", "10", "0"])
-plt.savefig(directory + 'ntl9_unfolded_state.pdf')
+plt.ylim([-0.5,38.5])
+plt.savefig('ntl9_unfolded_state.pdf')
 plt.show()
 
 # plot folded state
 plt.figure(dpi=300)
 cm = contact_mat_hocur["State_1"]
 cm += contact_mat_msm["State_3"]
-plt.imshow(cm, aspect=1, vmin=0.0, vmax=1.0)
+plt.imshow(np.flipud(cm), aspect=1, vmin=0.0, vmax=1.0)
 plt.colorbar()
 plt.xlabel('residue number')
 plt.ylabel('residue number')
-plt.yticks([8, 18, 28, 38], ["30", "20", "10", "0"])
-plt.savefig(directory + 'ntl9_folded_state.pdf')
+plt.ylim([-0.5,38.5])
+plt.savefig('ntl9_folded_state.pdf')
 plt.show()
