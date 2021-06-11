@@ -93,9 +93,9 @@ utl.header(title='Deca-alanine')
 # define basis functions
 basis_list = []
 for i in range(5):
-    basis_list.append([tdt.ConstantFunction(), tdt.PeriodicGaussFunction(2 * i, -2, 0.8),
+    basis_list.append([tdt.ConstantFunction(2 * i), tdt.PeriodicGaussFunction(2 * i, -2, 0.8),
                        tdt.PeriodicGaussFunction(2 * i, 1, 0.5)])
-    basis_list.append([tdt.ConstantFunction(), tdt.PeriodicGaussFunction(2 * i + 1, -0.5, 0.8),
+    basis_list.append([tdt.ConstantFunction(2 * i + 1), tdt.PeriodicGaussFunction(2 * i + 1, -0.5, 0.8),
                        tdt.PeriodicGaussFunction(2 * i + 1, 0, 4), tdt.PeriodicGaussFunction(2 * i + 1, 2, 0.8)])
 
 # parameters
@@ -116,24 +116,26 @@ data, trajectory_lengths = load_data(directory, downsampling_rate)
 x_list, y_list = get_index_lists(trajectory_lengths, lag_times_int)
 
 # apply tEDMD with HOSVD
-start_time = utl.progress('Apply AMUSEt (HOSVD)', 0)
 timescales_hosvd = np.zeros((len(eps_list), len(lag_times_int), 3))
 for i in range(len(eps_list)):
-    utl.progress('Apply AMUSEt (HOSVD, eps=' + str("%.0e" % eps_list[i]) + ')', 100 * i / len(eps_list), cpu_time=_time.time() - start_time)
+    if i==0:
+        start_time = utl.progress('Apply AMUSEt (HOSVD, eps=' + str("%.0e" % eps_list[i]) + ')', 0)
     eigenvalues, _ = tedmd.amuset_hosvd(data, x_list, y_list, basis_list, threshold=eps_list[i])
     for j in range(len(lag_times_phy)):
         timescales_hosvd[i, j, :] = -lag_times_phy[j] / np.log(eigenvalues[j][1:4])
-utl.progress('Apply AMUSEt (HOSVD)', 100, cpu_time=_time.time() - start_time)
+    utl.progress('Apply AMUSEt (HOSVD, eps=' + str("%.0e" % eps_list[i]) + ')', 100 * (i+1) / len(eps_list), cpu_time=_time.time() - start_time)
+
 
 # apply tEDMD with HOCUR
-start_time = utl.progress('Apply AMUSEt (HOCUR)', 0)
 timescales_hocur = np.zeros((len(rank_list), len(lag_times_int), 3))
 for i in range(len(rank_list)):
-    utl.progress('Apply AMUSEt (HOCUR, rank=' + str(rank_list[i]) + ')', 100 * i / len(rank_list), cpu_time=_time.time() - start_time)
+    if i==0:
+        start_time = utl.progress('Apply AMUSEt (HOSVD, eps=' + str("%.0e" % eps_list[i]) + ')', 0)
     eigenvalues, _ = tedmd.amuset_hocur(data, x_list, y_list, basis_list, max_rank=rank_list[i], multiplier=2)
     for j in range(len(lag_times_phy)):
         timescales_hocur[i, j, :] = -lag_times_phy[j] / np.log(eigenvalues[j][1:4])
-utl.progress('Apply AMUSEt (HOCUR)', 100, cpu_time=_time.time() - start_time)
+    utl.progress('Apply AMUSEt (HOCUR, rank=' + str(rank_list[i]) + ')', 100 * (i+1) / len(rank_list), cpu_time=_time.time() - start_time)
+
 
 # load timescales computed by MSM
 timescales_msm = 1e-3 * np.load(directory + "Timescales_MSM.npy")
@@ -158,7 +160,6 @@ plt.xlim([-np.pi, np.pi])
 plt.ylim([0.2, 1.2])
 plt.xticks([-np.pi, -np.pi / 2, 0.0, np.pi / 2, np.pi], [r"$-\pi$", r"$-\pi/2$", r"$0$", r"$\pi/2$", r"$\pi$"])
 plt.xlabel(r"$\phi$")
-plt.savefig('foo1.pdf')
 plt.show()
 
 # basis set for psi
@@ -171,7 +172,6 @@ plt.xlim([-np.pi, np.pi])
 plt.ylim([0.2, 1.2])
 plt.xticks([-np.pi, -np.pi / 2, 0.0, np.pi / 2, np.pi], [r"$-\pi$", r"$-\pi/2$", r"$0$", r"$\pi/2$", r"$\pi$"])
 plt.xlabel(r"$\psi$")
-plt.savefig('foo2.pdf')
 plt.show()
 
 # timescales (HOSVD)
@@ -186,7 +186,6 @@ plt.ylim([4, 12])
 plt.xlabel(r"$\tau\,[\mathrm{ns}]$")
 plt.ylabel(r"$t_2$")
 plt.legend(loc=2, ncol=2)
-plt.savefig('foo3.pdf')
 plt.show()
 
 # timescales (HOCUR)
@@ -202,5 +201,4 @@ plt.xlabel(r"$\tau\,[\mathrm{ns}]$")
 plt.ylabel(r"$t_2$")
 plt.yticks([4, 6, 8, 10, 12], [r"4", r"6", r"8", r"10", r"12"])
 plt.legend(loc=2, ncol=2)
-plt.savefig('foo4.pdf')
 plt.show()
