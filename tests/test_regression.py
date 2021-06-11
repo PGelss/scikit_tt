@@ -35,8 +35,8 @@ class TestMANDy(TestCase):
         self.kuramoto_t = 100
         self.kuramoto_m = 1000
         self.kuramoto_psi = [lambda t: np.sin(t), lambda t: np.cos(t)]
-        self.kuramoto_basis = [[tdt.ConstantFunction()] + [tdt.Sin(i, 1) for i in range(self.kuramoto_d)],
-                               [tdt.ConstantFunction()] + [tdt.Cos(i, 1) for i in range(self.kuramoto_d)]]
+        self.kuramoto_basis = [[tdt.ConstantFunction(0)] + [tdt.Sin(i, 1) for i in range(self.kuramoto_d)],
+                               [tdt.ConstantFunction(0)] + [tdt.Cos(i, 1) for i in range(self.kuramoto_d)]]
         self.kuramoto_initial = tt.ones([11, 11], [1, 1], 11)
 
         # exact coefficient tensors
