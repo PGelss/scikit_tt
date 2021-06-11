@@ -614,7 +614,7 @@ def strang_splitting(S, L, I, M, initial_value, step_size, number_of_steps, thre
             L = L[:,:,None]
             M = M[None, :, :]
 
-        K_hom = np.kron(S, I) + np.einsum('ijk, klm -> iljm', L, M).reshape([L.shape[0]*.shape[1], L.shape[1]*M.shape[2]])
+        K_hom = np.kron(S, I) + np.einsum('ijk, klm -> iljm', L, M).reshape([L.shape[0]*M.shape[1], L.shape[1]*M.shape[2]])
 
         for i in range(order-1):
 
