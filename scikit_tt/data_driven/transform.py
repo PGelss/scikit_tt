@@ -57,8 +57,8 @@ class Function(object):
         if not self.initialized:
             self.dimension = len(t)
             self.initialized = True
-        elif len(t) != self.dimension:
-            raise ValueError('wrong dimension of t')
+        # elif len(t) != self.dimension:
+        #     raise ValueError('wrong dimension of t')
 
     def check_partial_input(self, t, direction):
         if not self.initialized:
@@ -99,8 +99,8 @@ class OneCoordinateFunction(Function):
             if not 0 <= self.index < self.dimension:
                 raise ValueError('index has to be >= 0 and < dimension')
             self.initialized = True
-        elif len(t) != self.dimension:
-            raise ValueError('wrong dimension of t')
+        # elif len(t) != self.dimension:
+        #     raise ValueError('wrong dimension of t')
 
     def check_partial_input(self, t, direction):
         if not self.initialized:
@@ -137,17 +137,20 @@ class OneCoordinateFunction(Function):
         return hess
 
 
-class ConstantFunction(Function):
+class ConstantFunction(OneCoordinateFunction):
     """
     Constant 1 function.
     """
 
-    def __init__(self, dimension=None):
-        super(ConstantFunction, self).__init__(dimension)
+    def __init__(self, index, dimension=None):
+        super(ConstantFunction, self).__init__(index, dimension)
 
     def __call__(self, t):
         self.check_call_input(t)
-        return 1.0
+        if np.isscalar(t[self.index]):
+            return 1.0
+        else:
+            return np.ones(len(t[self.index]))
 
     def partial(self, t, direction):
         self.check_partial_input(t, direction)
@@ -223,7 +226,7 @@ class Identity(OneCoordinateFunction):
 
 
 class Monomial(OneCoordinateFunction):
-    def __init__(self, index, exponent, dimension=None):
+    def __init__(self, index, exponent, prefactor=1, dimension=None):
         """
         Monomial function.
 
@@ -238,23 +241,24 @@ class Monomial(OneCoordinateFunction):
         if exponent < 0:
             raise ValueError('exponent needs to be >= 0')
         self.exponent = exponent
+        self.prefactor = prefactor
 
     def __call__(self, t):
         self.check_call_input(t)
-        return t[self.index] ** self.exponent
+        return self.prefactor * t[self.index] ** self.exponent
 
     def partial(self, t, direction):
         self.check_partial_input(t, direction)
         if direction == self.index:
             if self.exponent > 0:
-                return self.exponent * t[self.index] ** (self.exponent - 1)
+                return self.prefactor * self.exponent * t[self.index] ** (self.exponent - 1)
         return 0.0
 
     def partial2(self, t, direction1, direction2):
         self.check_partial2_input(t, direction1, direction2)
         if direction1 == self.index and direction2 == self.index:
             if self.exponent > 1:
-                return self.exponent * (self.exponent - 1) * t[self.index] ** (self.exponent - 2)
+                return self.prefactor * self.exponent * (self.exponent - 1) * t[self.index] ** (self.exponent - 2)
         return 0.0
 
 
@@ -498,7 +502,7 @@ def basis_decomposition(x, phi, single_core=None):
                 cores[i][j, :, 0, j] = np.array([phi[i][k](x[:, j]) for k in range(n[i])])
 
         # append core containing unit vectors
-        cores.append(np.eye(m).reshape(m, m, 1, 1))
+        cores.append(np.eye(m)[:,:,None,None])
 
         # construct tensor train
         psi = TT(cores)
