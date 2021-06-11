@@ -517,7 +517,7 @@ def adaptive_step_size(operator, initial_value, initial_guess, time_end, step_si
 
 def strang_splitting(S, L, I, M, initial_value, step_size, number_of_steps, threshold=1e-12, max_rank=50):
     """
-    Strang splitting for ODEs with SLIM operators.
+    Strang splitting for ODEs with non-periodic SLIM operators.
 
     Parameters
     ----------
@@ -539,8 +539,6 @@ def strang_splitting(S, L, I, M, initial_value, step_size, number_of_steps, thre
         threshold for reduced SVDs, default is 1e-12
     max_rank : int, optional
         maximum rank of the solution, default is 50
-    periodic : bool, optional
-        whether the SLIM operator is periodic or not, default is False
 
     Returns
     -------
@@ -581,6 +579,8 @@ def strang_splitting(S, L, I, M, initial_value, step_size, number_of_steps, thre
 
     if isinstance(S, list):
 
+        # inhomogeneous case
+
         d = S[0].shape[0]
         K = [None] * order
 
@@ -603,150 +603,45 @@ def strang_splitting(S, L, I, M, initial_value, step_size, number_of_steps, thre
         else:
             K[-1] = sp.linalg.expm(S[-1]*step_size)
 
-        for i in range(number_of_steps):
-
-            # copy previous solution for next step
-            tmp = solution[i].copy()
-
-            # Strang splitting
-            tmp = stage(K, np.arange(0,order,2), tmp)
-            tmp = stage(K, np.arange(1,order,2), tmp)
-            tmp = stage(K, np.arange(0,order,2), tmp)
-
-            # append solution
-            solution.append(tmp.copy())
-
-    else: 
-
-        print('Warning: only inhomogeneous chains supported!')
-
-    return solution
-
-
-
-
-
-def split(S, L, I, M, initial_value, step_size, number_of_steps, threshold=1e-12, max_rank=50):
-    """
-    Strang splitting for ODEs with SLIM operators.
-
-    Parameters
-    ----------
-    S : ndarray or list[ndarrays]
-        single-site components of SLIM decomposition
-    L : ndarray or list[ndarrays]
-        left two-site components of SLIM decomposition
-    I : ndarray or list[ndarrays]
-        identity components of SLIM decomposition
-    M : ndarray or list[ndarrays]
-        right two-site components of SLIM decomposition
-    initial_value : TT
-        initial value of the differential equation
-    step_size : float
-        step size for Strang splitting
-    number_of_steps : int
-        number of time steps
-    threshold : float, optional
-        threshold for reduced SVDs, default is 1e-12
-    max_rank : int, optional
-        maximum rank of the solution, default is 50
-    periodic : bool, optional
-        whether the SLIM operator is periodic or not, default is False
-
-    Returns
-    -------
-    list[TT]
-        numerical solution of the differential equation
-    """
-
-    if len(L.shape) == 2:
-        L = L[:,:,None]
-        M = M[None, :, :]
-
-    def stage_a():
-
-        # first and third stage (site pairs (0,1), (2,3), ...)
-        for j in range(int(np.floor(order/2))):
-
-            # contract cores
-            tmp_vec = np.einsum('ijkl,lmno -> ijkmno', tmp.cores[2*j], tmp.cores[2*j+1]).reshape([tmp.ranks[2*j], tmp.row_dims[2*j]*tmp.row_dims[2*j+1], tmp.ranks[2*j+2]])
-            tmp_vec = np.einsum('ijk, lj -> ilk', tmp_vec, exp_op_SLM_1).reshape([tmp.ranks[2*j]*tmp.row_dims[2*j], tmp.row_dims[2*j+1]*tmp.ranks[2*j+2]])
-
-
-            # apply SVD in order to isolate modes
-            u, s, v = utl.truncated_svd(tmp_vec, threshold=threshold, max_rank=max_rank)
-
-            # update cores
-            tmp.cores[2*j] = u.reshape([tmp.ranks[2*j], tmp.row_dims[2*j], 1, u.shape[1]])
-            tmp.cores[2*j+1] = (np.dot(np.diag(s),v)).reshape([u.shape[1], tmp.row_dims[2*j+1], 1, tmp.ranks[2*j+2]])
-            tmp.ranks[2*j+1] = u.shape[1]
-
-        # apply single-site operator if chain length is a odd number
-        if np.mod(order,2) == 1:
-            tmp.cores[-1] = np.einsum('ijkl, mj -> imkl', tmp.cores[-1], exp_op_S_1)
-
-    def stage_b():
-
-        # second stage (site (0) and site pairs (1,2), (3,4), ...)
-
-        # apply single-site operator to first core
-        tmp.cores[0] = np.einsum('ijkl, mj -> imkl', tmp.cores[0], exp_op_S_2)
-
-        for j in range(int(np.floor((order-1)/2))):
-
-            # contract cores
-            tmp_vec = np.einsum('ijkl,lmno -> ijkmno', tmp.cores[2 * j+1], tmp.cores[2 * j + 2]).reshape([tmp.ranks[2 * j +1] , tmp.row_dims[2 * j +1 ] * tmp.row_dims[2 * j + 2], tmp.ranks[2 * j + 3]])
-            tmp_vec = np.einsum('ijk, lj -> ilk', tmp_vec, exp_op_SLM_2).reshape([tmp.ranks[2 * j +1 ] * tmp.row_dims[2 * j + 1], tmp.row_dims[2 * j + 2] * tmp.ranks[2 * j + 3]])
-
-            # apply SVD in order to isolate modes
-            u, s, v = utl.truncated_svd(tmp_vec, threshold=threshold, max_rank=max_rank)
-
-            # update cores
-            tmp.cores[2 * j + 1] = u.reshape([tmp.ranks[2 * j + 1], tmp.row_dims[2 * j +1], 1, u.shape[1]])
-            tmp.cores[2 * j + 2] = (np.dot(np.diag(s),v)).reshape([u.shape[1], tmp.row_dims[2 * j + 2], 1, tmp.ranks[2 * j + 3]])
-            tmp.ranks[2 * j + 2] = u.shape[1]
-
-        # apply single-site operator if chain length is a odd number
-        if np.mod(order, 2) == 0:
-            tmp.cores[-1] = np.einsum('ijkl, mj -> imkl', tmp.cores[-1], exp_op_S_2)
-
-    # chain length
-    order = initial_value.order
-
-    # define solution list
-    solution = []
-    solution.append(initial_value)
-
-    if isinstance(S, list):
-
-        print('Warning: only homogeneous chains supported!')
-
     else: 
 
         # homogeneous case
 
-        # compute local operators
         d = S.shape[0]
-        op_local_SLM = (np.kron(I, 0.5*S) + np.kron(0.5*S, I) + np.einsum('ijk, klm -> iljm', L, M).reshape([d**2, d**2]))
-        op_local_S = 0.5*S
+        K = [None] * order
 
-        exp_op_SLM_1 = sp.linalg.expm(op_local_SLM*0.5*step_size)
-        exp_op_SLM_2 = sp.linalg.expm(op_local_SLM*step_size)
-        exp_op_S_1 = sp.linalg.expm(op_local_S*0.5*step_size)
-        exp_op_S_2 = sp.linalg.expm(op_local_S*step_size)
+        if len(L.shape) == 2:
+            L = L[:,:,None]
+            M = M[None, :, :]
 
-        
-        for i in range(number_of_steps):
+        K_hom = np.kron(S, I) + np.einsum('ijk, klm -> iljm', L, M).reshape([L.shape[0]*.shape[1], L.shape[1]*M.shape[2]])
 
-            # copy previous solution for next step
-            tmp = solution[i].copy()
+        for i in range(order-1):
 
-            # Strang splitting
-            stage_a()
-            stage_b()
-            stage_a()
+            K[i] = K_hom.copy()
 
-            # append solution
-            solution.append(tmp.copy())
+            if np.mod(i, 2) == 0:
+                K[i] = sp.linalg.expm(K[i]*0.5*step_size)
+            else:
+                K[i] = sp.linalg.expm(K[i]*step_size)
+
+        if np.mod(order-1, 2) == 0:
+            K[-1] = sp.linalg.expm(S*0.5*step_size)
+        else:
+            K[-1] = sp.linalg.expm(S*step_size)
+
+    for i in range(number_of_steps):
+
+        # copy previous solution for next step
+        tmp = solution[i].copy()
+
+        # Strang splitting
+        tmp = stage(K, np.arange(0,order,2), tmp)
+        tmp = stage(K, np.arange(1,order,2), tmp)
+        tmp = stage(K, np.arange(0,order,2), tmp)
+
+        # append solution
+        solution.append(tmp.copy())
 
     return solution
+
