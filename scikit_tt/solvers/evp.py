@@ -11,7 +11,7 @@ from scikit_tt.tensor_train import TT
 class Object(object):
     pass
 
-def als(operator, initial_guess, previous=[], shift=0, operator_gevp=None, number_ev=1, repeats=1, conv_eps=1e-8, solver='eig', sigma=1, real=True):
+def als(operator, initial_guess, previous=[], shift=0, operator_gevp=None, number_ev=1, repeats=1, conv_eps=1e-10, solver='eig', sigma=1, real=True):
     """
     Alternating linear scheme.
 
@@ -125,9 +125,9 @@ def als(operator, initial_guess, previous=[], shift=0, operator_gevp=None, numbe
         # save optimal eigenpair
         if number_ev==1:
 
-        	if np.abs(eigenvalues[0]-sigma)<np.abs(eigenvalue_opt-sigma):
-        		eigenvalue_opt = eigenvalues[0].copy()
-        		eigentensor_opt = trains.solution.copy()
+            if np.abs(eigenvalues[0]-sigma)<np.abs(eigenvalue_opt-sigma):
+                eigenvalue_opt = eigenvalues[0].copy()
+                eigentensor_opt = TT([trains.solution.cores[0][:, :, :, :, 0]] + trains.solution.cores[1:])
 
         # check for convergence
         last = eigenvalues_pre[-np.amin([3, eigenvalues_pre.shape[0]]):, :]
@@ -139,8 +139,8 @@ def als(operator, initial_guess, previous=[], shift=0, operator_gevp=None, numbe
 
     # define form of the final solution depending on the number of eigenvalues to compute
     if number_ev == 1:
-        eigentensors = TT([eigentensor_opt.cores[0][:, :, :, :, 0]] + eigentensor_opt.cores[1:])
-        eigenvalues = eigenvalues_opt
+        eigentensors = eigentensor_opt
+        eigenvalues = eigenvalue_opt
     else:
         eigentensors = []
         for i in range(number_ev):
