@@ -5,6 +5,7 @@ from scikit_tt.data_driven.transform import Function
 import numpy as np
 from scipy import linalg
 from scikit_tt.tensor_train import TT
+import scikit_tt.utils as utl
 
 
 def amuset_hosvd(data_matrix, x_indices, y_indices, basis_list, threshold=1e-2, progress=False):
@@ -45,12 +46,24 @@ def amuset_hosvd(data_matrix, x_indices, y_indices, basis_list, threshold=1e-2, 
     # define quantities
     eigenvalues = []
     eigentensors = []
+    cores = [None]*(len(basis_list)+1)
 
-    # construct transformed data tensor in TT format using direct approach
-    psi = tdt.basis_decomposition(data_matrix, basis_list)
+    residual = np.array([1])[:,None]
+    for i in range(len(basis_list)):
+        core_tmp = tdt.basis_decomposition(data_matrix, basis_list, single_core=i)
+        core_tmp = np.tensordot(residual, core_tmp, axes=(1,0))
+        u, s, v = utl.truncated_svd(core_tmp.reshape([core_tmp.shape[0]*core_tmp.shape[1], core_tmp.shape[3]]), threshold=threshold)
+        cores[i] = u.reshape([core_tmp.shape[0], core_tmp.shape[1], 1, u.shape[1]])
+        residual = np.diag(s).dot(v)
+    cores[-1] = residual.reshape([residual.shape[0], residual.shape[1], 1, 1])
+    psi = TT(cores)
 
-    # left-orthonormalization
-    psi = psi.ortho_left(threshold=threshold, progress=progress)
+
+    # # construct transformed data tensor in TT format using direct approach
+    # psi = tdt.basis_decomposition(data_matrix, basis_list)
+
+    # # left-orthonormalization
+    # psi = psi.ortho_left(threshold=threshold, progress=progress)
 
     # extract last core
     last_core = psi.cores[-1]
