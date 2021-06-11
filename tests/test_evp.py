@@ -92,7 +92,7 @@ class TestEVP(TestCase):
         eigenvalues_mat, eigenvectors_mat = splin.eigs(self.operator_mat, k=self.number_ev)
         eigenvalues_mat = np.real(eigenvalues_mat)
         eigenvectors_mat = np.real(eigenvectors_mat)
-        idx = eigenvalues_mat.argsort()[::-1]
+        idx = eigenvalues_mat.argsort()
         eigenvalues_mat = eigenvalues_mat[idx]
         eigenvectors_mat = eigenvectors_mat[:, idx]
 
