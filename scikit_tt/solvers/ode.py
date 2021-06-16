@@ -515,7 +515,7 @@ def adaptive_step_size(operator, initial_value, initial_guess, time_end, step_si
 
     return solution, time_steps
 
-def strang_splitting(S, L, I, M, initial_value, step_size, number_of_steps, threshold=1e-12, max_rank=50):
+def strang_splitting(S, L, I, M, initial_value, step_size, number_of_steps, threshold=1e-12, max_rank=50, normalize=1):
     """
     Strang splitting for ODEs with non-periodic SLIM operators.
 
@@ -639,6 +639,10 @@ def strang_splitting(S, L, I, M, initial_value, step_size, number_of_steps, thre
         tmp = stage(K, np.arange(0,order,2), tmp)
         tmp = stage(K, np.arange(1,order,2), tmp)
         tmp = stage(K, np.arange(0,order,2), tmp)
+
+        # normalize solution
+        if normalize > 0:
+            tmp = (1 / tmp.norm(p=normalize)) * tmp
 
         # append solution
         solution.append(tmp.copy())
