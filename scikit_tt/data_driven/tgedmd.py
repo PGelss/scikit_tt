@@ -1,6 +1,7 @@
 import numpy as np
 from scikit_tt.tensor_train import TT
-from scikit_tt.data_driven.transform import basis_decomposition, Function
+import scikit_tt.data_driven.transform as tdt
+import scikit_tt.utils as utl
 
 # This file contains functions related to tensor-based generator EDMD.
 
@@ -53,19 +54,42 @@ def amuset_hosvd(data_matrix, basis_list, b, sigma, num_eigvals=np.infty, thresh
         (cf. return_option)
     """
 
+    # Order:
+    p = len(basis_list)
+    # Mode sizes:
+    n = [len(basis_list[k]) for k in range(p)]
+    # Data size:
+    m = data_matrix.shape[1]
+
+
     print('calculating Psi(X)...')
-    psi = basis_decomposition(data_matrix, basis_list)
-    p = psi.order - 1
-    # SVD of psi
-    u, s, v = psi.svd(p, threshold=threshold, max_rank=max_rank, ortho_l=True, ortho_r=False)
+    cores = [None] * p
+
+    residual = np.ones((1, m))
+    r_i = residual.shape[0]
+    for i in range(len(basis_list)):
+        core_tmp = np.zeros((r_i, n[i], m))
+        for j in range(m):
+            psi_jk = np.array([basis_list[i][k](data_matrix[:, j]) for k in range(n[i])])
+            core_tmp[:, :, j] = np.outer(residual[:, j], psi_jk)
+        u, s, v = utl.truncated_svd(core_tmp.reshape([core_tmp.shape[0] * core_tmp.shape[1], core_tmp.shape[2]]),
+                                    threshold=threshold, max_rank=max_rank)
+        cores[i] = u.reshape([core_tmp.shape[0], core_tmp.shape[1], 1, u.shape[1]])
+        residual = np.diag(s).dot(v)
+        r_i = residual.shape[0]
+
+    # Complete orthonormal part:
+    U = TT(cores)
+    # Build rank-reduced representation of psi(X):
+    psi = U.rank_tensordot(np.diag(s))
+    psi.concatenate([v[:, :, None, None]], overwrite=True)
+    # Also compute inverse of s:
     s_inv = np.diag(1.0 / s)
-    psi = u.rank_tensordot(np.diag(s))
-    psi.concatenate(v, overwrite=True)  # rank reduced version
-    v = (v.cores[0][:, :, 0, 0]).T  # translate v from TT to np.ndarray
+
     print('Psi(X): {}'.format(psi))
 
     print('calculating M in AMUSEt')
-    M = _amuset_efficient(u, s, v, data_matrix, basis_list, b, sigma)
+    M = _amuset_efficient(U, s, v.T, data_matrix, basis_list, b, sigma)
 
     print('calculating eigenvalues and eigentensors...')
     # calculate eigenvalues of M
@@ -82,23 +106,25 @@ def amuset_hosvd(data_matrix, basis_list, b, sigma, num_eigvals=np.infty, thresh
         eigvals = eigvals[:num_eigvals]
         eigvecs = eigvecs[:, :num_eigvals]
 
-    u.rank_tensordot(s_inv, mode='last', overwrite=True)
+    U.rank_tensordot(s_inv, mode='last', overwrite=True)
 
     # calculate eigentensors
     if return_option == 'eigentensors':
         eigvecs = eigvecs[:, :, np.newaxis]
         eigtensors = []
         for i in range(eigvals.shape[0]):
-            eigtensor = u.copy()
+            eigtensor = U.copy()
             eigtensor.rank_tensordot(eigvecs[:, i, :], overwrite=True)
             eigtensors.append(eigtensor)
         return eigvals, eigtensors
 
     elif return_option == 'eigenfunctionevals':
-        u.rank_tensordot(eigvecs, overwrite=True)
-        u.tensordot(psi, p, mode='first-first', overwrite=True)
-        u = u.cores[0][0, :, 0, :].T
-        return eigvals, u
+        U.rank_tensordot(eigvecs, overwrite=True)
+        U.tensordot(psi, p, mode='first-first', overwrite=True)
+        U = U.cores[0][0, :, 0, :].T
+        print("Computed eigenfunction trajectory of shape: ")
+        print(U.shape)
+        return eigvals, U
 
     else:
         return eigvals, eigvecs
@@ -140,18 +166,40 @@ def amuset_hosvd_reversible(data_matrix, basis_list, sigma, num_eigvals=np.infty
         (cf. return_option)
     """
 
+    # Order:
+    p = len(basis_list)
+    # Mode sizes:
+    n = [len(basis_list[k]) for k in range(p)]
+    # Data size:
+    m = data_matrix.shape[1]
+
     print('calculating Psi(X)...')
-    psi = basis_decomposition(data_matrix, basis_list)
-    p = psi.order - 1
-    # SVD of psi
-    u, s, v = psi.svd(p, threshold=threshold, max_rank=max_rank, ortho_l=True, ortho_r=False)
+    cores = [None] * p
+
+    residual = np.ones((1, m))
+    r_i = residual.shape[0]
+    for i in range(len(basis_list)):
+        core_tmp = np.zeros((r_i, n[i], m))
+        for j in range(m):
+            psi_jk = np.array([basis_list[i][k](data_matrix[:, j]) for k in range(n[i])])
+            core_tmp[:, :, j] = np.outer(residual[:, j], psi_jk)
+        u, s, v = utl.truncated_svd(core_tmp.reshape([core_tmp.shape[0] * core_tmp.shape[1], core_tmp.shape[2]]),
+                                    threshold=threshold, max_rank=max_rank)
+        cores[i] = u.reshape([core_tmp.shape[0], core_tmp.shape[1], 1, u.shape[1]])
+        residual = np.diag(s).dot(v)
+        r_i = residual.shape[0]
+
+    # Complete orthonormal part:
+    U = TT(cores)
+    # Build rank-reduced representation of psi(X):
+    psi = U.rank_tensordot(np.diag(s))
+    psi.concatenate([v[:, :, None, None]], overwrite=True)
+    # Also compute inverse of s:
     s_inv = np.diag(1.0 / s)
-    psi = u.rank_tensordot(np.diag(s))
-    psi.concatenate(v, overwrite=True)  # rank reduced version
     print('Psi(X): {}'.format(psi))
 
     print('calculating M in AMUSEt')
-    M = _amuset_efficient_reversible(u, s, data_matrix, basis_list, sigma)
+    M = _amuset_efficient_reversible(U, s, data_matrix, basis_list, sigma)
 
     print('calculating eigenvalues and eigentensors...')
     # calculate eigenvalues of M
@@ -168,23 +216,23 @@ def amuset_hosvd_reversible(data_matrix, basis_list, sigma, num_eigvals=np.infty
         eigvals = eigvals[:num_eigvals]
         eigvecs = eigvecs[:, :num_eigvals]
 
-    u.rank_tensordot(s_inv, mode='last', overwrite=True)
+    U.rank_tensordot(s_inv, mode='last', overwrite=True)
 
     # calculate eigentensors
     if return_option == 'eigentensors':
         eigvecs = eigvecs[:, :, np.newaxis]
         eigtensors = []
         for i in range(eigvals.shape[0]):
-            eigtensor = u.copy()
+            eigtensor = U.copy()
             eigtensor.rank_tensordot(eigvecs[:, i, :], overwrite=True)
             eigtensors.append(eigtensor)
 
         return eigvals, eigtensors
     elif return_option == 'eigenfunctionevals':
-        u.rank_tensordot(eigvecs, overwrite=True)
-        u.tensordot(psi, p, mode='first-first', overwrite=True)
-        u = u.cores[0][0, :, 0, :].T
-        return eigvals, u
+        U.rank_tensordot(eigvecs, overwrite=True)
+        U.tensordot(psi, p, mode='first-first', overwrite=True)
+        U = U.cores[0][0, :, 0, :].T
+        return eigvals, U
     else:
         return eigvals, eigvecs
 
