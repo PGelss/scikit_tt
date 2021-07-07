@@ -515,7 +515,70 @@ def adaptive_step_size(operator, initial_value, initial_guess, time_end, step_si
 
     return solution, time_steps
 
-def strang_splitting(S, L, I, M, initial_value, step_size, number_of_steps, threshold=1e-12, max_rank=50, normalize=1):
+def lie_splitting(S, L, I, M, initial_value, step_size, number_of_steps, threshold=1e-12, max_rank=50, normalize=1, K=None):
+    """
+    Lie splitting for ODEs with non-periodic SLIM operators.
+
+    Parameters
+    ----------
+    S : ndarray or list[ndarrays]
+        single-site components of SLIM decomposition
+    L : ndarray or list[ndarrays]
+        left two-site components of SLIM decomposition
+    I : ndarray or list[ndarrays]
+        identity components of SLIM decomposition
+    M : ndarray or list[ndarrays]
+        right two-site components of SLIM decomposition
+    initial_value : TT
+        initial value of the differential equation
+    step_size : float
+        step size
+    number_of_steps : int
+        number of time steps
+    threshold : float, optional
+        threshold for reduced SVDs, default is 1e-12
+    max_rank : int, optional
+        maximum rank of the solution, default is 50
+    normalize : {0, 1, 2}, optional
+        no normalization if 0, otherwise the solution is normalized in terms of Manhattan or Euclidean norm in each step
+    K : list[ndarrays], optional
+        list of propagators
+
+    Returns
+    -------
+    list[TT]
+        numerical solution of the differential equation
+    """
+
+    # chain length
+    order = initial_value.order
+
+    # define solution list
+    solution = []
+    solution.append(initial_value)
+
+    if K is None:
+        K = __splitting_propagators(S, L, I, M, order, step_size, [1, 1])
+
+    for i in range(number_of_steps):
+
+        # copy previous solution for next step
+        tmp = solution[i].copy()
+
+        # Strang splitting
+        tmp = __splitting_stage(K, np.arange(0,order,2), tmp)
+        tmp = __splitting_stage(K, np.arange(1,order,2), tmp)
+
+        # normalize solution
+        if normalize > 0:
+            tmp = (1 / tmp.norm(p=normalize)) * tmp
+
+        # append solution
+        solution.append(tmp.copy())
+
+    return solution
+
+def strang_splitting(S, L, I, M, initial_value, step_size, number_of_steps, threshold=1e-12, max_rank=50, normalize=1, K=None):
     """
     Strang splitting for ODEs with non-periodic SLIM operators.
 
@@ -532,13 +595,17 @@ def strang_splitting(S, L, I, M, initial_value, step_size, number_of_steps, thre
     initial_value : TT
         initial value of the differential equation
     step_size : float
-        step size for Strang splitting
+        step size
     number_of_steps : int
         number of time steps
     threshold : float, optional
         threshold for reduced SVDs, default is 1e-12
     max_rank : int, optional
         maximum rank of the solution, default is 50
+    normalize : {0, 1, 2}, optional
+        no normalization if 0, otherwise the solution is normalized in terms of Manhattan or Euclidean norm in each step
+    K : list[ndarrays], optional
+        list of propagators
 
     Returns
     -------
@@ -546,29 +613,67 @@ def strang_splitting(S, L, I, M, initial_value, step_size, number_of_steps, thre
         numerical solution of the differential equation
     """
 
-    def stage(K, indices, tmp):
+    # chain length
+    order = initial_value.order
 
-        for i in indices:
+    # define solution list
+    solution = []
+    solution.append(initial_value)
 
-            if i<tmp.order-1:
+    if K is None:
+        K = __splitting_propagators(S, L, I, M, order, step_size, [0.5, 1])
 
-                # contract cores
-                tmp_vec = np.einsum('ijkl,lmno -> ijkmno', tmp.cores[i], tmp.cores[i+1]).reshape([tmp.ranks[i], tmp.row_dims[i]*tmp.row_dims[i+1], tmp.ranks[i+2]])
-                tmp_vec = np.einsum('ijk, lj -> ilk', tmp_vec, K[i]).reshape([tmp.ranks[i]*tmp.row_dims[i], tmp.row_dims[i+1]*tmp.ranks[i+2]])
+    for i in range(number_of_steps):
 
-                # apply SVD in order to isolate modes
-                u, s, v = utl.truncated_svd(tmp_vec, threshold=threshold, max_rank=max_rank)
+        # copy previous solution for next step
+        tmp = solution[i].copy()
 
-                # update cores
-                tmp.cores[i] = u.reshape([tmp.ranks[i], tmp.row_dims[i], 1, u.shape[1]])
-                tmp.cores[i+1] = (np.dot(np.diag(s),v)).reshape([u.shape[1], tmp.row_dims[i+1], 1, tmp.ranks[i+2]])
-                tmp.ranks[i+1] = u.shape[1]
+        # Strang splitting
+        tmp = __splitting_stage(K, np.arange(0,order,2), tmp)
+        tmp = __splitting_stage(K, np.arange(1,order,2), tmp)
+        tmp = __splitting_stage(K, np.arange(0,order,2), tmp)
 
-            else:
+        # normalize solution
+        if normalize > 0:
+            tmp = (1 / tmp.norm(p=normalize)) * tmp
 
-                tmp.cores[-1] = np.einsum('ijkl, mj -> imkl', tmp.cores[-1], K[-1])
+        # append solution
+        solution.append(tmp.copy())
 
-        return tmp
+    return solution
+
+def yoshida_splitting(S, L, I, M, initial_value, step_size, number_of_steps, threshold=1e-12, max_rank=50, normalize=1):
+    """
+    Yoshida splitting for ODEs with non-periodic SLIM operators.
+
+    Parameters
+    ----------
+    S : ndarray or list[ndarrays]
+        single-site components of SLIM decomposition
+    L : ndarray or list[ndarrays]
+        left two-site components of SLIM decomposition
+    I : ndarray or list[ndarrays]
+        identity components of SLIM decomposition
+    M : ndarray or list[ndarrays]
+        right two-site components of SLIM decomposition
+    initial_value : TT
+        initial value of the differential equation
+    step_size : float
+        step size
+    number_of_steps : int
+        number of time steps
+    threshold : float, optional
+        threshold for reduced SVDs, default is 1e-12
+    max_rank : int, optional
+        maximum rank of the solution, default is 50
+    normalize : {0, 1, 2}, optional
+        no normalization if 0, otherwise the solution is normalized in terms of Manhattan or Euclidean norm in each step
+
+    Returns
+    -------
+    list[TT]
+        numerical solution of the differential equation
+    """
 
     # chain length
     order = initial_value.order
@@ -576,6 +681,36 @@ def strang_splitting(S, L, I, M, initial_value, step_size, number_of_steps, thre
     # define solution list
     solution = []
     solution.append(initial_value)
+
+    K1 = __splitting_propagators(S, L, I, M, order, step_size, [0.5*(1/(2-2**(1/3))), 1/(2-2**(1/3))])
+    K2 = __splitting_propagators(S, L, I, M, order, step_size, [0.5*(2**(1/3)/(2-2**(1/3))), 2**(1/3)/(2-2**(1/3))])
+
+    for i in range(number_of_steps):
+
+        # copy previous solution for next step
+        tmp = solution[i].copy()
+
+        # Strang splitting
+        tmp = __splitting_stage(K1, np.arange(0,order,2), tmp)
+        tmp = __splitting_stage(K1, np.arange(1,order,2), tmp)
+        tmp = __splitting_stage(K1, np.arange(0,order,2), tmp)
+        tmp = __splitting_stage(K2, np.arange(0,order,2), tmp)
+        tmp = __splitting_stage(K2, np.arange(1,order,2), tmp)
+        tmp = __splitting_stage(K2, np.arange(0,order,2), tmp)
+        tmp = __splitting_stage(K1, np.arange(0,order,2), tmp)
+        tmp = __splitting_stage(K1, np.arange(1,order,2), tmp)
+        tmp = __splitting_stage(K1, np.arange(0,order,2), tmp)
+
+        # normalize solution
+        if normalize > 0:
+            tmp = (1 / tmp.norm(p=normalize)) * tmp
+
+        # append solution
+        solution.append(tmp.copy())
+
+    return solution
+
+def __splitting_propagators(S, L, I, M, order, step_size, coefficients):
 
     if isinstance(S, list):
 
@@ -594,14 +729,14 @@ def strang_splitting(S, L, I, M, initial_value, step_size, number_of_steps, thre
             
 
             if np.mod(i, 2) == 0:
-                K[i] = sp.linalg.expm(K[i]*0.5*step_size)
+                K[i] = sp.linalg.expm(K[i]*coefficients[0]*step_size)
             else:
-                K[i] = sp.linalg.expm(K[i]*step_size)
+                K[i] = sp.linalg.expm(K[i]*coefficients[1]*step_size)
 
         if np.mod(order-1, 2) == 0:
-            K[-1] = sp.linalg.expm(S[-1]*0.5*step_size)
+            K[-1] = sp.linalg.expm(S[-1]*coefficients[0]*step_size)
         else:
-            K[-1] = sp.linalg.expm(S[-1]*step_size)
+            K[-1] = sp.linalg.expm(S[-1]*coefficients[1]*step_size)
 
     else: 
 
@@ -621,31 +756,38 @@ def strang_splitting(S, L, I, M, initial_value, step_size, number_of_steps, thre
             K[i] = K_hom.copy()
 
             if np.mod(i, 2) == 0:
-                K[i] = sp.linalg.expm(K[i]*0.5*step_size)
+                K[i] = sp.linalg.expm(K[i]*coefficients[0]*step_size)
             else:
-                K[i] = sp.linalg.expm(K[i]*step_size)
+                K[i] = sp.linalg.expm(K[i]*coefficients[1]*step_size)
 
         if np.mod(order-1, 2) == 0:
-            K[-1] = sp.linalg.expm(S*0.5*step_size)
+            K[-1] = sp.linalg.expm(S*coefficients[0]*step_size)
         else:
-            K[-1] = sp.linalg.expm(S*step_size)
+            K[-1] = sp.linalg.expm(S*coefficients[1]*step_size)
 
-    for i in range(number_of_steps):
+    return K
 
-        # copy previous solution for next step
-        tmp = solution[i].copy()
 
-        # Strang splitting
-        tmp = stage(K, np.arange(0,order,2), tmp)
-        tmp = stage(K, np.arange(1,order,2), tmp)
-        tmp = stage(K, np.arange(0,order,2), tmp)
+def __splitting_stage(K, indices, tmp):
 
-        # normalize solution
-        if normalize > 0:
-            tmp = (1 / tmp.norm(p=normalize)) * tmp
+    for i in indices:
 
-        # append solution
-        solution.append(tmp.copy())
+        if i<tmp.order-1:
 
-    return solution
+            # contract cores
+            tmp_vec = np.einsum('ijkl,lmno -> ijkmno', tmp.cores[i], tmp.cores[i+1]).reshape([tmp.ranks[i], tmp.row_dims[i]*tmp.row_dims[i+1], tmp.ranks[i+2]])
+            tmp_vec = np.einsum('ijk, lj -> ilk', tmp_vec, K[i]).reshape([tmp.ranks[i]*tmp.row_dims[i], tmp.row_dims[i+1]*tmp.ranks[i+2]])
 
+            # apply SVD in order to isolate modes
+            u, s, v = utl.truncated_svd(tmp_vec, threshold=threshold, max_rank=max_rank)
+
+            # update cores
+            tmp.cores[i] = u.reshape([tmp.ranks[i], tmp.row_dims[i], 1, u.shape[1]])
+            tmp.cores[i+1] = (np.dot(np.diag(s),v)).reshape([u.shape[1], tmp.row_dims[i+1], 1, tmp.ranks[i+2]])
+            tmp.ranks[i+1] = u.shape[1]
+
+        else:
+
+            tmp.cores[-1] = np.einsum('ijkl, mj -> imkl', tmp.cores[-1], K[-1])
+
+    return tmp
