@@ -8,7 +8,8 @@ from scikit_tt.tensor_train import TT
 import scikit_tt.utils as utl
 
 
-def amuset_hosvd(data_matrix, x_indices, y_indices, basis_list, threshold=1e-2, progress=False):
+def amuset_hosvd(data_matrix, x_indices, y_indices, basis_list, threshold=1e-2,
+                 max_rank=np.infty, progress=False):
     """
     AMUSEt (AMUSE on tensors) using HOSVD.
 
@@ -27,6 +28,8 @@ def amuset_hosvd(data_matrix, x_indices, y_indices, basis_list, threshold=1e-2, 
         list of basis functions in every mode
     threshold : float, optional
         threshold for SVD/HOSVD, default is 1e-2
+    max_rank : int
+        maximum rank of truncated SVD
     progress : boolean, optional
         whether to show progress bar, default is False
 
@@ -48,13 +51,27 @@ def amuset_hosvd(data_matrix, x_indices, y_indices, basis_list, threshold=1e-2, 
     eigentensors = []
     cores = [None]*(len(basis_list)+1)
 
-    residual = np.array([1])[:,None]
+    # number of snapshots
+    m = data_matrix.shape[1]
+    # number of modes
+    p = len(basis_list)
+    # mode dimensions
+    n = [len(basis_list[i]) for i in range(p)]
+
+    residual = np.ones((1, m))
+    r_i = residual.shape[0]
     for i in range(len(basis_list)):
-        core_tmp = tdt.basis_decomposition(data_matrix, basis_list, single_core=i)
-        core_tmp = np.tensordot(residual, core_tmp, axes=(1,0))
-        u, s, v = utl.truncated_svd(core_tmp.reshape([core_tmp.shape[0]*core_tmp.shape[1], core_tmp.shape[3]]), threshold=threshold)
+        # Directly evaluate tensor product between residual and basis for mode i:
+        core_tmp = np.zeros((r_i, n[i], m))
+        for j in range(m):
+            psi_kj = np.array([basis_list[i][k](data_matrix[:, j]) for k in range(n[i])])
+            core_tmp[:, :, j] = np.outer(residual[:, j], psi_kj)
+        # Truncated SVD:
+        u, s, v = utl.truncated_svd(core_tmp.reshape([core_tmp.shape[0]*core_tmp.shape[1], core_tmp.shape[2]]),
+                                    threshold=threshold, max_rank=max_rank)
         cores[i] = u.reshape([core_tmp.shape[0], core_tmp.shape[1], 1, u.shape[1]])
         residual = np.diag(s).dot(v)
+        r_i = residual.shape[0]
     cores[-1] = residual.reshape([residual.shape[0], residual.shape[1], 1, 1])
     psi = TT(cores)
 

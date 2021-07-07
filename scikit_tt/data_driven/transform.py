@@ -7,6 +7,7 @@ import scipy.linalg as splin
 import time as _time
 from scikit_tt.tensor_train import TT
 from scipy.special import legendre
+from scipy.interpolate import BSpline
 
 
 # ################################## basis functions ###################################
@@ -434,6 +435,51 @@ class PeriodicGaussFunction(OneCoordinateFunction):
     def partial2(self, t, direction1, direction2):
         raise NotImplementedError('not yet implemented')
 
+
+class Bspline(OneCoordinateFunction):
+    def __init__(self, index, knots, degree, coeff, dimension=None):
+        """
+        B-Spline basis function.
+
+        Parameters:
+        ------------
+        index : int
+            define which entry of a snapshot is passed to the spline function
+        knots : list or np.ndarray(n+1,)
+            grid points where the pieces of the spline meet
+            NOTE: this is not the extended knot vector, which is constructed internally
+        degree : int
+            degree of each piecewise polynomial
+        coeff : list or np.ndarray(n + degree,)
+            coefficient vector with respect to B-Spline basis
+
+        """
+        super(Bspline, self).__init__(index, dimension)
+        self.knots = knots
+        self.n = len(self.knots) - 1
+        self.degree = degree
+        if not len(coeff) == (self.n + self.degree):
+            raise ValueError('Coefficient vector does not match dimension of spline space, which is %d'%(
+                    self.n + self.degree))
+        self.coeff = coeff
+        # Construct extended knot vector:
+        self.t = np.concatenate((self.degree * [self.knots[0]], self.knots, self.degree * [self.knots[-1]]))
+        # Construct spline:
+        self.bsp = BSpline(self.t, self.coeff, self.degree)
+        self.bsp1 = self.bsp.derivative(1)
+
+    def __call__(self, t):
+        self.check_call_input(t)
+        return self.bsp(t[self.index])
+
+    def partial(self, t, direction):
+        self.check_partial_input(t, direction)
+        if direction == self.index:
+            return self.bsp1(t[self.index])
+        return 0.0
+
+    def partial2(self, t, direction1, direction2):
+        raise NotImplementedError('not yet implemented')
 
 # ################################## decompositions ###################################
 def basis_decomposition(x, phi, single_core=None):
