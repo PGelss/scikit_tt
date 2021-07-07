@@ -566,8 +566,8 @@ def lie_splitting(S, L, I, M, initial_value, step_size, number_of_steps, thresho
         tmp = solution[i].copy()
 
         # Strang splitting
-        tmp = __splitting_stage(K, np.arange(0,order,2), tmp)
-        tmp = __splitting_stage(K, np.arange(1,order,2), tmp)
+        tmp = __splitting_stage(K, np.arange(0,order,2), tmp, threshold, max_rank)
+        tmp = __splitting_stage(K, np.arange(1,order,2), tmp, threshold, max_rank)
 
         # normalize solution
         if normalize > 0:
@@ -629,9 +629,9 @@ def strang_splitting(S, L, I, M, initial_value, step_size, number_of_steps, thre
         tmp = solution[i].copy()
 
         # Strang splitting
-        tmp = __splitting_stage(K, np.arange(0,order,2), tmp)
-        tmp = __splitting_stage(K, np.arange(1,order,2), tmp)
-        tmp = __splitting_stage(K, np.arange(0,order,2), tmp)
+        tmp = __splitting_stage(K, np.arange(0,order,2), tmp, threshold, max_rank)
+        tmp = __splitting_stage(K, np.arange(1,order,2), tmp, threshold, max_rank)
+        tmp = __splitting_stage(K, np.arange(0,order,2), tmp, threshold, max_rank)
 
         # normalize solution
         if normalize > 0:
@@ -691,15 +691,15 @@ def yoshida_splitting(S, L, I, M, initial_value, step_size, number_of_steps, thr
         tmp = solution[i].copy()
 
         # Strang splitting
-        tmp = __splitting_stage(K1, np.arange(0,order,2), tmp)
-        tmp = __splitting_stage(K1, np.arange(1,order,2), tmp)
-        tmp = __splitting_stage(K1, np.arange(0,order,2), tmp)
-        tmp = __splitting_stage(K2, np.arange(0,order,2), tmp)
-        tmp = __splitting_stage(K2, np.arange(1,order,2), tmp)
-        tmp = __splitting_stage(K2, np.arange(0,order,2), tmp)
-        tmp = __splitting_stage(K1, np.arange(0,order,2), tmp)
-        tmp = __splitting_stage(K1, np.arange(1,order,2), tmp)
-        tmp = __splitting_stage(K1, np.arange(0,order,2), tmp)
+        tmp = __splitting_stage(K1, np.arange(0,order,2), tmp, threshold, max_rank)
+        tmp = __splitting_stage(K1, np.arange(1,order,2), tmp, threshold, max_rank)
+        tmp = __splitting_stage(K1, np.arange(0,order,2), tmp, threshold, max_rank)
+        tmp = __splitting_stage(K2, np.arange(0,order,2), tmp, threshold, max_rank)
+        tmp = __splitting_stage(K2, np.arange(1,order,2), tmp, threshold, max_rank)
+        tmp = __splitting_stage(K2, np.arange(0,order,2), tmp, threshold, max_rank)
+        tmp = __splitting_stage(K1, np.arange(0,order,2), tmp, threshold, max_rank)
+        tmp = __splitting_stage(K1, np.arange(1,order,2), tmp, threshold, max_rank)
+        tmp = __splitting_stage(K1, np.arange(0,order,2), tmp, threshold, max_rank)
 
         # normalize solution
         if normalize > 0:
@@ -768,7 +768,7 @@ def __splitting_propagators(S, L, I, M, order, step_size, coefficients):
     return K
 
 
-def __splitting_stage(K, indices, tmp):
+def __splitting_stage(K, indices, tmp, threshold, max_rank):
 
     for i in indices:
 
