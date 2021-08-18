@@ -683,7 +683,7 @@ def yoshida_splitting(S, L, I, M, initial_value, step_size, number_of_steps, thr
     solution.append(initial_value)
 
     K1 = __splitting_propagators(S, L, I, M, order, step_size, [0.5*(1/(2-2**(1/3))), 1/(2-2**(1/3))])
-    K2 = __splitting_propagators(S, L, I, M, order, step_size, [0.5*(2**(1/3)/(2-2**(1/3))), 2**(1/3)/(2-2**(1/3))])
+    K2 = __splitting_propagators(S, L, I, M, order, step_size, [-0.5*(2**(1/3)/(2-2**(1/3))), -2**(1/3)/(2-2**(1/3))])
 
     for i in range(number_of_steps):
 
