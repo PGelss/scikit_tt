@@ -6,8 +6,6 @@ from msmtools.analysis.dense.pcca import _pcca_connected_isa
 from matplotlib import pyplot as plt
 
 
-
-
 class LemonSlice:
     def __init__(self, k, beta, c=1.0, d=2, alpha=1.0):
         """
@@ -208,8 +206,6 @@ class LemonSlice:
         return r, phi
 
 
-
-
 """  System Settings: """
 # Number of dimensions:
 d = 4
@@ -236,40 +232,40 @@ max_rank = np.infty
 epsilon = 1e-3
 
 """ For use with Gaussian basis functions """
-# mean_ls = np.arange(-1.2, 1.21, 0.2)
-# sig_ls = 0.2
-# mean_quad = np.arange(-1.0, 1.01, 0.2)
-# sig_quad = 0.2
+mean_ls = np.arange(-1.2, 1.21, 0.2)
+sig_ls = 0.2
+mean_quad = np.arange(-1.0, 1.01, 0.2)
+sig_quad = 0.2
 
-# Define basis sets:
-# basis_list = []
-# for i in range(2):
-#     basis_list.append([tdt.GaussFunction(i, mean_ls[j], sig_ls) for j in range(len(mean_ls))])
-# for i in range(2, 4):
-#     basis_list.append([tdt.GaussFunction(i, mean_quad[j], sig_quad) for j in range(len(mean_quad))])
-
-""" For use with B-Spline basis functions: """
-# Set boundary values for Lemon Slice and quadratic parts:
-bounds_ls = [-1.7, 1.7]
-bounds_q = [-1.2, 1.2]
-# Set number of subintervals for both parts:
-nsub_ls = 6
-nsub_q = 6
-# Set degree of B-spline to be used:
-degree = 3
-
-# Define knot vectors:
-knots_ls = np.linspace(bounds_ls[0], bounds_ls[1], nsub_ls+1)
-knots_q = np.linspace(bounds_q[0], bounds_q[1], nsub_q+1)
 # Define basis sets:
 basis_list = []
-
 for i in range(2):
-    cbsp = np.eye(nsub_ls + degree, nsub_ls + degree)
-    basis_list.append([tdt.Bspline(i, knots_ls, degree, cbsp[j, :]) for j in range(nsub_ls + degree)])
+    basis_list.append([tdt.GaussFunction(i, mean_ls[j], sig_ls) for j in range(len(mean_ls))])
 for i in range(2, 4):
-    cbsp = np.eye(nsub_q + degree, nsub_q + degree)
-    basis_list.append([tdt.Bspline(i, knots_q, degree, cbsp[j, :]) for j in range(nsub_q + degree)])
+    basis_list.append([tdt.GaussFunction(i, mean_quad[j], sig_quad) for j in range(len(mean_quad))])
+
+""" For use with B-Spline basis functions: """
+# # Set boundary values for Lemon Slice and quadratic parts:
+# bounds_ls = [-1.7, 1.7]
+# bounds_q = [-1.2, 1.2]
+# # Set number of subintervals for both parts:
+# nsub_ls = 6
+# nsub_q = 6
+# # Set degree of B-spline to be used:
+# degree = 3
+#
+# # Define knot vectors:
+# knots_ls = np.linspace(bounds_ls[0], bounds_ls[1], nsub_ls+1)
+# knots_q = np.linspace(bounds_q[0], bounds_q[1], nsub_q+1)
+# # Define basis sets:
+# basis_list = []
+#
+# for i in range(2):
+#     cbsp = np.eye(nsub_ls + degree, nsub_ls + degree)
+#     basis_list.append([tdt.Bspline(i, knots_ls, degree, cbsp[j, :]) for j in range(nsub_ls + degree)])
+# for i in range(2, 4):
+#     cbsp = np.eye(nsub_q + degree, nsub_q + degree)
+#     basis_list.append([tdt.Bspline(i, knots_q, degree, cbsp[j, :]) for j in range(nsub_q + degree)])
 
 """ Run Simulation """
 print('Running Simulation...')
