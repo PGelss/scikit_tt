@@ -1,6 +1,5 @@
 import numpy as np
 from scikit_tt.tensor_train import TT
-import scikit_tt.data_driven.transform as tdt
 import scikit_tt.utils as utl
 
 # This file contains functions related to tensor-based generator EDMD.
@@ -8,12 +7,12 @@ import scikit_tt.utils as utl
 # Structure of this file:
 # 1. the four main functions
 #       amuset_hosvd : AMUSEt for the general case (line 18)
-#       amuset_hosvd_reversible : AMUSEt for the reversible case (line 107)
-#       generator_on_product : Evaluate the action of the Koopman generator on a product of functions (line 192)
+#       amuset_hosvd_reversible : AMUSEt for the reversible case (line 128)
+#       generator_on_product : Evaluate the action of the Koopman generator on a product of functions (line 234)
 #       generator_on_product_reversible : Analog to generator_on_product in the reversible case, as it can be used
-#                                         to calculate the entries of dPsi(x) (line 238)
-# 2. private functions related to the general case  (line 272)
-# 3. private functions related to the reversible case (line 624)
+#                                         to calculate the entries of dPsi(x) (line 280)
+# 2. private functions related to the general case  (line 314)
+# 3. private functions related to the reversible case (line 667)
 
 
 def amuset_hosvd(data_matrix, basis_list, b, sigma, num_eigvals=np.infty, threshold=1e-2, max_rank=np.infty,
@@ -61,9 +60,9 @@ def amuset_hosvd(data_matrix, basis_list, b, sigma, num_eigvals=np.infty, thresh
     # Data size:
     m = data_matrix.shape[1]
 
-
     print('calculating Psi(X)...')
     cores = [None] * p
+    s, v = None, None
 
     residual = np.ones((1, m))
     r_i = residual.shape[0]
@@ -119,12 +118,8 @@ def amuset_hosvd(data_matrix, basis_list, b, sigma, num_eigvals=np.infty, thresh
         return eigvals, eigtensors
 
     elif return_option == 'eigenfunctionevals':
-        U.rank_tensordot(eigvecs, overwrite=True)
-        U.tensordot(psi, p, mode='first-first', overwrite=True)
-        U = U.cores[0][0, :, 0, :].T
-        print("Computed eigenfunction trajectory of shape: ")
-        print(U.shape)
-        return eigvals, U
+        eigenfunctionevals = eigvecs.T @ v
+        return eigvals, eigenfunctionevals
 
     else:
         return eigvals, eigvecs
@@ -175,6 +170,7 @@ def amuset_hosvd_reversible(data_matrix, basis_list, sigma, num_eigvals=np.infty
 
     print('calculating Psi(X)...')
     cores = [None] * p
+    s, v = None, None
 
     residual = np.ones((1, m))
     r_i = residual.shape[0]
@@ -229,10 +225,8 @@ def amuset_hosvd_reversible(data_matrix, basis_list, sigma, num_eigvals=np.infty
 
         return eigvals, eigtensors
     elif return_option == 'eigenfunctionevals':
-        U.rank_tensordot(eigvecs, overwrite=True)
-        U.tensordot(psi, p, mode='first-first', overwrite=True)
-        U = U.cores[0][0, :, 0, :].T
-        return eigvals, U
+        eigenfunctionevals = eigvecs.T @ v
+        return eigvals, eigenfunctionevals
     else:
         return eigvals, eigvecs
 
