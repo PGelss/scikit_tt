@@ -629,9 +629,10 @@ def strang_splitting(S, L, I, M, initial_value, step_size, number_of_steps, thre
         tmp = solution[i].copy()
 
         # Strang splitting
-        tmp = __splitting_stage(K, np.arange(0,order,2), tmp, threshold, max_rank)
-        tmp = __splitting_stage(K, np.arange(1,order,2), tmp, threshold, max_rank)
-        tmp = __splitting_stage(K, np.arange(0,order,2), tmp, threshold, max_rank)
+        tmp = __splitting_stage(K, np.arange(0,order,2), tmp, 1e-16, np.infty)
+        tmp = __splitting_stage(K, np.arange(1,order,2), tmp, 1e-16, np.infty)
+        tmp = __splitting_stage(K, np.arange(0,order,2), tmp, 1e-16, np.infty)
+        tmp = tmp.ortho(threshold=threshold, max_rank=max_rank)
 
         # normalize solution
         if normalize > 0:
