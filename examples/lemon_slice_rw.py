@@ -1,11 +1,11 @@
 import numpy as np
+import matplotlib.pyplot as plt
 
 import scikit_tt.data_driven.transform as tdt
 from scikit_tt.data_driven import tgedmd
-from systems import LemonSlice
+from msmtools.analysis.dense.pcca import _pcca_connected_isa
 
-from pyemma.msm import timescales_msm
-from pyemma.coordinates import assign_to_centers
+from systems import LemonSlice
 
 
 
@@ -21,10 +21,15 @@ alpha = 10.0
 c = 1.0
 # Number of minima for Lemon Slice:
 k = 4
+# Define System:
+LS = LemonSlice(k, beta, c=c, d=d, alpha=alpha)
+# Offsets for sampling of random numbers:
+offset = np.array([1.2, 1.2, 0.5, 0.5])[:, None]
 
 """ Computational Settings: """
 # Directory for results:
 directory = "/Users/fkn1/Documents/Uni/Data/tgEDMD_Paper/LemonSlice/"
+fig_dir = "/Users/fkn1/ICloud/Projekte/tgedmd/figures/"
 # Integration time step:
 dt = 1e-3
 # Number of time steps:
@@ -37,8 +42,6 @@ ntraj = 10
 rank_list = [50, 100, 200, 300]
 # Number of timescales to record:
 nits = 3
-# Lag times for MSM construction:
-lags_msm = np.array([5, 10, 20, 50, 100, 200, 500])
 
 """ Definition of Gaussian basis functions """
 mean_ls = np.arange(-1.2, 1.21, 0.4)
@@ -54,22 +57,17 @@ for i in range(2, 4):
 
 
 """ Run Simulation """
-print('Running Simulations ...')
+print('Generating Data...')
 data = np.zeros((ntraj, d, m))
 data_tgedmd = np.zeros((ntraj, d, m_tgedmd))
-LS = LemonSlice(k, beta, c=c, d=d, alpha=alpha)
+rw = np.zeros((ntraj, m_tgedmd))
 for ii in range(ntraj):
-    print("Simulating trajectory %d..."%ii)
-    x0 = np.random.rand(d)
-    ii_traj = LS.simulate(x0, m, dt)
-    data[ii, :, :] = ii_traj
-    data_tgedmd[ii, :, :] = ii_traj[:, ::delta]
-    print("Complete.")
+    for jj in range(d):
+        data[ii, jj, :] = (2*offset[jj] * np.random.rand(m)) - offset[jj]
+    data_tgedmd[ii, :, :] = data[ii, :, ::delta]
+    rw[ii, :] = np.exp(-LS.beta * LS.potential(data_tgedmd[ii, :, :]))
+print("Complete.")
 
-print("Saving Data...")
-np.save(directory + "Simulation_LS_delta_%d.npy"%delta, data_tgedmd)
-print("Done.")
-print(" ")
 
 """ Run tgEDMD """
 timescales = np.zeros((ntraj, len(rank_list), nits))
@@ -84,11 +82,12 @@ for ii in range(ntraj):
     qq = 0
     for rank in rank_list:
         eigvals, traj_eigfuns = tgedmd.amuset_hosvd_reversible(data_tgedmd[ii, :, :], basis_list, diffusion,
-                                                               num_eigvals=5, return_option='eigenfunctionevals',
-                                                               threshold=0.0, max_rank=rank)
+                                                               reweight=rw[ii, :], num_eigvals=5,
+                                                               return_option='eigenfunctionevals', threshold=0.0,
+                                                               max_rank=rank)
         timescales[ii, qq, :] = [-1.0 / kappa for kappa in eigvals[1:nits+1]]
         eigfuns[ii, qq, :, :] = traj_eigfuns[:nits+1, :]
-        print('Implied time scales for rank = %d : '%rank, timescales[qq, :])
+        print('Implied time scales for rank = %d : '%rank, timescales[ii, qq, :])
         qq += 1
     print(" ")
 
@@ -97,27 +96,31 @@ dic = {}
 dic["ranks"] = rank_list
 dic["timescales"] = timescales
 dic["eigfuns"] = eigfuns
-np.savez_compressed(directory + "Results_LS.npz", **dic)
+np.savez_compressed(directory + "Results_LS_RW.npz", **dic)
 
-""" Build MSM as reference: """
-# Discretize the data:
-xe = np.arange(-1.8, 1.81, 0.25)
-xc = 0.5 * (xe[:-1] + xe[1:])
-X, Y = np.meshgrid(xc, xc)
-XC = np.hstack((X.flatten()[:, None], Y.flatten()[:, None]))
+""" Visualized PCCA Analysis: """
+# Identify PCCA states for first trajectory and TT rank 300:
+traj_eigfuns = eigfuns[0, -1, :, :]
+diffs = np.abs(np.max(traj_eigfuns.T, axis=0) - np.min(traj_eigfuns.T, axis=0))
+if diffs[0] > 1e-6:
+    traj_eigfuns[0, :] = traj_eigfuns[0, 0] * np.ones((traj_eigfuns.shape[1]))
+chi, _ = _pcca_connected_isa(traj_eigfuns.T, nits+1)
+chi = chi.T
+for i in range(chi.shape[1]):
+    ind = np.argmax(chi[:, i])
+    chi[:, i] = np.zeros((chi.shape[0],))
+    chi[ind, i] = 1
+chi = chi.astype(bool)
 
-# Calculate MSM timescales for all simulations and lag times:
-ts_msm = np.zeros((ntraj, len(lags_msm), nits))
-for ii in range(ntraj):
-    dtraj = assign_to_centers(data[ii, :2, :].T, XC)
-    its = timescales_msm(dtraj, lags=lags_msm, nits=nits)
-    ts_msm[ii, :, :] = dt * its.timescales
+plt.figure(dpi=300)
 
-# Save results:
-dic = {}
-dic["lags_msm"] = dt * lags_msm
-dic["centers"] = XC
-dic["timescales"] = ts_msm
-np.savez_compressed(directory + "MSM_LS.npz", **dic)
+plt.plot(data_tgedmd[0, 0, :][chi[0, :]], data_tgedmd[0, 1, :][chi[0, :]], 'bx')
+plt.plot(data_tgedmd[0, 0, :][chi[1, :]], data_tgedmd[0, 1, :][chi[1, :]], 'r*')
+plt.plot(data_tgedmd[0, 0, :][chi[2, :]], data_tgedmd[0, 1, :][chi[2, :]], 'g2')
+plt.plot(data_tgedmd[0, 0, :][chi[3, :]], data_tgedmd[0, 1, :][chi[3, :]], 'y+')
+plt.grid()
+plt.xlabel(r"$x_1$")
+plt.ylabel(r"$x_2$")
+plt.savefig(fig_dir + "ls_pcca_rw.pdf", bbox_inches="tight")
 
-
+plt.show()
