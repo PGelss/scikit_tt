@@ -125,13 +125,12 @@ def amuset_hosvd(data_matrix, basis_list, b, sigma, num_eigvals=np.infty, thresh
         return eigvals, eigvecs
 
 
-def amuset_hosvd_reversible(data_matrix, basis_list, sigma, num_eigvals=np.infty, threshold=1e-2, max_rank=np.infty,
-                            return_option='eigenfunctionevals'):
+def amuset_hosvd_reversible(data_matrix, basis_list, sigma, reweight=None, num_eigvals=np.infty, threshold=1e-2,
+                            max_rank=np.infty, return_option='eigenfunctionevals'):
     """
     AMUSEt algorithm for calculation of eigenvalues of the Koopman generator.
     The tensor-trains are created using the exact TT decomposition, whose ranks are reduced using SVDs.
     An efficient implementation of tensor contractions that exploits the special structure of the cores is used.
-
     Parameters
     ----------
     data_matrix : np.ndarray
@@ -140,6 +139,9 @@ def amuset_hosvd_reversible(data_matrix, basis_list, sigma, num_eigvals=np.infty
         list of basis functions in every mode
     sigma : np.ndarray
         diffusion, shape (d, d2, m)
+    reweight : np.ndarray or None, optional
+        array of importance sampling ratios, shape (m,)
+        can be passed to re-weight calculations if off-equilibrium data are used.
     num_eigvals : int, optional
         number of eigenvalues and eigentensors that are returned
         default: return all calculated eigenvalues and eigentensors
@@ -151,7 +153,6 @@ def amuset_hosvd_reversible(data_matrix, basis_list, sigma, num_eigvals=np.infty
         'eigentensors': return a list of the eigentensors of the koopman generator
         'eigenfunctionevals': return the evaluations of the eigenfunctions of the koopman generator at all snapshots
         'eigenvectors': return eigenvectors of M in AMUSEt
-
     Returns
     -------
     eigvals : np.ndarray
@@ -170,7 +171,6 @@ def amuset_hosvd_reversible(data_matrix, basis_list, sigma, num_eigvals=np.infty
 
     print('calculating Psi(X)...')
     cores = [None] * p
-    s, v = None, None
 
     residual = np.ones((1, m))
     r_i = residual.shape[0]
@@ -179,6 +179,9 @@ def amuset_hosvd_reversible(data_matrix, basis_list, sigma, num_eigvals=np.infty
         for j in range(m):
             psi_jk = np.array([basis_list[i][k](data_matrix[:, j]) for k in range(n[i])])
             core_tmp[:, :, j] = np.outer(residual[:, j], psi_jk)
+        if i == (len(basis_list) - 1) and (reweight is not None):
+            for j in range(m):
+                core_tmp[:, :, j] *= np.sqrt(reweight[j])
         u, s, v = utl.truncated_svd(core_tmp.reshape([core_tmp.shape[0] * core_tmp.shape[1], core_tmp.shape[2]]),
                                     threshold=threshold, max_rank=max_rank)
         cores[i] = u.reshape([core_tmp.shape[0], core_tmp.shape[1], 1, u.shape[1]])
@@ -195,7 +198,7 @@ def amuset_hosvd_reversible(data_matrix, basis_list, sigma, num_eigvals=np.infty
     print('Psi(X): {}'.format(psi))
 
     print('calculating M in AMUSEt')
-    M = _amuset_efficient_reversible(U, s, data_matrix, basis_list, sigma)
+    M = _amuset_efficient_reversible(U, s, data_matrix, basis_list, sigma, reweight)
 
     print('calculating eigenvalues and eigentensors...')
     # calculate eigenvalues of M
@@ -225,8 +228,10 @@ def amuset_hosvd_reversible(data_matrix, basis_list, sigma, num_eigvals=np.infty
 
         return eigvals, eigtensors
     elif return_option == 'eigenfunctionevals':
-        eigenfunctionevals = eigvecs.T @ v
-        return eigvals, eigenfunctionevals
+        U.rank_tensordot(eigvecs, overwrite=True)
+        U.tensordot(psi, p, mode='first-first', overwrite=True)
+        U = U.cores[0][0, :, 0, :].T
+        return eigvals, U
     else:
         return eigvals, eigvecs
 
@@ -664,10 +669,9 @@ def _is_special(A):
 
 
 # ################ private functions for the reversible case ##########################################
-def _amuset_efficient_reversible(u, s, x, basis_list, sigma):
+def _amuset_efficient_reversible(u, s, x, basis_list, sigma, reweight=None):
     """
     Construct the Matrix M in AMUSEt using the efficient implementation (M = sum (-0.5 M_k M_k^T)).
-
     Parameters
     ----------
     u : TT
@@ -678,7 +682,8 @@ def _amuset_efficient_reversible(u, s, x, basis_list, sigma):
         list of basis functions in every mode
     sigma : np.ndarray
         diffusion, shape (d, d2, m)
-
+    reweight : np.ndarray or None, optional
+        array of importance sampling ratios, shape (m,)
     Returns
     -------
     np.ndarray
@@ -686,6 +691,12 @@ def _amuset_efficient_reversible(u, s, x, basis_list, sigma):
     """
     m = x.shape[1]
     k = 0
+
+    # Check if re-weighting factors are given:
+    if reweight is not None:
+        w = reweight
+    else:
+        w = np.ones(m)
 
     # for outputting progress
     next_print = 0.1
@@ -701,7 +712,7 @@ def _amuset_efficient_reversible(u, s, x, basis_list, sigma):
             print('progress: {}%'.format(int(round(next_print * 100))))
             next_print += 0.1
         dPsi = _tt_decomposition_one_snapshot_reversible(x[:, k], basis_list, sigma[:, :, k])
-        M += _calc_M_k_amuset_reversible(u, s_inv, dPsi)
+        M += w[k] * _calc_M_k_amuset_reversible(u, s_inv, dPsi)
 
     return M
 
