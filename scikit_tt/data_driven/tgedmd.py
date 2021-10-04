@@ -1,6 +1,11 @@
 import numpy as np
+import scipy.sparse as sparse
+
 from scikit_tt.tensor_train import TT
 import scikit_tt.utils as utl
+
+import os
+
 
 # This file contains functions related to tensor-based generator EDMD.
 
@@ -232,6 +237,131 @@ def amuset_hosvd_reversible(data_matrix, basis_list, sigma, reweight=None, num_e
         U.tensordot(psi, p, mode='first-first', overwrite=True)
         U = U.cores[0][0, :, 0, :].T
         return eigvals, U
+    else:
+        return eigvals, eigvecs
+
+def amuset_hosvd_mem_reversible(data_matrix, basis_list, sigma, mem_dir=None, reweight=None, num_eigvals=np.infty, threshold=1e-2,
+                                max_rank=np.infty, return_option='eigenfunctionevals'):
+    """
+    Same function as amuset_hosvd_reversible, but uses more memory-efficient implementation. The only new parameter
+    is tmp_dir.
+
+    Parameters
+    ----------
+    data_matrix : np.ndarray
+        snapshot matrix, shape (d, m)
+    basis_list : list[list[Function]]
+        list of basis functions in every mode
+    sigma : np.ndarray
+        diffusion, shape (d, d2, m)
+    mem_dir : string or None
+        Store orthonormal cores for \Psi(X) as memory-mapped files.
+        If None, cores are kept in memory.
+        If string, this is the location where memmap files are stored.
+    reweight : np.ndarray or None, optional
+        array of importance sampling ratios, shape (m,)
+        can be passed to re-weight calculations if off-equilibrium data are used.
+    num_eigvals : int, optional
+        number of eigenvalues and eigentensors that are returned
+        default: return all calculated eigenvalues and eigentensors
+    threshold : float, optional
+        threshold for svd of psi and dpsi
+    max_rank : int, optional
+        maximal rank of TT representations of psi and dpsi after svd/ortho
+    return_option : {'eigentensors', 'eigenfunctionevals', 'eigenvectors'}
+        'eigentensors': return a list of the eigentensors of the koopman generator, not implemented at this time
+        'eigenfunctionevals': return the evaluations of the eigenfunctions of the koopman generator at all snapshots
+        'eigenvectors': return eigenvectors of M in AMUSEt
+    Returns
+    -------
+    eigvals : np.ndarray
+        eigenvalues of Koopman generator
+    eigtensors : list[TT] or np.ndarray
+        eigentensors of Koopman generator or evaluations of eigenfunctions at snapshots (shape (*, m))
+        (cf. return_option)
+    """
+
+    # Order:
+    p = len(basis_list)
+    # Mode sizes:
+    n = [len(basis_list[k]) for k in range(p)]
+    # Data size:
+    m = data_matrix.shape[1]
+
+    print('calculating Psi(X)...')
+    cores_u = []
+    ranks_u = []
+    ranks_u.append(1)
+
+    residual = np.ones((1, m))
+    r_i = residual.shape[0]
+    for i in range(p):
+        # Evaluate updated next core:
+        core_tmp = np.zeros((r_i, n[i], m))
+        for j in range(m):
+            psi_jk = np.array([basis_list[i][k](data_matrix[:, j]) for k in range(n[i])])
+            core_tmp[:, :, j] = np.outer(residual[:, j], psi_jk)
+        # Apply re-weighting if necessary:
+        if i == (len(basis_list) - 1) and (reweight is not None):
+            for j in range(m):
+                core_tmp[:, :, j] *= np.sqrt(reweight[j])
+        # Compute SVD and update residual:
+        u, s, v = utl.truncated_svd(core_tmp.reshape([core_tmp.shape[0] * core_tmp.shape[1], core_tmp.shape[2]]),
+                                    threshold=threshold, max_rank=max_rank)
+        residual = np.diag(s).dot(v)
+        # Store orthonormal core to memmap file if required:
+        if mem_dir is not None:
+            ump = np.memmap(mem_dir + "_U_core_%d.dat" % i, mode="w+", dtype="float64",
+                        shape=(r_i, n[i], u.shape[1]))
+            ump[:] = u.reshape([core_tmp.shape[0], core_tmp.shape[1], u.shape[1]])
+            ump.flush()
+            cores_u.append(mem_dir + "_U_core_%d.dat" % i)
+        else:
+            ump = u.reshape([core_tmp.shape[0], core_tmp.shape[1], u.shape[1]])
+            cores_u.append(ump.copy())
+        # Update ranks:
+        r_i = residual.shape[0]
+        ranks_u.append(r_i)
+    ranks_u.append(1)
+    print("Completed global SVD of Psi(X) with ranks: ", ranks_u)
+
+    print('calculating M in AMUSEt')
+    s_inv = np.diag(1.0 / s)
+    M = _amuset_mem_reversible(cores_u, s_inv, ranks_u, data_matrix, basis_list, sigma,
+                               reweight=reweight, mem_dir=mem_dir)
+
+    print('calculating eigenvalues and eigentensors...')
+    # calculate eigenvalues of M
+    eigvals, eigvecs = np.linalg.eig(M)
+
+    sorted_indices = np.argsort(-eigvals)
+    eigvals = eigvals[sorted_indices]
+    eigvecs = eigvecs[:, sorted_indices]
+
+    if not (eigvals < 0).all():
+        print('WARNING: there are eigenvalues >= 0')
+
+    if len(eigvals) > num_eigvals:
+        eigvals = eigvals[:num_eigvals]
+        eigvecs = eigvecs[:, :num_eigvals]
+
+    # Clean up memory-mapped files if necessary:
+    if mem_dir is not None:
+        for ump in cores_u:
+            os.remove(ump)
+
+    # calculate eigentensors
+    if return_option == 'eigentensors':
+        eigtensors = []
+        eigvecs = eigvecs[:, :, None]
+        for i in range(eigvals.shape[0]):
+            eigtensor = [cores_u[jj].copy() for jj in range(p)]
+            eigtensor[-1] = np.tensordot(eigtensor[-1], eigvecs[:, i, :], axes=([2], [0]))
+            eigtensors.append(eigtensor)
+        return eigvals, eigtensors
+    if return_option == 'eigenfunctionevals':
+        eigfun_traj = np.dot(eigvecs.T, v)
+        return eigvals, eigfun_traj
     else:
         return eigvals, eigvecs
 
@@ -841,6 +971,148 @@ def _calc_M_k_amuset_reversible(u, s_inv, dpsi):
     M = s_inv.dot(M).dot(sigma)
     return -0.5 * M.dot(M.T)
 
+#================ memory-efficient versions of all private functions for the reversible case: =============
+def _amuset_mem_reversible(u, s_inv, ranks, x, basis_list, sigma, reweight=None, mem_dir=None):
+    """
+    Construct the Matrix M in AMUSEt using the efficient implementation (M = sum (-0.5 M_k M_k^T)).
+    Same as _amuset_efficient_reversible, but sparse and memory mapped arrays are used.
+    Parameters
+    ----------
+    u :     list of cores of orthonormal tensor U (if mem_dir==None) or
+            list of file names for memory-mapped cores of U.
+    s_inv:  np.ndarray
+            inverse of diagonal matrix from final step of global SVD
+    ranks:  list of TT ranks for u
+    x :     np.ndarray
+            snapshot matrix of size d x m
+    basis_list : list[list[Function]]
+            list of basis functions in every mode
+    sigma : np.ndarray
+            diffusion, shape (d, d2, m)
+    reweight : np.ndarray or None, optional
+            array of importance sampling ratios, shape (m,)
+    mem_dir : string or None
+        Store orthonormal cores for \Psi(X) as memory-mapped files.
+        If None, cores are kept in memory.
+        If string, this is the location where memmap files are stored.
+
+    Returns
+    -------
+
+    np.ndarray
+        matrix M from AMUSEt
+    """
+    # Obtain dimensions of the data:
+    d, m = x.shape
+    output_disp = int(m  / 10)
+    # Obtain order:
+    p = len(basis_list)
+    # Contract sigma with itself:
+    sigma = np.einsum("ikl, jkl -> ijl", sigma, sigma)
+    # Check if re-weighting factors are given:
+    if reweight is not None:
+        w = reweight
+    else:
+        w = np.ones(m)
+
+    # Output:
+    M = np.zeros((ranks[p], ranks[p]))
+    # Loop over the data:
+    for l in range(m):
+        # Load first core of u from disc:
+        if mem_dir is not None:
+            ump = np.memmap(u[0], mode="r", dtype="float64", shape=(ranks[0], len(basis_list[0]), ranks[1]))
+        else:
+            ump = u[0]
+        # First step of tensor contraction:
+        v = _contraction_step_dPsi_u(basis_list[0], x[:, l], ump, position='first')
+
+        # All remaining steps of tensor contraction:
+        for k in range(1, p):
+            # Load k-th core of u from disc:
+            if mem_dir is not None:
+                ump = np.memmap(u[k], mode="r", dtype="float64", shape=(ranks[k], len(basis_list[k]), ranks[k+1]))
+            else:
+                ump = u[k]
+            # Next step of the contraction:
+            if k == (p - 1):
+                v = _contraction_step_dPsi_u(basis_list[k], x[:, l], ump, position='last', v=v)
+            else:
+                v = _contraction_step_dPsi_u(basis_list[k], x[:, l], ump, position='middle', v=v)
+        # Add contribution to M:
+        v = np.reshape(v, (d, ranks[p]))
+        v = np.dot(v, s_inv)
+        M += -0.5 * w[l] * np.dot(v.T, np.dot(sigma[:, :, l], v))
+        if np.remainder(l+1, output_disp) == 0:
+            print("Completed %d per cent."%(10 * (int((l + 1) / output_disp))))
+    return M
+
+
+def _contraction_step_dPsi_u(psi_k, x, u_k, position='middle', v=None):
+    """
+    Complete one step of the contraction of dPsi(x) and the orthonormal TT U.
+
+    Parameters
+    ----------
+    psi_k : list of callable function, basis set for mode k.
+    x : np.ndarray
+        shape (d,): a single data point
+    u_uk:  ndarray, shape(r_km, n_k, r_kp)
+        orthogonal core from the global SVD
+    position : {'first', 'middle', 'last'}, optional
+        first core: k = 1
+        middle core: 2 <= k <= p-1
+        last core: k = p
+    v, ndarray, shape (1, (d+1) * r_km) or None.
+        the output of the previous step of the contraction.
+        v should be set to None if position=='first'
+
+    Returns
+    -------
+    array of shape
+            position == 'first':   (1, (d + 1) * r_kp)
+            position == 'middle':   (1, (d + 1) * r_kp)
+            position == 'last':   (1, d * r_kp)
+
+        result of k-th step of the contraction
+    """
+    # Obtain dimensions of the data:
+    d = x.shape[0]
+    # Obtain shape of orthonormal core:
+    r_km, nk, r_kp = u_k.shape
+
+    # Compute result of k-th step of the contraction using sparse structure of dPsi(x):
+    if position == 'middle':
+        v = v.reshape((1, (d + 1), r_km))
+        v_new = np.zeros((1, d + 1, r_kp))
+        for ii in range(nk):
+            v_new[0, 0, :] += np.dot(v[0, 0, :], psi_k[ii](x) * u_k[:, ii, :])
+            psi_grad = psi_k[ii].gradient(x)
+            for jj in range(1, d + 1):
+                v_new[0, jj, :] += (np.dot(v[0, 0, :], psi_grad[jj - 1] * u_k[:, ii, :]) +
+                                np.dot(v[0, jj, :], psi_k[ii](x) * u_k[:, ii, :]))
+        v_new = v_new.reshape((1, (d + 1) * r_kp))
+
+    elif position == 'last':
+        v = v.reshape((1, (d + 1), r_km))
+        v_new = np.zeros((1, d, r_kp))
+        for ii in range(nk):
+            psi_grad = psi_k[ii].gradient(x)
+            for jj in range(d):
+                v_new[0, jj, :] += (np.dot(v[0, 0, :], psi_grad[jj] * u_k[:, ii, :]) +
+                                     np.dot(v[0, jj + 1, :], psi_k[ii](x) * u_k[:, ii, :]))
+        v_new = v_new.reshape((1, d * r_kp))
+
+    else:
+        v_new = np.zeros((1, (d + 1) * r_kp))
+        for ii in range(nk):
+            dpsi_ii = np.zeros((1, d + 1))
+            dpsi_ii[0, 0] = psi_k[ii](x)
+            dpsi_ii[0, 1:] = psi_k[ii].gradient(x)
+            v_new += np.kron(dpsi_ii, u_k[:, ii, :])
+
+    return v_new
+#=====================================
 
 def _special_kron_reversible(dPsi, B):
     """
