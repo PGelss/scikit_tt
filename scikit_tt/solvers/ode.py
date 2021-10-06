@@ -579,7 +579,7 @@ def lie_splitting(S, L, I, M, initial_value, step_size, number_of_steps, thresho
 
     return solution
 
-def strang_splitting(S, L, I, M, initial_value, step_size, number_of_steps, threshold=1e-12, max_rank=50, normalize=1, K=None):
+def strang_splitting(S, L, I, M, initial_value, step_size, number_of_steps, threshold=1e-12, max_rank=50, normalize=0, K=None):
     """
     Strang splitting for ODEs with non-periodic SLIM operators.
 
@@ -644,7 +644,7 @@ def strang_splitting(S, L, I, M, initial_value, step_size, number_of_steps, thre
 
     return solution
 
-def yoshida_splitting(S, L, I, M, initial_value, step_size, number_of_steps, threshold=1e-12, max_rank=50, normalize=1):
+def yoshida_splitting(S, L, I, M, initial_value, step_size, number_of_steps, threshold=1e-12, max_rank=50, normalize=0):
     """
     Yoshida splitting for ODEs with non-periodic SLIM operators.
 
@@ -692,7 +692,7 @@ def yoshida_splitting(S, L, I, M, initial_value, step_size, number_of_steps, thr
         # copy previous solution for next step
         tmp = solution[i].copy()
 
-        # Strang splitting
+        # splitting
         tmp = __splitting_stage(K1, np.arange(0,order,2), tmp, threshold, np.infty)
         tmp = __splitting_stage(K1, np.arange(1,order,2), tmp, threshold, np.infty)
         tmp = __splitting_stage(K1, np.arange(0,order,2), tmp, threshold, np.infty)
@@ -705,6 +705,84 @@ def yoshida_splitting(S, L, I, M, initial_value, step_size, number_of_steps, thr
         tmp = __splitting_stage(K1, np.arange(1,order,2), tmp, threshold, np.infty)
         tmp = __splitting_stage(K1, np.arange(0,order,2), tmp, threshold, np.infty)
         tmp = tmp.ortho(threshold=threshold, max_rank=max_rank)
+
+        # normalize solution
+        if normalize > 0:
+            tmp = (1 / tmp.norm(p=normalize)) * tmp
+
+        # append solution
+        solution.append(tmp.copy())
+
+    return solution
+
+def kahan_li_splitting(S, L, I, M, initial_value, step_size, number_of_steps, threshold=1e-12, max_rank=50, normalize=0):
+    """
+    Kahan-Li splitting for ODEs with non-periodic SLIM operators.
+
+    Parameters
+    ----------
+    S : ndarray or list[ndarrays]
+        single-site components of SLIM decomposition
+    L : ndarray or list[ndarrays]
+        left two-site components of SLIM decomposition
+    I : ndarray or list[ndarrays]
+        identity components of SLIM decomposition
+    M : ndarray or list[ndarrays]
+        right two-site components of SLIM decomposition
+    initial_value : TT
+        initial value of the differential equation
+    step_size : float
+        step size
+    number_of_steps : int
+        number of time steps
+    threshold : float, optional
+        threshold for reduced SVDs, default is 1e-12
+    max_rank : int, optional
+        maximum rank of the solution, default is 50
+    normalize : {0, 1, 2}, optional
+        no normalization if 0, otherwise the solution is normalized in terms of Manhattan or Euclidean norm in each step
+
+    Returns
+    -------
+    list[TT]
+        numerical solution of the differential equation
+    """
+
+    # chain length
+    order = initial_value.order
+
+    # define solution list
+    solution = []
+    solution.append(initial_value)
+
+    K=[None]*9
+
+    K[0] = __splitting_propagators(S, L, I, M, order, step_size, [ 0.5*0.13020248308889008087881763,  0.13020248308889008087881763])
+    K[1] = __splitting_propagators(S, L, I, M, order, step_size, [ 0.5*0.56116298177510838456196441,  0.56116298177510838456196441])
+    K[2] = __splitting_propagators(S, L, I, M, order, step_size, [-0.5*0.38947496264484728640807860, -0.38947496264484728640807860])
+    K[3] = __splitting_propagators(S, L, I, M, order, step_size, [ 0.5*0.15884190655515560089621075,  0.15884190655515560089621075])
+    K[4] = __splitting_propagators(S, L, I, M, order, step_size, [-0.5*0.39590389413323757733623154, -0.39590389413323757733623154])
+    K[5] = __splitting_propagators(S, L, I, M, order, step_size, [ 0.5*0.18453964097831570709183254,  0.18453964097831570709183254])
+    K[6] = __splitting_propagators(S, L, I, M, order, step_size, [ 0.5*0.25837438768632204729397911,  0.25837438768632204729397911])
+    K[7] = __splitting_propagators(S, L, I, M, order, step_size, [ 0.5*0.29501172360931029887096624,  0.29501172360931029887096624])
+    K[8] = __splitting_propagators(S, L, I, M, order, step_size, [-0.5*0.60550853383003451169892108, -0.60550853383003451169892108])
+
+    for i in range(number_of_steps):
+
+        # copy previous solution for next step
+        tmp = solution[i].copy()
+
+        # splitting
+        for j in range(9):
+            tmp = __splitting_stage(K[j], np.arange(0,order,2), tmp, threshold, np.infty)
+            tmp = __splitting_stage(K[j], np.arange(1,order,2), tmp, threshold, np.infty)
+            tmp = __splitting_stage(K[j], np.arange(0,order,2), tmp, threshold, np.infty)
+            tmp = tmp.ortho(threshold=threshold, max_rank=max_rank)
+        for j in range(7,-1,-1):
+            tmp = __splitting_stage(K[j], np.arange(0,order,2), tmp, threshold, np.infty)
+            tmp = __splitting_stage(K[j], np.arange(1,order,2), tmp, threshold, np.infty)
+            tmp = __splitting_stage(K[j], np.arange(0,order,2), tmp, threshold, np.infty)
+            tmp = tmp.ortho(threshold=threshold, max_rank=max_rank)
 
         # normalize solution
         if normalize > 0:
