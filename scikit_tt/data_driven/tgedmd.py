@@ -279,6 +279,8 @@ def amuset_hosvd_mem_reversible(data_matrix, basis_list, sigma, mem_dir=None, re
     eigtensors : list[TT] or np.ndarray
         eigentensors of Koopman generator or evaluations of eigenfunctions at snapshots (shape (*, m))
         (cf. return_option)
+    ranks : list
+        list of TT ranks obtained by global SVD.
     """
 
     # Order:
@@ -358,12 +360,12 @@ def amuset_hosvd_mem_reversible(data_matrix, basis_list, sigma, mem_dir=None, re
             eigtensor = [cores_u[jj].copy() for jj in range(p)]
             eigtensor[-1] = np.tensordot(eigtensor[-1], eigvecs[:, i, :], axes=([2], [0]))
             eigtensors.append(eigtensor)
-        return eigvals, eigtensors
+        return eigvals, eigtensors, ranks_u
     if return_option == 'eigenfunctionevals':
         eigfun_traj = np.dot(eigvecs.T, v)
-        return eigvals, eigfun_traj
+        return eigvals, eigfun_traj, ranks_u
     else:
-        return eigvals, eigvecs
+        return eigvals, eigvecs, ranks_u
 
 
 def generator_on_product(basis_list, s, x, b, sigma):
