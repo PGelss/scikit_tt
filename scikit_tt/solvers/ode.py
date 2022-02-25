@@ -180,6 +180,84 @@ def symmetric_euler(operator, initial_value, step_sizes, previous_value=None, th
 
     return solution
 
+def fod(operator, initial_value, step_sizes, previous_value=None, threshold=1e-12, max_rank=50, normalize=1, progress=True):
+    """
+    Fourth order differencing for linear differential equations in the TT format.
+
+    Parameters
+    ----------
+    operator : TT
+        TT operator of the differential equation
+    initial_value : TT
+        initial value of the differential equation
+    step_sizes : list[float]
+        step sizes
+    previous_value: TT, optional, default is None
+        previous step for symmetric Euler; if not given one explicit Euler step is computed backwards in time
+    threshold : float, optional
+        threshold for reduced SVD decompositions, default is 1e-12
+    max_rank : int, optional
+        maximum rank of the solution, default is 50
+    normalize : {0, 1, 2}, optional
+        no normalization if 0, otherwise the solution is normalized in terms of Manhattan or Euclidean norm in each step
+    progress : bool, optional
+        whether to show the progress of the algorithm or not, default is True
+
+    Returns
+    -------
+    list[TT]
+        numerical solution of the differential equation
+    """
+
+    # return current time
+    start_time = utl.progress('Running fourth order differencing method', 0, show=progress)
+
+    # initialize solution
+    solution = [initial_value]
+
+    # begin loop over time steps
+    # --------------------------
+
+    for i in range(len(step_sizes)):
+
+        if i == 0: # initialize: one expl. Euler backwards in time if previous step is not given
+
+            if previous_value==None:
+                solution_prev = (tt.eye(operator.row_dims) - step_sizes[0]*operator).dot(solution[0])
+            else:
+                solution_prev = previous_value
+
+            # normalize
+            if normalize > 0:
+                solution_prev = (1 / solution_prev.norm(p=normalize)) * solution_prev
+
+            solution_prev = solution_prev.ortho(threshold=threshold, max_rank=max_rank)
+
+        else:
+            solution_prev = solution[i-1].copy()
+
+        # compute next time step from current and previous time step
+        tt_three = operator.dot(solution[i]).ortho(threshold=threshold, max_rank=max_rank)
+        tt_three = operator.dot(tt_three).ortho(threshold=threshold, max_rank=max_rank)
+        tt_three = operator.dot(tt_three)
+        tt_tmp = solution_prev + 2*step_sizes[i]*operator.dot(solution[i]) - (1/3)*step_sizes[i]**3*tt_three
+
+        # truncate ranks of the solution
+        tt_tmp = tt_tmp.ortho(threshold=threshold, max_rank=max_rank)
+
+        # normalize solution
+        if normalize > 0:
+            tt_tmp = (1 / tt_tmp.norm(p=normalize)) * tt_tmp
+
+        # append solution
+        solution.append(tt_tmp.copy())
+
+        # print progress
+        utl.progress('Running fourth order differencing method', 100 * (i + 1) / len(step_sizes), show=progress,
+                     cpu_time=_time.time() - start_time)
+
+    return solution
+
 
 def implicit_euler(operator, initial_value, initial_guess, step_sizes, repeats=1, tt_solver='als', threshold=1e-12,
                    max_rank=np.infty, micro_solver='solve', normalize=1, progress=True):
