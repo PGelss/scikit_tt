@@ -240,7 +240,7 @@ def fod(operator, initial_value, step_sizes, previous_value=None, threshold=1e-1
         tt_three = operator.dot(solution[i]).ortho(threshold=threshold, max_rank=max_rank)
         tt_three = operator.dot(tt_three).ortho(threshold=threshold, max_rank=max_rank)
         tt_three = operator.dot(tt_three)
-        tt_tmp = solution_prev + 2*step_sizes[i]*operator.dot(solution[i]) - (1/3)*step_sizes[i]**3*tt_three
+        tt_tmp = solution_prev + 2*step_sizes[i]*operator.dot(solution[i]) + (1/3)*step_sizes[i]**3*tt_three
 
         # truncate ranks of the solution
         tt_tmp = tt_tmp.ortho(threshold=threshold, max_rank=max_rank)
