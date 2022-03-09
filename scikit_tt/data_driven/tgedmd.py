@@ -20,114 +20,114 @@ import os
 # 3. private functions related to the reversible case (line 667)
 
 
-def amuset_hosvd(data_matrix, basis_list, b, sigma, num_eigvals=np.infty, threshold=1e-2, max_rank=np.infty,
-                 return_option='eigenfunctionevals'):
-    """
-    AMUSEt algorithm for the calculation of eigenvalues of the Koopman generator.
-    The tensor-trains are created using the exact TT decomposition, whose ranks are reduced using SVDs.
-    An efficient implementation of tensor contractions that exploits the special structure of the cores is used.
-
-    Parameters
-    ----------
-    data_matrix : np.ndarray
-        snapshot matrix, shape (d, m)
-    basis_list : list[list[Function]]
-        list of basis functions in every mode
-    b : np.ndarray
-        drift, shape (d, m)
-    sigma : np.ndarray
-        diffusion, shape (d, d2, m)
-    num_eigvals : int, optional
-        number of eigenvalues and eigentensors that are returned
-        default: return all calculated eigenvalues and eigentensors
-    threshold : float, optional
-        threshold for svd of psi
-    max_rank : int, optional
-        maximal rank of TT representations of psi after svd/ortho
-    return_option : {'eigentensors', 'eigenfunctionevals', 'eigenvectors'}
-        'eigentensors': return a list of the eigentensors of the koopman generator
-        'eigenfunctionevals': return the evaluations of the eigenfunctions of the koopman generator at all snapshots
-        'eigenvectors': eigenvectors of M in AMUSEt
-
-    Returns
-    -------
-    eigvals : np.ndarray
-        eigenvalues of Koopman generator
-    eigtensors : list[TT] or np.ndarray
-        eigentensors of Koopman generator or evaluations of eigenfunctions at snapshots (shape (*, m))
-        (cf. return_option)
-    """
-
-    # Order:
-    p = len(basis_list)
-    # Mode sizes:
-    n = [len(basis_list[k]) for k in range(p)]
-    # Data size:
-    m = data_matrix.shape[1]
-
-    print('calculating Psi(X)...')
-    cores = [None] * p
-    s, v = None, None
-
-    residual = np.ones((1, m))
-    r_i = residual.shape[0]
-    for i in range(len(basis_list)):
-        core_tmp = np.zeros((r_i, n[i], m))
-        for j in range(m):
-            psi_jk = np.array([basis_list[i][k](data_matrix[:, j]) for k in range(n[i])])
-            core_tmp[:, :, j] = np.outer(residual[:, j], psi_jk)
-        u, s, v = utl.truncated_svd(core_tmp.reshape([core_tmp.shape[0] * core_tmp.shape[1], core_tmp.shape[2]]),
-                                    threshold=threshold, max_rank=max_rank)
-        cores[i] = u.reshape([core_tmp.shape[0], core_tmp.shape[1], 1, u.shape[1]])
-        residual = np.diag(s).dot(v)
-        r_i = residual.shape[0]
-
-    # Complete orthonormal part:
-    U = TT(cores)
-    # Build rank-reduced representation of psi(X):
-    psi = U.rank_tensordot(np.diag(s))
-    psi.concatenate([v[:, :, None, None]], overwrite=True)
-    # Also compute inverse of s:
-    s_inv = np.diag(1.0 / s)
-
-    print('Psi(X): {}'.format(psi))
-
-    print('calculating M in AMUSEt')
-    M = _amuset_efficient(U, s, v.T, data_matrix, basis_list, b, sigma)
-
-    print('calculating eigenvalues and eigentensors...')
-    # calculate eigenvalues of M
-    eigvals, eigvecs = np.linalg.eig(M)
-
-    sorted_indices = np.argsort(-eigvals)
-    eigvals = eigvals[sorted_indices]
-    eigvecs = eigvecs[:, sorted_indices]
-
-    if not (eigvals < 0).all():
-        print('WARNING: there are eigenvalues >= 0')
-
-    if len(eigvals) > num_eigvals:
-        eigvals = eigvals[:num_eigvals]
-        eigvecs = eigvecs[:, :num_eigvals]
-
-    U.rank_tensordot(s_inv, mode='last', overwrite=True)
-
-    # calculate eigentensors
-    if return_option == 'eigentensors':
-        eigvecs = eigvecs[:, :, np.newaxis]
-        eigtensors = []
-        for i in range(eigvals.shape[0]):
-            eigtensor = U.copy()
-            eigtensor.rank_tensordot(eigvecs[:, i, :], overwrite=True)
-            eigtensors.append(eigtensor)
-        return eigvals, eigtensors
-
-    elif return_option == 'eigenfunctionevals':
-        eigenfunctionevals = eigvecs.T @ v
-        return eigvals, eigenfunctionevals
-
-    else:
-        return eigvals, eigvecs
+# def amuset_hosvd(data_matrix, basis_list, b, sigma, num_eigvals=np.infty, threshold=1e-2, max_rank=np.infty,
+#                  return_option='eigenfunctionevals'):
+#     """
+#     AMUSEt algorithm for the calculation of eigenvalues of the Koopman generator.
+#     The tensor-trains are created using the exact TT decomposition, whose ranks are reduced using SVDs.
+#     An efficient implementation of tensor contractions that exploits the special structure of the cores is used.
+#
+#     Parameters
+#     ----------
+#     data_matrix : np.ndarray
+#         snapshot matrix, shape (d, m)
+#     basis_list : list[list[Function]]
+#         list of basis functions in every mode
+#     b : np.ndarray
+#         drift, shape (d, m)
+#     sigma : np.ndarray
+#         diffusion, shape (d, d2, m)
+#     num_eigvals : int, optional
+#         number of eigenvalues and eigentensors that are returned
+#         default: return all calculated eigenvalues and eigentensors
+#     threshold : float, optional
+#         threshold for svd of psi
+#     max_rank : int, optional
+#         maximal rank of TT representations of psi after svd/ortho
+#     return_option : {'eigentensors', 'eigenfunctionevals', 'eigenvectors'}
+#         'eigentensors': return a list of the eigentensors of the koopman generator
+#         'eigenfunctionevals': return the evaluations of the eigenfunctions of the koopman generator at all snapshots
+#         'eigenvectors': eigenvectors of M in AMUSEt
+#
+#     Returns
+#     -------
+#     eigvals : np.ndarray
+#         eigenvalues of Koopman generator
+#     eigtensors : list[TT] or np.ndarray
+#         eigentensors of Koopman generator or evaluations of eigenfunctions at snapshots (shape (*, m))
+#         (cf. return_option)
+#     """
+#
+#     # Order:
+#     p = len(basis_list)
+#     # Mode sizes:
+#     n = [len(basis_list[k]) for k in range(p)]
+#     # Data size:
+#     m = data_matrix.shape[1]
+#
+#     print('calculating Psi(X)...')
+#     cores = [None] * p
+#     s, v = None, None
+#
+#     residual = np.ones((1, m))
+#     r_i = residual.shape[0]
+#     for i in range(len(basis_list)):
+#         core_tmp = np.zeros((r_i, n[i], m))
+#         for j in range(m):
+#             psi_jk = np.array([basis_list[i][k](data_matrix[:, j]) for k in range(n[i])])
+#             core_tmp[:, :, j] = np.outer(residual[:, j], psi_jk)
+#         u, s, v = utl.truncated_svd(core_tmp.reshape([core_tmp.shape[0] * core_tmp.shape[1], core_tmp.shape[2]]),
+#                                     threshold=threshold, max_rank=max_rank)
+#         cores[i] = u.reshape([core_tmp.shape[0], core_tmp.shape[1], 1, u.shape[1]])
+#         residual = np.diag(s).dot(v)
+#         r_i = residual.shape[0]
+#
+#     # Complete orthonormal part:
+#     U = TT(cores)
+#     # Build rank-reduced representation of psi(X):
+#     psi = U.rank_tensordot(np.diag(s))
+#     psi.concatenate([v[:, :, None, None]], overwrite=True)
+#     # Also compute inverse of s:
+#     s_inv = np.diag(1.0 / s)
+#
+#     print('Psi(X): {}'.format(psi))
+#
+#     print('calculating M in AMUSEt')
+#     M = _amuset_efficient(U, s, v.T, data_matrix, basis_list, b, sigma)
+#
+#     print('calculating eigenvalues and eigentensors...')
+#     # calculate eigenvalues of M
+#     eigvals, eigvecs = np.linalg.eig(M)
+#
+#     sorted_indices = np.argsort(-eigvals)
+#     eigvals = eigvals[sorted_indices]
+#     eigvecs = eigvecs[:, sorted_indices]
+#
+#     if not (eigvals < 0).all():
+#         print('WARNING: there are eigenvalues >= 0')
+#
+#     if len(eigvals) > num_eigvals:
+#         eigvals = eigvals[:num_eigvals]
+#         eigvecs = eigvecs[:, :num_eigvals]
+#
+#     U.rank_tensordot(s_inv, mode='last', overwrite=True)
+#
+#     # calculate eigentensors
+#     if return_option == 'eigentensors':
+#         eigvecs = eigvecs[:, :, np.newaxis]
+#         eigtensors = []
+#         for i in range(eigvals.shape[0]):
+#             eigtensor = U.copy()
+#             eigtensor.rank_tensordot(eigvecs[:, i, :], overwrite=True)
+#             eigtensors.append(eigtensor)
+#         return eigvals, eigtensors
+#
+#     elif return_option == 'eigenfunctionevals':
+#         eigenfunctionevals = eigvecs.T @ v
+#         return eigvals, eigenfunctionevals
+#
+#     else:
+#         return eigvals, eigvecs
 
 
 def amuset_hosvd_reversible(data_matrix, basis_list, sigma, reweight=None, num_eigvals=np.infty, threshold=1e-2,
@@ -240,120 +240,132 @@ def amuset_hosvd_reversible(data_matrix, basis_list, sigma, reweight=None, num_e
     else:
         return eigvals, eigvecs
 
-def amuset_hosvd_mem_reversible(data_matrix, basis_list, sigma, mem_dir=None, reweight=None, num_eigvals=np.infty, threshold=1e-2,
-                                max_rank=np.infty, return_option='eigenfunctionevals'):
+def amuset_hosvd(data_matrix, basis_list, sigma, b=None, reweight=None, num_eigvals=np.infty, threshold=1e-2,
+                 max_rank=np.infty, return_option='eigenfunctionevals', output_freq=None):
     """
-    Same function as amuset_hosvd_reversible, but uses more memory-efficient implementation. The only new parameter
-    is tmp_dir.
+    Calculate eigenvalues and eigenfunctions of the Koopman generator, projected on a tensor product basis,
+    using simulation data.
+    This function uses the tensor train format and the tgEDMD method (Algorithm 2 in [1]) to approximate the
+    Galerkin projection of the Koopman generator on a given product basis.
 
     Parameters
     ----------
     data_matrix : np.ndarray
-        snapshot matrix, shape (d, m)
+        snapshot matrix, shape (d, m), where d is the state space dimension and m is the data size.
     basis_list : list[list[Function]]
-        list of basis functions in every mode
+        list of lists of elementary basis functions for each mode. Functions must be derived from
+        data_driven.transform.Function
     sigma : np.ndarray
-        diffusion, shape (d, d2, m)
-    mem_dir : string or None
-        Store orthonormal cores for \Psi(X) as memory-mapped files.
-        If None, cores are kept in memory.
-        If string, this is the location where memmap files are stored.
-    reweight : np.ndarray or None, optional
-        array of importance sampling ratios, shape (m,)
-        can be passed to re-weight calculations if off-equilibrium data are used.
-    num_eigvals : int, optional
+        shape (d, d2, m), diffusion matrix at each data point.
+    b : np.ndarray or None
+        shape (d, m), drift vector at each data point. If b equals None, reversible tgEDMD is applied.
+    reweight : np.ndarray or None
+        shape (m,) array of importance sampling ratios
+    num_eigvals : int or np.infty
         number of eigenvalues and eigentensors that are returned
         default: return all calculated eigenvalues and eigentensors
-    threshold : float, optional
-        threshold for svd of psi and dpsi
-    max_rank : int, optional
-        maximal rank of TT representations of psi and dpsi after svd/ortho
+    threshold : float
+        absolute truncation threshold for singular values during global SVD of \PSI(X).
+        Default value is 1e-2.
+    max_rank : int or np.infty
+        maximally allowed rank of orthonormal TT representation for data tensor \Psi(X).
     return_option : {'eigentensors', 'eigenfunctionevals', 'eigenvectors'}
-        'eigentensors': return a list of the eigentensors of the koopman generator, not implemented at this time
-        'eigenfunctionevals': return the evaluations of the eigenfunctions of the koopman generator at all snapshots
-        'eigenvectors': return eigenvectors of M in AMUSEt
+        'eigentensors': return a list of the eigentensors of the Koopman generator, not implemented at this time
+        'eigenfunctionevals': return the evaluations of the eigenfunctions of the Koopman generator at all snapshots
+        'eigenvectors': return eigenvectors of reduced matrix M in tgEDMD.
+    output_freq : int or None
+        Display progress message every output_freq steps.
+
     Returns
     -------
     eigvals : np.ndarray
-        eigenvalues of Koopman generator
-    eigtensors : list[TT] or np.ndarray
-        eigentensors of Koopman generator or evaluations of eigenfunctions at snapshots (shape (*, m))
+        shape (num_eigvals,) eigenvalues of Koopman generator
+    eigtensors : list[TT] or np.ndarray of shape  (num_eigvals, m)
+        eigentensors of Koopman generator or evaluations of eigenfunctions at all snapshots.
         (cf. return_option)
     ranks : list
-        list of TT ranks obtained by global SVD.
+        list of TT ranks obtained by application global SVD to \PSI(X).
     """
 
-    # Order:
+    """ Extract information on the data and basis sets: """
+    # Order of tensor representation:
     p = len(basis_list)
     # Mode sizes:
     n = [len(basis_list[k]) for k in range(p)]
     # Data size:
     m = data_matrix.shape[1]
 
-    print('calculating Psi(X)...')
+    """ Apply global SVD algorithm to \PSI(X): """
+    if output_freq is not None:
+        print("Computing global SVD of \PSI(X)...")
+    # Lists for orthonormal cores and ranks:
     cores_u = []
     ranks_u = []
+    # First rank is always equals to one:
     ranks_u.append(1)
-
+    # array to hold residual (non-orthonormal) part of PSI(X):
     residual = np.ones((1, m))
     r_i = residual.shape[0]
+
+    # Loop over modes of the tensor:
     for i in range(p):
         # Evaluate updated next core:
         core_tmp = np.zeros((r_i, n[i], m))
+        # For each data point ...
         for j in range(m):
+            # ... evaluate basis set for mode i at this data point...
             psi_jk = np.array([basis_list[i][k](data_matrix[:, j]) for k in range(n[i])])
+            # ... compute outer product with reduced basis from previous step, stored in
+            # rows of residual (see [2]).
             core_tmp[:, :, j] = np.outer(residual[:, j], psi_jk)
-        # Apply re-weighting if necessary:
+        # Apply re-weighting if required:
         if i == (len(basis_list) - 1) and (reweight is not None):
             for j in range(m):
                 core_tmp[:, :, j] *= np.sqrt(reweight[j])
+
         # Compute SVD and update residual:
         u, s, v = utl.truncated_svd(core_tmp.reshape([core_tmp.shape[0] * core_tmp.shape[1], core_tmp.shape[2]]),
-                                    threshold=threshold, max_rank=max_rank)
+                                    threshold=threshold, max_rank=max_rank, rel_truncation=False)
+        # Compute non-orthonormal part:
         residual = np.diag(s).dot(v)
-        # Store orthonormal core to memmap file if required:
-        if mem_dir is not None:
-            ump = np.memmap(mem_dir + "_U_core_%d.dat" % i, mode="w+", dtype="float64",
-                        shape=(r_i, n[i], u.shape[1]))
-            ump[:] = u.reshape([core_tmp.shape[0], core_tmp.shape[1], u.shape[1]])
-            ump.flush()
-            cores_u.append(mem_dir + "_U_core_%d.dat" % i)
-        else:
-            ump = u.reshape([core_tmp.shape[0], core_tmp.shape[1], u.shape[1]])
-            cores_u.append(ump.copy())
+        # Re-shape orthonormal part and add to list:
+        u = u.reshape([core_tmp.shape[0], core_tmp.shape[1], u.shape[1]])
+        cores_u.append(u.copy())
         # Update ranks:
         r_i = residual.shape[0]
         ranks_u.append(r_i)
+    # Final rank always equals one:
     ranks_u.append(1)
-    print("Completed global SVD of Psi(X) with ranks: ", ranks_u)
+    if output_freq is not None:
+        print("Completed global SVD of Psi(X) with ranks: ", ranks_u)
 
-    print('calculating M in AMUSEt')
+    """ Compute reduced matrix: """
+    if output_freq is not None:
+        print('Calculating reduced matrix ...')
     s_inv = np.diag(1.0 / s)
-    M = _amuset_mem_reversible(cores_u, s_inv, ranks_u, data_matrix, basis_list, sigma,
-                               reweight=reweight, mem_dir=mem_dir)
+    M = _reduced_matrix_tgedmd(cores_u, s_inv, v.T, ranks_u, data_matrix, basis_list, sigma, b=b,
+                               reweight=reweight, output_freq=output_freq)
 
-    print('calculating eigenvalues and eigentensors...')
-    # calculate eigenvalues of M
+    """ Compute spectral components of reduced matrix: """
+    print('Calculating eigenvalues and eigentensors...')
+    # Diagonalize M:
     eigvals, eigvecs = np.linalg.eig(M)
-
+    # Sort in descending order:
     sorted_indices = np.argsort(-eigvals)
     eigvals = eigvals[sorted_indices]
     eigvecs = eigvecs[:, sorted_indices]
-
+    # Issue warning if positive eigenvalues occur:
     if not (eigvals < 0).all():
         print('WARNING: there are eigenvalues >= 0')
-
+    # Reduce spectral components to required number:
     if len(eigvals) > num_eigvals:
         eigvals = eigvals[:num_eigvals]
         eigvecs = eigvecs[:, :num_eigvals]
 
-    # Clean up memory-mapped files if necessary:
-    if mem_dir is not None:
-        for ump in cores_u:
-            os.remove(ump)
-
-    # calculate eigentensors
+    # Calculate required output according to parameter return_option:
     if return_option == 'eigentensors':
+        # Obtain TT representation of eigentensor by contracting last orthonormal
+        # core of U with each eigenvector of M:
         eigtensors = []
         eigvecs = eigvecs[:, :, None]
         for i in range(eigvals.shape[0]):
@@ -361,7 +373,10 @@ def amuset_hosvd_mem_reversible(data_matrix, basis_list, sigma, mem_dir=None, re
             eigtensor[-1] = np.tensordot(eigtensor[-1], eigvecs[:, i, :], axes=([2], [0]))
             eigtensors.append(eigtensor)
         return eigvals, eigtensors, ranks_u
+
     if return_option == 'eigenfunctionevals':
+        # Obtain eigenfunction trajectory by simply dotting eigenvectors and right singular vectors
+        # v obtained from globals SVD, see [2].
         eigfun_traj = np.dot(eigvecs.T, v)
         return eigvals, eigfun_traj, ranks_u
     else:
@@ -974,92 +989,212 @@ def _calc_M_k_amuset_reversible(u, s_inv, dpsi):
     return -0.5 * M.dot(M.T)
 
 #================ memory-efficient versions of all private functions for the reversible case: =============
-def _amuset_mem_reversible(u, s_inv, ranks, x, basis_list, sigma, reweight=None, mem_dir=None):
+def _reduced_matrix_tgedmd(u, s_inv, V, ranks, x, basis_list, sigma, b=None, reweight=None,
+                           output_freq=None):
     """
-    Construct the Matrix M in AMUSEt using the efficient implementation (M = sum (-0.5 M_k M_k^T)).
-    Same as _amuset_efficient_reversible, but sparse and memory mapped arrays are used.
+    Construct the reduced matrix M by the tensor network contraction Eqs. (16-17) in [1]. As
+    described therein, the network is contracted for all data points separately, and then summed
+    up.
+
+    NOTE: If the drift vector b is given as an array, non-reversible tgEDMD Eq. (16) is applied.
+        Otherwise, reversible tgEDMD Eq. (17) is used.
+
     Parameters
     ----------
-    u :     list of cores of orthonormal tensor U (if mem_dir==None) or
-            list of file names for memory-mapped cores of U.
+    u :     list of cores of the orthonormal tensor U obtained from global SVD of \Psi(X).
     s_inv:  np.ndarray
-            inverse of diagonal matrix from final step of global SVD
+            shape (r_p, r_p), inverse of diagonal matrix  obtained from global SVD of \Psi(X).
+    V:      np.ndarray
+            shape (m, r_p), matrix of right singular vectors obtained from global SVD of \Psi(X).
     ranks:  list of TT ranks for u
     x :     np.ndarray
-            snapshot matrix of size d x m
+            shape (d, m), data matrix
     basis_list : list[list[Function]]
-            list of basis functions in every mode
+            list of lists of basis functions for each mode, derived from data_driven.transform.Function
     sigma : np.ndarray
-            diffusion, shape (d, d2, m)
-    reweight : np.ndarray or None, optional
-            array of importance sampling ratios, shape (m,)
-    mem_dir : string or None
-        Store orthonormal cores for \Psi(X) as memory-mapped files.
-        If None, cores are kept in memory.
-        If string, this is the location where memmap files are stored.
+            shape (d, d2, m), diffusion matrix at all data sites.
+    b:      np.ndarray
+            shape (d, m) or None, d-dimensional drift vector at all data sites.
+    reweight : np.ndarray
+            shape (m,) or None, array of importance sampling ratios
+    output_freq: int or None,
+            Display progress message after every output_freq data sites.
 
     Returns
     -------
-
-    np.ndarray
-        matrix M from AMUSEt
+    M : np.ndarray
+        shape (r_p, r_p), reduced matrix
     """
     # Obtain dimensions of the data:
     d, m = x.shape
-    output_disp = int(m  / 10)
-    # Obtain order:
+    # Obtain order of the tensor:
     p = len(basis_list)
-    # Contract sigma with itself:
-    sigma = np.einsum("ikl, jkl -> ijl", sigma, sigma)
     # Check if re-weighting factors are given:
     if reweight is not None:
         w = reweight
     else:
         w = np.ones(m)
+    # Check whether reversible or non-reversible tgEDMD applies:
+    rev = (b is None)
+    # Compute co-variance of the diffusion for reversible case:
+    a = np.einsum("ikl, jkl -> ijl", sigma, sigma)
 
-    # Output:
+    if output_freq is not None:
+        print("Contracting tensor network: ")
+    # Prepare output matrix:
     M = np.zeros((ranks[p], ranks[p]))
-    # Loop over the data:
+    # Contract tensor network separately for each data point:
     for l in range(m):
-        # Load first core of u from disc:
-        if mem_dir is not None:
-            ump = np.memmap(u[0], mode="r", dtype="float64", shape=(ranks[0], len(basis_list[0]), ranks[1]))
-        else:
-            ump = u[0]
         # First step of tensor contraction:
-        v = _contraction_step_dPsi_u(basis_list[0], x[:, l], ump, position='first')
+        if rev:
+            v = _contraction_step_dPsi_u(basis_list[0], x[:, l], u[0], position='first')
+        else:
+            v = _contraction_step_LPsi_u(basis_list[0], x[:, l], b[:, l], sigma[:, :, l],
+                                         u[0], position="first")
 
-        # All remaining steps of tensor contraction:
-        for k in range(1, p):
-            # Load k-th core of u from disc:
-            if mem_dir is not None:
-                ump = np.memmap(u[k], mode="r", dtype="float64", shape=(ranks[k], len(basis_list[k]), ranks[k+1]))
+        # All intermediate steps of tensor contraction:
+        for k in range(1, p - 1):
+            if rev:
+                v = _contraction_step_dPsi_u(basis_list[k], x[:, l], u[k], position='middle',
+                                             v=v)
             else:
-                ump = u[k]
-            # Next step of the contraction:
-            if k == (p - 1):
-                v = _contraction_step_dPsi_u(basis_list[k], x[:, l], ump, position='last', v=v)
-            else:
-                v = _contraction_step_dPsi_u(basis_list[k], x[:, l], ump, position='middle', v=v)
+                v = _contraction_step_LPsi_u(basis_list[k], x[:, l], b[:, l], sigma[:, :, l],
+                                             u[k], position="middle", v=v)
+
+        # Final step of the contraction:
+        if rev:
+            v = _contraction_step_dPsi_u(basis_list[p-1], x[:, l], u[p-1], position='last',
+                                         v=v)
+        else:
+            v = _contraction_step_LPsi_u(basis_list[p-1], x[:, l], b[:, l], sigma[:, :, l],
+                                         u[p-1], position="last", v=v)
+
         # Add contribution to M:
-        v = np.reshape(v, (d, ranks[p]))
-        v = np.dot(v, s_inv)
-        M += -0.5 * w[l] * np.dot(v.T, np.dot(sigma[:, :, l], v))
-        if np.remainder(l+1, output_disp) == 0:
-            print("Completed %d per cent."%(10 * (int((l + 1) / output_disp))))
+        if rev:
+            v = np.reshape(v, (d, ranks[p]))
+            v = np.dot(v, s_inv)
+            M += -0.5 * w[l] * np.dot(v.T, np.dot(a[:, :, l], v))
+        else:
+            M += np.sqrt(w[l]) * np.outer(V[l, :], np.dot(v, s_inv))
+        # Display progress message if required:
+        if output_freq is not None and (np.remainder(l+1, output_freq) == 0):
+            print("Processed %.2f per cent."%(100 * (l+1) / m))
     return M
+
+
+def _contraction_step_LPsi_u(psi_k, x, bx, sig_x, u_k, position="middle", v=None):
+    """
+    Helper function for the tensor network contraction Lpsi(x)^T \times \hat{U}, for
+     one data point x, within non-reversible tgEDMD. The contraction is performed using
+     Algorithm 3 in [1], leveraging the sparse structure of Lpsi. This function carries
+     out a single step in Algorithm 3.
+
+    Parameters:
+    -----------
+    psi_k: list of callable function (derived from data_driven.transform.Function),
+        representing the basis set for mode k.
+    x : np.ndarray
+        shape (d,): a single data point
+    bx: np.ndarray
+        shape (d,), drift vector at position x
+    sig_x: np.ndarray
+        shape (d, d), diffusion matrix at position x
+    u_k:  ndarray, shape(r_km, n_k, r_kp)
+        orthogonal core from the global SVD
+    position : {'first', 'middle', 'last'}, optional
+        first core: k = 1
+        middle core: 2 <= k <= p-1
+        last core: k = p
+    v, ndarray, shape (1, (d+2) * r_km) or None.
+        the output of the previous step of the contraction.
+        v should be set to None if position=='first'
+
+    Returns:
+    --------
+    array of shape
+            position == 'first':   (1, r_kp)
+            position == 'middle':   (1, r_kp)
+            position == 'last':   (1, r_kp)
+
+        result of k-th step of the contraction
+    """
+    # Obtain dimensions of the data point:
+    d = x.shape[0]
+    # Obtain shape of orthonormal core:
+    r_km, nk, r_kp = u_k.shape
+
+    # Pre-compute required quantities:
+    # Covariance of the diffusion:
+    ax = np.dot(sig_x, sig_x.T)
+    # Evaluation of the basis set at x:
+    psi_kx = np.array([psi_k[ii](x) for ii in range(nk)])
+    # Gradients of the basis set at x:
+    psi_grad = np.array([psi_k[ii].gradient(x) for ii in range(nk)])
+    # Application of the generator to the basis set at x:
+    Lpsi_kx = np.array([np.dot(bx, psi_grad[ii, :]) + 0.5 * np.sum(ax * psi_k[ii].hessian(x))
+                     for ii in range(nk)])
+    # Product of gradient matrix and diffusion matrix, required for cores of Lpsi^k(x):
+    psi_grad_sigma = np.dot(psi_grad, sig_x)
+
+    # Middle position:
+    if position == 'middle':
+        v = v.reshape((1, (d + 2), r_km))
+        v_new = np.zeros((1, d + 2, r_kp))
+        for ii in range(nk):
+            # Multiply v and first column of Lpsi^k(x) x U^k:
+            v_new[0, 0, :] += np.dot(v[0, 0, :], psi_kx[ii] * u_k[:, ii, :])
+            # Multiply v and second column of Lpsi^k(x) x U^k:
+            v_new[0, 1, :] += np.dot(v[0, 0, :], Lpsi_kx[ii] * u_k[:, ii, :]) + np.dot(
+                v[0, 1, :], psi_kx[ii] * u_k[:, ii, :])
+            for jj in range(d):
+                v_new[0, 1, :] += np.dot(v[0, jj + 2, :], psi_grad_sigma[ii, jj] * u_k[:, ii, :])
+            # Multiply v and remaining columns of Lpsi^k(x) x U^k:
+            for jj in range(d):
+                v_new[0, jj + 2, :] += (np.dot(v[0, 0, :], psi_grad_sigma[ii, jj] * u_k[:, ii, :]) +
+                                    np.dot(v[0, jj + 2, :], psi_k[ii](x) * u_k[:, ii, :]))
+        v_new = v_new.reshape((1, (d + 2) * r_kp))
+
+    # End-of-chain position:
+    elif position == 'last':
+        v = v.reshape((1, (d + 2), r_km))
+        v_new = np.zeros((1, r_kp))
+        for ii in range(nk):
+            # Multiply v and only column of Lpsi^k(x) x U^k:
+            v_new[0, :] += np.dot(v[0, 0, :], Lpsi_kx[ii] * u_k[:, ii, :]) + np.dot(
+                v[0, 1, :], psi_kx[ii] * u_k[:, ii, :])
+            for jj in range(d):
+                v_new[0, :] += np.dot(v[0, jj + 2, :], psi_grad_sigma[ii, jj] * u_k[:, ii, :])
+
+    # Head-of-chain position:
+    else:
+        v_new = np.zeros((1, (d + 2) * r_kp))
+        # Calculate next step of contraction directly summing up Kronecker product:
+        for ii in range(nk):
+            # Compile slice ii of first core Lpsi^1(x):
+            Lpsi_1 = np.zeros((1, d + 2))
+            Lpsi_1[0, 0] = psi_kx[ii]
+            Lpsi_1[0, 1] = Lpsi_kx[ii]
+            Lpsi_1[0, 2:] = psi_grad_sigma[ii, :]
+            # Form Kronecker product with orthonormal core U^k:
+            v_new += np.kron(Lpsi_1, u_k[:, ii, :])
+
+    return v_new
 
 
 def _contraction_step_dPsi_u(psi_k, x, u_k, position='middle', v=None):
     """
-    Complete one step of the contraction of dPsi(x) and the orthonormal TT U.
+    Helper function for the tensor network contraction \nabla \psi(x)^T \times \hat{U}, for
+     one data point x, within reversible tgEDMD. The contraction is performed using
+     Algorithm 3 in [1], leveraging the sparse structure of \nabla \psi. This function carries
+     out a single step in Algorithm 3.
 
     Parameters
     ----------
-    psi_k : list of callable function, basis set for mode k.
+    psi_k : list of callable function (derived from data_driven.transform.Function),
+        representing the basis set for mode k.
     x : np.ndarray
         shape (d,): a single data point
-    u_uk:  ndarray, shape(r_km, n_k, r_kp)
+    u_k:  ndarray, shape(r_km, n_k, r_kp)
         orthogonal core from the global SVD
     position : {'first', 'middle', 'last'}, optional
         first core: k = 1
@@ -1083,34 +1218,46 @@ def _contraction_step_dPsi_u(psi_k, x, u_k, position='middle', v=None):
     # Obtain shape of orthonormal core:
     r_km, nk, r_kp = u_k.shape
 
-    # Compute result of k-th step of the contraction using sparse structure of dPsi(x):
+    # Pre-compute required quantities:
+    # Evaluation of the basis set at x:
+    psi_kx = np.array([psi_k[ii](x) for ii in range(nk)])
+    # Gradients of the basis set at x:
+    psi_grad = np.array([psi_k[ii].gradient(x) for ii in range(nk)])
+
+    # Middle position:
     if position == 'middle':
         v = v.reshape((1, (d + 1), r_km))
         v_new = np.zeros((1, d + 1, r_kp))
         for ii in range(nk):
-            v_new[0, 0, :] += np.dot(v[0, 0, :], psi_k[ii](x) * u_k[:, ii, :])
-            psi_grad = psi_k[ii].gradient(x)
+            # Multiply v and first column of dPsi^k(x) x U^k:
+            v_new[0, 0, :] += np.dot(v[0, 0, :], psi_kx[ii] * u_k[:, ii, :])
+            # Multiply v and all remaining columns of dPsi^k(x) x U^k:
             for jj in range(1, d + 1):
-                v_new[0, jj, :] += (np.dot(v[0, 0, :], psi_grad[jj - 1] * u_k[:, ii, :]) +
-                                np.dot(v[0, jj, :], psi_k[ii](x) * u_k[:, ii, :]))
+                v_new[0, jj, :] += (np.dot(v[0, 0, :], psi_grad[ii, jj - 1] * u_k[:, ii, :]) +
+                                np.dot(v[0, jj, :], psi_kx[ii] * u_k[:, ii, :]))
         v_new = v_new.reshape((1, (d + 1) * r_kp))
 
+    # End-of-chain position:
     elif position == 'last':
         v = v.reshape((1, (d + 1), r_km))
         v_new = np.zeros((1, d, r_kp))
         for ii in range(nk):
-            psi_grad = psi_k[ii].gradient(x)
+            # Multiply v and all columns of dPsi^k(x) x U^k:
             for jj in range(d):
-                v_new[0, jj, :] += (np.dot(v[0, 0, :], psi_grad[jj] * u_k[:, ii, :]) +
-                                     np.dot(v[0, jj + 1, :], psi_k[ii](x) * u_k[:, ii, :]))
+                v_new[0, jj, :] += (np.dot(v[0, 0, :], psi_grad[ii, jj] * u_k[:, ii, :]) +
+                                     np.dot(v[0, jj + 1, :], psi_kx[ii] * u_k[:, ii, :]))
         v_new = v_new.reshape((1, d * r_kp))
 
+    # Head-of-chain position:
     else:
         v_new = np.zeros((1, (d + 1) * r_kp))
+        # Calculate next step of contraction directly summing up Kronecker product:
         for ii in range(nk):
+            # Compile slice ii of first core dpsi^1(x):
             dpsi_ii = np.zeros((1, d + 1))
-            dpsi_ii[0, 0] = psi_k[ii](x)
-            dpsi_ii[0, 1:] = psi_k[ii].gradient(x)
+            dpsi_ii[0, 0] = psi_kx[ii]
+            dpsi_ii[0, 1:] = psi_grad[ii, :]
+            # Form Kronecker product with orthonormal core U^k:
             v_new += np.kron(dpsi_ii, u_k[:, ii, :])
 
     return v_new
