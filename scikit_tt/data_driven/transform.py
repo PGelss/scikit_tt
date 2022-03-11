@@ -397,7 +397,11 @@ class GaussFunction(OneCoordinateFunction):
         return 0.0
 
     def partial2(self, t, direction1, direction2):
-        raise NotImplementedError('not yet implemented')
+        self.check_partial2_input(t, direction1, direction2)
+        if direction1 == self.index and direction2 == self.index:
+            return ((1.0/self.variance**2) * (t[self.index] - self.mean)**2 - (1.0/self.variance)) * \
+                   np.exp(-0.5 * (t[self.index] - self.mean) ** 2 / self.variance)
+        return 0.0
 
 
 class PeriodicGaussFunction(OneCoordinateFunction):
