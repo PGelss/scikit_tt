@@ -1,12 +1,19 @@
 # -*- coding: utf-8 -*-
 
 """
-This is an example of tensor-based generator EDMD. See [1] for details.
+    NOTE: This script requires the ala10 trajectory data, which is not included in the scikit-tt package.
+        Configure the variable "data_path" to point to the directory where the data is stored on your machine.
 
-References
-----------
-[1] M. Lücke and F. Nüske, "tgEDMD: Approximation of the Kolmogorov Operator in Tensor Train Format",
-    arXiv:2111.09606, 2021
+    Application of tgEDMD (algorithm 2 in [1]) to trajectory data of the ten residue peptide deca-alanine, as described
+    in [1, section 5.2].
+    The basis set consists of Gaussian functions along all coordinate directions.
+    Several choices of the truncation threshold for the HOSVD of the data tensor and downsampling ratios are tested.
+    The resulting implied time scales, ranks, and PCCA memberships are plotted.
+
+    References
+    ----------
+    [1] M. Lücke and F. Nüske, "tgEDMD: Approximation of the Kolmogorov Operator in Tensor Train Format",
+        arXiv:2111.09606, 2022
 """
 
 import numpy as np
@@ -21,22 +28,24 @@ import scikit_tt.data_driven.tgedmd as tgedmd
 def main():
     # define parameters
     data_path = "data/Ala10/"
-    eps_exps = [4, 6]  # SVD truncation threshold epsilon = 10^-{eps_exp}
     num_snapshots = [300, 3000]  # trajectory is downsampled to num_snapshots
+    eps_exps = [4, 6]  # epsilon = 10^-{eps_exp}; relative SVD truncation threshold = sqrt(num_snapshots) * epsilon
     rank_cap = 500  # the TT ranks are capped at rank_cap
 
     # load trajectory data
     traj = [np.load(data_path + f"Dih_Traj_{i}.npy") for i in range(6)]
     traj = np.concatenate(traj, axis=0).T
-    traj = traj[2:12, :]
+    traj = traj[2:12, :]  # we use the 10 internal dihedral angles
     d, m = traj.shape
 
     traj_sigma = [np.load(data_path + f"Dih_Jac_Traj_{i}.npy") for i in range(6)]
-    traj_sigma = [t[2:12, :, :, :] for t in traj_sigma]
+    traj_sigma = [t[2:12, :, :, :] for t in traj_sigma]  # we use the 10 internal dihedral angles
     traj_sigma = np.concatenate(traj_sigma, axis=3)
     traj_sigma = np.reshape(traj_sigma, (d, traj_sigma.shape[1] * traj_sigma.shape[2], -1))
+    # traj_sigma[i, :, j] are the partial derivatives of the i-th dihedral angle w.r.t. the atomic positions
+    # at the j-th snapshot
 
-    # define basis functions
+    # define basis functions, for details see [1, section 5.2]
     basis_list = []
     for i in range(5):
         basis_list.append([tdt.ConstantFunction(2 * i), tdt.PeriodicGaussFunction(2 * i, -2, 0.8),
@@ -44,11 +53,11 @@ def main():
         basis_list.append([tdt.ConstantFunction(2 * i + 1), tdt.PeriodicGaussFunction(2 * i + 1, -0.5, 0.8),
                            tdt.PeriodicGaussFunction(2 * i + 1, 0, 4), tdt.PeriodicGaussFunction(2 * i + 1, 2, 0.8)])
 
-    # run tgEDMD for the different parameters specified above
+    # run tgEDMD for the different parameters specified above (eps_exps and num_snapshots)
     timescales = []
     ranks = []
     for num_snap in num_snapshots:
-        # downsampling
+        # downsample the original data to the desired num_snapshots
         idx_snapshots = np.unique(np.linspace(0, m - 1, num_snap).astype(int))
         this_traj = traj[:, idx_snapshots]
         this_traj_sigma = traj_sigma[:, :, idx_snapshots]
@@ -58,14 +67,15 @@ def main():
             threshold = (num_snap ** 0.5) * 10 ** (-eps_exp)
 
             with utl.timer() as timer:
-                eigenvalues, traj_eigfuns, rks = tgedmd.amuset_hosvd_mem_reversible(this_traj,
-                                                                                    basis_list,
-                                                                                    this_traj_sigma,
-                                                                                    num_eigvals=5,
-                                                                                    threshold=threshold,
-                                                                                    max_rank=rank_cap)
+                eigenvalues, traj_eigfuns, rks = tgedmd.amuset_hosvd(this_traj, basis_list, this_traj_sigma,
+                                                                     num_eigvals=5, threshold=threshold,
+                                                                     max_rank=rank_cap,
+                                                                     output_freq=int(this_traj.shape[1] / 10),
+                                                                     rel_threshold=True)
             cpu_time = timer.elapsed
             print(f"Time Elapsed: {cpu_time}")
+
+            # store the timescales and ranks for plotting later
             timescales.append(np.array([-1 / kappa for kappa in eigenvalues[1:]]))
             ranks.append(rks)
 
@@ -76,7 +86,7 @@ def main():
     plot_timescales(eps_exps, num_snapshots, data_path, timescales)
     plot_ranks(eps_exps, num_snapshots, ranks)
 
-    chi = calc_chi(traj_eigfuns, 2)
+    chi = calc_chi(traj_eigfuns, 2)  # array that assigns each snapshot to one of two clusters
     plot_density(eps_exps[-1], num_snapshots[-1], this_traj, chi)
 
     plt.show()
@@ -149,6 +159,9 @@ def plot_ranks(eps_exp, num_snapshots, ranks):
 
 
 def calc_chi(traj_eigfuns, num_clusters):
+    """
+    Assign snapshots to clusters.
+    """
     k = num_clusters
     traj_eigfuns[0, :] = traj_eigfuns[0, 0] * np.ones(traj_eigfuns.shape[1])
     chi, _ = _pcca_connected_isa(traj_eigfuns.T, k)
@@ -223,6 +236,7 @@ def plot_density(eps_exp, num_snaps, traj, chi):
     fig.colorbar(mappable0, cax=axes[1][5])
     fig.colorbar(mappable1, cax=axes[0][5])
     fig.suptitle(f"Metastable Decomposition, epsilon=1e-{eps_exp}, {num_snaps} snapshots", fontsize=16)
+    # plt.savefig("pcca.pdf", bbox_inches="tight")
 
 
 if __name__ == '__main__':
