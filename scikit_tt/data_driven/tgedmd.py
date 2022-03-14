@@ -3,7 +3,6 @@ import numpy as np
 import scikit_tt.utils as utl
 
 
-
 # This file contains methods related to tensor-based generator EDMD (tgEDMD) introduced in [1].
 
 # Structure of this file:
@@ -21,9 +20,8 @@ import scikit_tt.utils as utl
 #  coherent sets, Physica D: Nonlinear Phenomena 427, 133018 (2021)
 
 
-
 def amuset_hosvd(data_matrix, basis_list, sigma, b=None, reweight=None, num_eigvals=np.infty, threshold=1e-2,
-                 max_rank=np.infty, return_option='eigenfunctionevals', output_freq=None):
+                 max_rank=np.infty, return_option='eigenfunctionevals', output_freq=None, rel_threshold=False):
     """
     Calculate eigenvalues and eigenfunctions of the Koopman generator, projected on a tensor product basis,
     using simulation data.
@@ -57,6 +55,8 @@ def amuset_hosvd(data_matrix, basis_list, sigma, b=None, reweight=None, num_eigv
         'eigenvectors': return eigenvectors of reduced matrix M in tgEDMD.
     output_freq : int or None
         Display progress message every output_freq steps.
+    rel_threshold : bool, optional
+        If the above threshold is relative (w.r.t. largest singular value), or absolute
 
     Returns
     -------
@@ -107,7 +107,7 @@ def amuset_hosvd(data_matrix, basis_list, sigma, b=None, reweight=None, num_eigv
 
         # Compute SVD and update residual:
         u, s, v = utl.truncated_svd(core_tmp.reshape([core_tmp.shape[0] * core_tmp.shape[1], core_tmp.shape[2]]),
-                                    threshold=threshold, max_rank=max_rank, rel_truncation=False)
+                                    threshold=threshold, max_rank=max_rank, rel_truncation=rel_threshold)
         # Compute non-orthonormal part:
         residual = np.diag(s).dot(v)
         # Re-shape orthonormal part and add to list:
