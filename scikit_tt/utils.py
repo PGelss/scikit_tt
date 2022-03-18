@@ -106,7 +106,7 @@ class timer(object):
     def __exit__(self, exc_type, exc_value, traceback):
         self.elapsed = time.time() - self.start_time
 
-def truncated_svd(matrix, threshold=0, max_rank=np.infty):
+def truncated_svd(matrix, threshold=0, max_rank=np.infty, rel_truncation=True,):
     """
     Compute truncated SVD.
 
@@ -118,6 +118,10 @@ def truncated_svd(matrix, threshold=0, max_rank=np.infty):
         threshold for truncated SVD, default is 0
     max_rank : int
         maximum rank of truncated SVD
+    rel_truncation: bool
+        truncate singular values relative to largest singular value. If False,
+        parameter threshold is used as absolute truncation threshold.
+        Only applies if threshold is non-zero.
 
     Returns
     -------
@@ -137,7 +141,10 @@ def truncated_svd(matrix, threshold=0, max_rank=np.infty):
 
     # rank reduction
     if threshold != 0:
-        indices = np.where(s / s[0] > threshold)[0]
+        if rel_truncation:
+            indices = np.where(s / s[0] > threshold)[0]
+        else:
+            indices = np.where(s > threshold)[0]
         u = u[:, indices]
         s = s[indices]
         v = v[indices, :]
