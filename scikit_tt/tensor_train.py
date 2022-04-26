@@ -290,7 +290,7 @@ class TT(object):
                 # construct cores
                 for i in range(order):
                     # set core to zero array
-                    if np.any(np.iscomplex(self.cores[i])) or np.any(np.iscomplex(tt_add.cores[i])):
+                    if np.iscomplexobj(self.cores[i]) or np.iscomplexobj(tt_add.cores[i]):
                         cores.append(
                             np.zeros([ranks[i], self.row_dims[i], self.col_dims[i], ranks[i + 1]], dtype=complex))
                     else:
