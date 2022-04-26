@@ -259,6 +259,109 @@ def fod(operator, initial_value, step_sizes, previous_value=None, threshold=1e-1
     return solution
 
 
+def hod(operator, initial_value, step_size, order=2, previous_value=None, threshold=1e-12, max_rank=50, normalize=1, progress=True):
+    """
+    Higher-order differencing for linear differential equations in the TT format.
+
+    Parameters
+    ----------
+    operator : TT
+        TT operator of the differential equation (assuming operator = -iH with Hamiltonian H)
+    initial_value : TT
+        initial value of the differential equation
+    step_size : float
+        step size
+    order : int, optional
+        order of the differncing scheme, must be even, default is 2
+    previous_value: TT, optional, default is None
+        previous step; if not given one explicit Euler half-step and afterwards one HOD half-step are computed backwards in time
+    threshold : float, optional
+        threshold for reduced SVD decompositions, default is 1e-12
+    max_rank : int, optional
+        maximum rank of the solution, default is 50
+    normalize : {0, 1, 2}, optional
+        no normalization if 0, otherwise the solution is normalized in terms of Manhattan or Euclidean norm in each step
+    progress : bool, optional
+        whether to show the progress of the algorithm or not, default is True
+
+    Returns
+    -------
+    list[TT]
+        numerical solution of the differential equation
+    """
+
+    # check if order is even, otherwise add 1
+    if (order % 2) != 0:
+        order = order + 1
+
+    # return current time
+    start_time = utl.progress('Running higher-order differencing method', 0, show=progress)
+
+    # construct TT operator and orthonormalize
+    op_hod = 2*step_size*operator
+    op_tmp = operator
+    for k in range(2,order/2):
+        op_tmp = op_tmp@operator@operator
+        op_hod = op_hod + 2/np.math.factorial(2*k-1) * step_size**(2*k-1) * op_tmp
+    op_hod = op_hod.ortho(threshold=threshold)
+
+    # initialize solution
+    solution = [initial_value]
+
+    # begin loop over time steps
+    # --------------------------
+
+    for i in range(len(step_sizes)):
+
+        if i == 0: # initialize: one expl. Euler and HOD half step backwards in time if previous step is not given
+
+            if previous_value==None:
+
+                op_first = step_size*operator
+                op_tmp = operator
+                for k in range(2,order/2):
+                    op_tmp = op_tmp@operator@operator
+                    op_first = op_first + 2/np.math.factorial(2*k-1) * (step_size/2)**(2*k-1) * op_tmp
+                op_first = op_first.ortho(threshold=threshold)
+
+                # explicit Euler half step
+                solution_prev = (tt.eye(operator.row_dims) - 0.5*step_sizes[0]*operator).dot(solution[0])
+
+                # HOD half step
+                solution_prev = solution[i] - op_first @ solution_prev
+
+            else:
+                solution_prev = previous_value
+
+            # normalize
+            if normalize > 0:
+                solution_prev = (1 / solution_prev.norm(p=normalize)) * solution_prev
+
+            solution_prev = solution_prev.ortho(threshold=threshold, max_rank=max_rank)
+
+        else:
+            solution_prev = solution[i-1].copy()
+
+        # compute next time step from current and previous time step
+        tt_tmp = solution_prev + op_hod@solution[i]
+
+        # truncate ranks of the solution
+        tt_tmp = tt_tmp.ortho(threshold=threshold, max_rank=max_rank)
+
+        # normalize solution
+        if normalize > 0:
+            tt_tmp = (1 / tt_tmp.norm(p=normalize)) * tt_tmp
+
+        # append solution
+        solution.append(tt_tmp.copy())
+
+        # print progress
+        utl.progress('Running higher-order differencing method', 100 * (i + 1) / len(step_sizes), show=progress,
+                     cpu_time=_time.time() - start_time)
+
+    return solution
+
+
 def implicit_euler(operator, initial_value, initial_guess, step_sizes, repeats=1, tt_solver='als', threshold=1e-12,
                    max_rank=np.infty, micro_solver='solve', normalize=1, progress=True):
     """
