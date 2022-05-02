@@ -318,16 +318,14 @@ def hod(operator, initial_value, step_size, number_of_steps, order=2, previous_v
         if i == 0: # initialize: one expl. Euler and HOD half step backwards in time if previous step is not given
 
             if previous_value==None:
-                print('here')
-                op_first = step_size*operator
-                op_tmp = operator
+                op_first = step_size*operator.copy()
+                op_tmp = operator.copy()
                 for k in range(2,order//2+1):
                     op_tmp = op_tmp.dot(operator).dot(operator)
                     op_first = op_first + 2/np.math.factorial(2*k-1) * (step_size/2)**(2*k-1) * op_tmp
                 op_first = op_first.ortho(threshold=threshold)
 
                 # explicit Euler half step
-                print((tt.eye(operator.row_dims) - 0.5*step_size*operator))
                 solution_prev = (tt.eye(operator.row_dims) - 0.5*step_size*operator).dot(solution[0])
 
                 # HOD half step
@@ -430,6 +428,7 @@ def implicit_euler(operator, initial_value, initial_guess, step_sizes, repeats=1
 
         # append solution
         solution.append(tt_tmp.copy())
+        print((operator.dot(tt_tmp)).norm())
 
         # print progress
         utl.progress('Running implicit Euler method', 100 * (i + 1) / len(step_sizes), show=progress,
@@ -689,7 +688,7 @@ def adaptive_step_size(operator, initial_value, initial_guess, time_end, step_si
         if (factor_local > 1) and (factor_closeness > 1):
             time = np.min([time + step_size, time_end])
             step_size = np.amin([step_size_new, time_end - time, step_size_max])
-            solution.append(t_1.copy())
+            solution.append(t_2.copy())
             time_steps.append(time)
             t_tmp = t_1
             utl.progress('Running adaptive step size method', 100 * time / time_end, show=progress,
