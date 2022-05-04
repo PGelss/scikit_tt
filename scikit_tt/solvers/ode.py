@@ -259,7 +259,7 @@ def fod(operator, initial_value, step_sizes, previous_value=None, threshold=1e-1
     return solution
 
 
-def hod(operator, initial_value, step_size, number_of_steps, order=2, previous_value=None, threshold=1e-12, max_rank=50, normalize=1, progress=True):
+def hod(operator, initial_value, step_size, number_of_steps, order=2, previous_value=None, op_hod=None, threshold=1e-12, max_rank=50, normalize=1, progress=True):
     """
     Higher-order differencing for linear differential equations in the TT format.
 
@@ -277,6 +277,8 @@ def hod(operator, initial_value, step_size, number_of_steps, order=2, previous_v
         order of the differncing scheme, must be even, default is 2
     previous_value: TT, optional, default is None
         previous step; if not given one explicit Euler half-step and afterwards one HOD half-step are computed backwards in time
+    op_hod : TT, optional, default is None
+        TT operator for the HOD scheme
     threshold : float, optional
         threshold for reduced SVD decompositions, default is 1e-12
     max_rank : int, optional
@@ -300,12 +302,13 @@ def hod(operator, initial_value, step_size, number_of_steps, order=2, previous_v
     start_time = utl.progress('Running higher-order differencing method', 0, show=progress)
 
     # construct TT operator and orthonormalize
-    op_hod = 2*step_size*operator.copy()
-    op_tmp = operator.copy()
-    for k in range(2,order//2+1):
-        op_tmp = op_tmp.dot(operator).dot(operator)
-        op_hod = op_hod + 2/np.math.factorial(2*k-1) * step_size**(2*k-1) * op_tmp
-    op_hod = op_hod.ortho(threshold=threshold)
+    if op_hod == None:
+        op_hod = 2*step_size*operator.copy()
+        op_tmp = operator.copy()
+        for k in range(2,order//2+1):
+            op_tmp = op_tmp.dot(operator).dot(operator)
+            op_hod = op_hod + 2/np.math.factorial(2*k-1) * step_size**(2*k-1) * op_tmp
+        op_hod = op_hod.ortho(threshold=threshold)
 
     # initialize solution
     solution = [initial_value]
