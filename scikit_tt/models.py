@@ -5,6 +5,327 @@ import numpy as np
 from scikit_tt.tensor_train import TT
 import scikit_tt.slim as slim
 
+def qfa():
+    """
+    Quantum full adder.
+    
+    Construct QFA circuit as MPO/TT.
+
+    Returns
+    -------
+    G: TT
+        MPO representations of QFA
+        
+    References
+    ----------
+    .. [1] P. Gelß, S. Klus, Z. Shakibaei, S. Pokutta, "Low-rank tensor decompositions of 
+           quantum circuits", arXiv:2205.09882, 2022
+    """
+    
+    I = np.eye(2)
+    C_0 = np.array([[1,0],[0,0]])
+    C_1 = np.array([[0,0],[0,1]])
+    P = np.array([[0,1],[1,0]])
+    cores = [None]*4
+    cores[0]=np.zeros([1,2,2,3])
+    cores[0][0,:,:,0] = P@C_0
+    cores[0][0,:,:,1] = I
+    cores[0][0,:,:,2] = P@C_1
+    cores[1]=np.zeros([3,2,2,4])
+    cores[1][0,:,:,0] = C_0
+    cores[1][0,:,:,1] = C_1
+    cores[1][1,:,:,1] = C_0
+    cores[1][1,:,:,2] = C_1
+    cores[1][2,:,:,2] = C_0
+    cores[1][2,:,:,3] = C_1
+    cores[2]=np.zeros([4,2,2,2])
+    cores[2][0,:,:,0] = C_1
+    cores[2][1,:,:,0] = C_0
+    cores[2][2,:,:,1] = C_1
+    cores[2][3,:,:,1] = C_0
+    cores[3]=np.zeros([2,2,2,1])
+    cores[3][0,:,:,0] = I
+    cores[3][1,:,:,0] = P
+    G = TT(cores)
+    
+    return G
+
+
+def qfan(number_of_adders):
+    """
+    Quantum full adder network.
+    
+    Construct QFAN circuit as MPO/TT.
+    
+    Parameters
+    ----------
+    number_of_adder: int
+        number of QFAs in the network
+
+    Returns
+    -------
+    G: TT
+        MPO representations of QFAN
+        
+    References
+    ----------
+    .. [1] P. Gelß, S. Klus, Z. Shakibaei, S. Pokutta, "Low-rank tensor decompositions of 
+           quantum circuits", arXiv:2205.09882, 2022
+    """
+    
+    I = np.eye(2)
+    C_0 = np.array([[1,0],[0,0]])
+    C_1 = np.array([[0,0],[0,1]])
+    cores = [None]*(3*number_of_adders+1)
+    cores[0]=np.zeros([1,2,2,3])
+    cores[0][0,:,:,0] = np.array([[0,0],[1,0]])
+    cores[0][0,:,:,1] = I
+    cores[0][0,:,:,2] = np.array([[0,1],[0,0]])
+    cores[1]=np.zeros([3,2,2,4])
+    cores[1][0,:,:,0] = C_0
+    cores[1][0,:,:,1] = C_1
+    cores[1][1,:,:,1] = C_0
+    cores[1][1,:,:,2] = C_1
+    cores[1][2,:,:,2] = C_0
+    cores[1][2,:,:,3] = C_1
+    cores[2]=np.zeros([4,2,2,2])
+    cores[2][0,:,:,0] = C_1
+    cores[2][1,:,:,0] = C_0
+    cores[2][2,:,:,1] = C_1
+    cores[2][3,:,:,1] = C_0
+    cores[3]=np.zeros([2,2,2,3])
+    cores[3][0,:,:,0] = np.array([[0,0],[1,0]])
+    cores[3][0,:,:,1] = I
+    cores[3][0,:,:,2] = np.array([[0,1],[0,0]])
+    cores[3][1,:,:,0] = C_1
+    cores[3][1,:,:,1] = np.array([[0,1],[1,0]])
+    cores[3][1,:,:,2] = C_0
+    for i in range(number_of_adders-2):
+        cores[4+3*i]=cores[1].copy()
+        cores[5+3*i]=cores[2].copy()
+        cores[6+3*i]=cores[3].copy()
+    cores[-3]=cores[1].copy()
+    cores[-2]=cores[2].copy()
+    cores[-1]=np.zeros([2,2,2,1])
+    cores[-1][0,:,:,0] = I
+    cores[-1][1,:,:,0] = np.array([[0,1],[1,0]])
+    G = TT(cores)
+    
+    return G
+
+
+def simon(): 
+    """
+    Simon's algorithm.
+    
+    Construct final quantum state after applying a specific example of Simon's circuit, see _[1].
+        
+    Returns
+    -------
+    final_state: TT
+        final quantum state in TT format
+        
+    References
+    ----------
+    .. [1] P. Gelß, S. Klus, Z. Shakibaei, S. Pokutta, "Low-rank tensor decompositions of 
+           quantum circuits", arXiv:2205.09882, 2022
+    """
+
+    cores = [None]*4*2
+    cores[0] = np.zeros([1,2,1,2])
+    cores[0][0,:,0,0] = [0.5,0.5]
+    cores[0][0,:,0,1] = [0.5,-0.5]
+    cores[1] = np.zeros([2,2,1,2])
+    cores[1][0,:,0,0] = [1,0]
+    cores[1][1,:,0,1] = [1,0]
+    cores[2] = np.zeros([2,2,1,4])
+    cores[2][0,:,0,0] = [0.5,0.5]
+    cores[2][0,:,0,1] = [0.5,-0.5]
+    cores[2][1,:,0,2] = [0.5,0.5]
+    cores[2][1,:,0,3] = [0.5,-0.5]
+    cores[3] = np.zeros([4,2,1,2])
+    cores[3][0,:,0,0] = [1,0]
+    cores[3][1,:,0,0] = [0,1]
+    cores[3][2,:,0,1] = [1,0]
+    cores[3][3,:,0,1] = [0,1]
+    cores[4] = np.zeros([2,2,1,2])
+    cores[4][0,:,0,0] = [0.5,0.5]
+    cores[4][0,:,0,1] = [0.5,-0.5]
+    cores[4][1,:,0,0] = [0.5,-0.5]
+    cores[4][1,:,0,1] = [0.5,0.5]
+    cores[5] = np.zeros([2,2,1,1])
+    cores[5][0,:,0,0] = [1,0]
+    cores[5][1,:,0,0] = [0,1]
+    cores[6] = np.zeros([1,2,1,2])
+    cores[6][0,:,0,0] = [0.5,0.5]
+    cores[6][0,:,0,1] = [0.5,-0.5]
+    cores[7] = np.zeros([2,2,1,1])
+    cores[7][0,:,0,0] = [1,0]
+    cores[7][1,:,0,0] = [0,1]
+
+    final_state = TT(cores)
+    
+    return final_state
+
+
+def qft(n):
+    """
+    Quantum Fourier transform.
+    
+    Construct QFT circuit as MPO/TT.
+    
+    Parameters
+    ----------
+    n: int
+        number_of_qubits
+        
+    Returns
+    -------
+    G: list of TT
+        MPO representations of the different gate groups
+        
+    References
+    ----------
+    .. [1] P. Gelß, S. Klus, Z. Shakibaei, S. Pokutta, "Low-rank tensor decompositions of 
+           quantum circuits", arXiv:2205.09882, 2022
+    """
+    
+    # define gate group list
+    G = [None]*n
+    
+    # first gate group consists only of Hadamard operation
+    cores = [None]*n
+    for i in range(1,n):
+        cores[i] = np.zeros([1,2,2,1], dtype=complex)
+        cores[i][0,:,:,0] = np.eye(2)
+    cores[0] = np.zeros([1,2,2,1], dtype=complex)
+    cores[0][0,:,:,0] = [[1,1],[1,-1]]
+    G[0] = (1/np.sqrt(2)) * TT(cores)
+    
+    # other gate groups consist of Hadamard and phase shifts
+    for k in range(1,n):
+        cores = [None]*n
+        for i in range(k+1,n):
+            cores[i] = np.zeros([1,2,2,1], dtype=complex)
+            cores[i][0,:,:,0] = np.eye(2)
+        cores[0] = np.zeros([1,2,2,2], dtype=complex)
+        cores[0][0,:,:,0] = np.eye(2)
+        cores[0][0,:,:,1] = [[1,0],[0,np.exp(1j*np.pi/(2**k))]]
+        for i in range(1,k):
+            cores[i] = np.zeros([2,2,2,2],dtype=complex)
+            cores[i][0,:,:,0] = np.eye(2)
+            cores[i][1,:,:,1] = [[1,0],[0,np.exp(1j*np.pi/(2**(k-i)))]]
+        cores[k] = np.zeros([2,2,2,1],dtype=complex)
+        cores[k][0,:,:,0] = [[1,0],[1,0]]
+        cores[k][1,:,:,0] = [[0,1],[0,-1]]
+        G[k] = (1/np.sqrt(2)) * TT(cores)
+        
+    return G
+
+
+def iqft(n):
+    """
+    Inverse quantum Fourier transform.
+    
+    Construct iQFT circuit as MPO/TT.
+    
+    Parameters
+    ----------
+    n: int
+        number_of_qubits
+        
+    Returns
+    -------
+    G: list of TT
+        MPO representations of the different gate groups
+        
+    References
+    ----------
+    .. [1] P. Gelß, S. Klus, Z. Shakibaei, S. Pokutta, "Low-rank tensor decompositions of 
+           quantum circuits", arXiv:2205.09882, 2022
+    """
+    
+    # define gate group list
+    G = [None]*n
+    
+    # first gate group consists only of Hadamard operation
+    cores = [None]*n
+    for i in range(1,n):
+        cores[i] = np.zeros([1,2,2,1], dtype=complex)
+        cores[i][0,:,:,0] = np.eye(2)
+    cores[0] = np.zeros([1,2,2,1], dtype=complex)
+    cores[0][0,:,:,0] = [[1,1],[1,-1]]
+    G[0] = (1/np.sqrt(2)) * TT(cores)
+    
+    # other gate groups consist of Hadamard and phase shifts
+    for k in range(1,n):
+        cores = [None]*n
+        for i in range(k+1,n):
+            cores[i] = np.zeros([1,2,2,1], dtype=complex)
+            cores[i][0,:,:,0] = np.eye(2)
+        cores[0] = np.zeros([1,2,2,2], dtype=complex)
+        cores[0][0,:,:,0] = np.eye(2)
+        cores[0][0,:,:,1] = [[1,0],[0,np.exp(-1j*np.pi/(2**k))]]
+        for i in range(1,k):
+            cores[i] = np.zeros([2,2,2,2],dtype=complex)
+            cores[i][0,:,:,0] = np.eye(2)
+            cores[i][1,:,:,1] = [[1,0],[0,np.exp(-1j*np.pi/(2**(k-i)))]]
+        cores[k] = np.zeros([2,2,2,1],dtype=complex)
+        cores[k][0,:,:,0] = [[1,0],[1,0]]
+        cores[k][1,:,:,0] = [[0,1],[0,-1]]
+        G[k] = (1/np.sqrt(2)) * TT(cores)
+        
+    return G
+
+
+def shor(a):
+    """
+    Shor's algorithm.
+    
+    Construct oracle of Shor's algorithm for factorizing M=15 as MPO/TT.
+    
+    Parameters
+    ----------
+    a: int
+        integer, coprime with M
+        
+    Returns
+    -------
+    G: TT
+        MPO representations of the oracle
+        
+    References
+    ----------
+    .. [1] P. Gelß, S. Klus, Z. Shakibaei, S. Pokutta, "Low-rank tensor decompositions of 
+           quantum circuits", arXiv:2205.09882, 2022
+    """
+    
+    # define matrix for NOT operation
+    NOT = np.array([[0,1],[1,0]])
+    
+    # define list of cores
+    cores = [None]*12
+    
+    # construct cores
+    for i in range(6):
+        cores[i] = np.zeros([1,2,2,1], dtype=complex)
+        cores[i][0,:,:,0] = np.eye(2)
+    cores[6] = np.zeros([1,2,2,4])
+    for i in range(7,11):
+        cores[i] = np.zeros([4,2,2,4])
+    cores[-1] = np.zeros([4,2,2,1])
+    for j in range(4):
+        exp_bin = np.binary_repr(j, width=2)
+        cores[6][0, int(exp_bin[0]), int(exp_bin[0]), j] = 1
+        cores[7][j, int(exp_bin[1]), int(exp_bin[1]), j] = 1
+        mod_bin = np.binary_repr(np.mod(a**j,15), width=4)
+        for i in range(8,11):
+            cores[i][j,:,:,j] = np.linalg.matrix_power(NOT,int(mod_bin[i-8]))
+        cores[-1][j,:,:,0] = np.linalg.matrix_power(NOT,int(mod_bin[-1]))
+    G = TT(cores).ortho(threshold=1e-12)
+    
+    return G
+
 
 def cantor_dust(dimension, level):
     """
