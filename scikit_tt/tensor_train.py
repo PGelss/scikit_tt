@@ -1614,6 +1614,89 @@ class TT(object):
         p_inv = TT(cores)
 
         return p_inv
+    
+    def diag(t, diag_list):
+        """Construction of diagonal MPO from MPS.
+
+        Parameters
+        ----------
+        t: TT
+            MPS decomposition
+        diag_list: list
+            cores to diagonalize
+
+        Returns
+        -------
+        t_diag: TT
+            MPO decomposition
+        """
+
+        cores = t.cores.copy()
+
+        for i in diag_list:
+            r1, d, _, r2 = cores[i].shape
+            core_diag = np.zeros([r1,d,d,r2], dtype=complex)
+            for k in range(r1):
+                for l in range(r2):
+                    core_diag[k,:,:,l] = np.diag(np.squeeze(cores[i][k,:,0,l]))
+            cores[i] = core_diag
+
+        t_diag = TT(cores)
+
+        return t_diag
+    
+
+    def squeeze(t):
+        """Squeeze TT decomposition.
+
+        Contract cores with row and column dimension 1 with neighboring cores.
+
+        Parameters
+        ----------
+        t: TT
+            TT decomposition
+
+        Returns
+        -------
+        t_squeeze: TT
+            Equivalent TT decomposition of the input tensor, all cores have either row
+            or column dimension (or both) larger than 1.
+        """
+
+        # find cores with row and column dimension equal to 1
+        no_mode_list = []
+        for i in range(t.order):
+            if t.row_dims[i] == 1 and t.col_dims[i]==1:
+                no_mode_list.append(i)
+
+        # cores with row or column dimension (or both) larger than 1
+        mode_list = list(np.setdiff1d(np.arange(t.order), no_mode_list))
+
+        # append t.order for later loop
+        mode_list += [t.order]
+
+        # define core list
+        cores = []
+
+        # if first cores have row and column dimension equal to 1,
+        # contract from the left with first relevant core
+        if mode_list[0]>0:
+            core_tmp = t.cores[0][0,0,0,:][None,:]
+            for i in range(1,mode_list[0]):
+                core_tmp = core_tmp@t.cores[i][:,0,0,:]
+            t.cores[mode_list[0]] = np.tensordot(core_tmp, t.cores[mode_list[0]], axes=(1,0))
+
+        # contract cores with row and column dimension with relevant cores from the right
+        for i in range(len(mode_list)-1):
+            core_tmp = t.cores[mode_list[i]]
+            for j in range(mode_list[i]+1,mode_list[i+1]):
+                core_tmp = core_tmp@t.cores[j][:,0,0,:]
+            cores.append(core_tmp)
+
+        # construct squeezed TT decomposition
+        t_squeeze = TT(cores)
+
+        return t_squeeze
 
 
 # construction of specific tensor-train decompositions
