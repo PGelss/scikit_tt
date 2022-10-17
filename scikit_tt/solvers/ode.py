@@ -755,7 +755,7 @@ def lie_splitting(S, L, I, M, initial_value, step_size, number_of_steps, thresho
         # Strang splitting
         tmp = __splitting_stage(K, np.arange(0,order,2), tmp, threshold, 2*max_rank)
         tmp = __splitting_stage(K, np.arange(1,order,2), tmp, threshold, 2*max_rank)
-        #tmp = tmp.ortho(threshold=threshold, max_rank=max_rank)
+        tmp = tmp.ortho(threshold=threshold, max_rank=max_rank)
 
         # normalize solution
         if normalize > 0:
@@ -817,10 +817,10 @@ def strang_splitting(S, L, I, M, initial_value, step_size, number_of_steps, thre
         tmp = solution[i].copy()
 
         # Strang splitting
-        tmp = __splitting_stage(K, np.arange(0,order,2), tmp, threshold, max_rank)
-        tmp = __splitting_stage(K, np.arange(1,order,2), tmp, threshold, max_rank)
-        tmp = __splitting_stage(K, np.arange(0,order,2), tmp, threshold, max_rank)
-        #tmp = tmp.ortho(threshold=threshold, max_rank=max_rank)
+        tmp = __splitting_stage(K, np.arange(0,order,2), tmp, threshold, 2*max_rank)
+        tmp = __splitting_stage(K, np.arange(1,order,2), tmp, threshold, 2*max_rank)
+        tmp = __splitting_stage(K, np.arange(0,order,2), tmp, threshold, 2*max_rank)
+        tmp = tmp.ortho(threshold=threshold, max_rank=max_rank)
 
         # normalize solution
         if normalize > 0:
@@ -880,18 +880,18 @@ def yoshida_splitting(S, L, I, M, initial_value, step_size, number_of_steps, thr
         tmp = solution[i].copy()
 
         # splitting
-        tmp = __splitting_stage(K1, np.arange(0,order,2), tmp, threshold, max_rank)
-        tmp = __splitting_stage(K1, np.arange(1,order,2), tmp, threshold, max_rank)
-        tmp = __splitting_stage(K1, np.arange(0,order,2), tmp, threshold, max_rank)
+        tmp = __splitting_stage(K1, np.arange(0,order,2), tmp, threshold, 2*max_rank)
+        tmp = __splitting_stage(K1, np.arange(1,order,2), tmp, threshold, 2*max_rank)
+        tmp = __splitting_stage(K1, np.arange(0,order,2), tmp, threshold, 2*max_rank)
         #tmp = tmp.ortho(threshold=threshold, max_rank=max_rank)
-        tmp = __splitting_stage(K2, np.arange(0,order,2), tmp, threshold, max_rank)
-        tmp = __splitting_stage(K2, np.arange(1,order,2), tmp, threshold, max_rank)
-        tmp = __splitting_stage(K2, np.arange(0,order,2), tmp, threshold, max_rank)
+        tmp = __splitting_stage(K2, np.arange(0,order,2), tmp, threshold, 2*max_rank)
+        tmp = __splitting_stage(K2, np.arange(1,order,2), tmp, threshold, 2*max_rank)
+        tmp = __splitting_stage(K2, np.arange(0,order,2), tmp, threshold, 2*max_rank)
         #tmp = tmp.ortho(threshold=threshold, max_rank=max_rank)
-        tmp = __splitting_stage(K1, np.arange(0,order,2), tmp, threshold, max_rank)
-        tmp = __splitting_stage(K1, np.arange(1,order,2), tmp, threshold, max_rank)
-        tmp = __splitting_stage(K1, np.arange(0,order,2), tmp, threshold, max_rank)
-        #tmp = tmp.ortho(threshold=threshold, max_rank=max_rank)
+        tmp = __splitting_stage(K1, np.arange(0,order,2), tmp, threshold, 2*max_rank)
+        tmp = __splitting_stage(K1, np.arange(1,order,2), tmp, threshold, 2*max_rank)
+        tmp = __splitting_stage(K1, np.arange(0,order,2), tmp, threshold, 2*max_rank)
+        tmp = tmp.ortho(threshold=threshold, max_rank=max_rank)
 
         # normalize solution
         if normalize > 0:
@@ -961,15 +961,16 @@ def kahan_li_splitting(S, L, I, M, initial_value, step_size, number_of_steps, th
 
         # splitting
         for j in range(9):
-            tmp = __splitting_stage(K[j], np.arange(0,order,2), tmp, threshold, max_rank)
-            tmp = __splitting_stage(K[j], np.arange(1,order,2), tmp, threshold, max_rank)
-            tmp = __splitting_stage(K[j], np.arange(0,order,2), tmp, threshold, max_rank)
+            tmp = __splitting_stage(K[j], np.arange(0,order,2), tmp, threshold, 2*max_rank)
+            tmp = __splitting_stage(K[j], np.arange(1,order,2), tmp, threshold, 2*max_rank)
+            tmp = __splitting_stage(K[j], np.arange(0,order,2), tmp, threshold, 2*max_rank)
             #tmp = tmp.ortho(threshold=threshold, max_rank=max_rank)
         for j in range(7,-1,-1):
-            tmp = __splitting_stage(K[j], np.arange(0,order,2), tmp, threshold, max_rank)
-            tmp = __splitting_stage(K[j], np.arange(1,order,2), tmp, threshold, max_rank)
-            tmp = __splitting_stage(K[j], np.arange(0,order,2), tmp, threshold, max_rank)
+            tmp = __splitting_stage(K[j], np.arange(0,order,2), tmp, threshold, 2*max_rank)
+            tmp = __splitting_stage(K[j], np.arange(1,order,2), tmp, threshold, 2*max_rank)
+            tmp = __splitting_stage(K[j], np.arange(0,order,2), tmp, threshold, 2*max_rank)
             #tmp = tmp.ortho(threshold=threshold, max_rank=max_rank)
+        tmp = tmp.ortho(threshold=threshold, max_rank=max_rank)
 
         # normalize solution
         if normalize > 0:
