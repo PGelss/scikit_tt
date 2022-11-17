@@ -99,7 +99,7 @@ class TestTT(TestCase):
         err = 0
 
         # loop through all elements of the tensor
-        for i in range(np.int(np.prod(self.row_dims + self.col_dims))):
+        for i in range(int(np.prod(self.row_dims + self.col_dims))):
 
             # convert flat index
             j = np.unravel_index(i, self.row_dims + self.col_dims)
