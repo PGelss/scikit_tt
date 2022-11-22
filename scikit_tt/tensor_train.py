@@ -279,7 +279,7 @@ class TT(object):
                 '                  col_dims = {n}, \n'
                 '                  ranks    = {r}'.format(d=self.order, m=self.row_dims, n=self.col_dims, r=self.ranks))
 
-    def __add__(self, tt_add: 'TT'):
+    def __add__(self, tt_add: 'TT') -> 'TT':
         """
         Sum of two tensor trains.
 
@@ -343,7 +343,7 @@ class TT(object):
         else:
             raise TypeError('Unsupported parameter.')
 
-    def __sub__(self, tt_sub: 'TT'): 
+    def __sub__(self, tt_sub: 'TT') -> 'TT': 
         """
         Difference of two tensor trains.
 
@@ -365,7 +365,7 @@ class TT(object):
 
         return tt_diff
 
-    def __mul__(self, scalar: Union[int, float, complex]):
+    def __mul__(self, scalar: Union[int, float, complex]) -> 'TT':
         """
         Left-multiplication of tensor trains and scalars.
 
@@ -399,7 +399,7 @@ class TT(object):
 
         return tt_prod
 
-    def __rmul__(self, scalar: float):
+    def __rmul__(self, scalar: float) -> 'TT':
         """
         Right-multiplication of tensor trains and scalars.
 
@@ -419,7 +419,7 @@ class TT(object):
 
         return tt_prod
 
-    def __matmul__(self, tt_mul: 'TT'):
+    def __matmul__(self, tt_mul: 'TT') -> 'TT':
         """
         Multiplication of tensor trains.
 
@@ -469,7 +469,7 @@ class TT(object):
         else:
             raise TypeError('Unsupported argument.')
 
-    def dot(self, tt_mul: 'TT'):
+    def dot(self, tt_mul: 'TT') -> 'TT':
         """
         Multiplication of tensor trains.
 
@@ -493,7 +493,7 @@ class TT(object):
     def tensordot(self, other: 'TT', 
                   num_axes: int, 
                   mode: str='last-first',
-                  overwrite: bool=False):
+                  overwrite: bool=False) -> 'TT':
         """
         Computes index contraction between self and other.
 
@@ -669,7 +669,7 @@ class TT(object):
 
     def rank_tensordot(self, matrix: np.ndarray, 
                        mode: str='last', 
-                       overwrite: bool=False):
+                       overwrite: bool=False) -> 'TT':
         """
         Return index contraction between self and a 2D-array matrix along the first/last rank axis of the first/last
         core of self. Thus, this method is only useful in the unusual case where self.ranks[0] or self.ranks[-1] != 1.
@@ -713,7 +713,7 @@ class TT(object):
         return tdot
 
     def concatenate(self, other: Union['TT', List[np.ndarray]],
-                    overwrite: bool=False):
+                    overwrite: bool=False) -> 'TT':
         """
         Expand the list of cores of self by appending more cores.
         If other is a TT, concatenate the cores of self and the cores of other.
@@ -762,7 +762,7 @@ class TT(object):
     def transpose(self, 
                   cores: Optional[List[int]]=None, 
                   conjugate: bool=False,
-                  overwrite: bool=False):
+                  overwrite: bool=False) -> 'TT':
         """
         Transpose of tensor trains.
 
@@ -826,7 +826,7 @@ class TT(object):
 
         return tt_transpose
 
-    def rank_transpose(self, overwrite: bool=False):
+    def rank_transpose(self, overwrite: bool=False) -> 'TT':
         """
         Computes the rank-transposed of self.
 
@@ -870,7 +870,7 @@ class TT(object):
 
         return tt_transpose
 
-    def conj(self, overwrite: bool=False):
+    def conj(self, overwrite: bool=False) -> 'TT':
         """
         Complex conjugate of tensor trains.
 
@@ -897,7 +897,7 @@ class TT(object):
 
         return tt_conj
 
-    def isoperator(self):
+    def isoperator(self) -> bool:
         """
         Operator check.
 
@@ -912,7 +912,7 @@ class TT(object):
 
         return op_bool
 
-    def copy(self):
+    def copy(self) -> 'TT':
         """
         Deep copy of tensor trains.
 
@@ -930,7 +930,7 @@ class TT(object):
 
         return tt_copy
 
-    def element(self, indices: List[int]):
+    def element(self, indices: List[int]) -> float:
         """
         Single element of tensor trains.
 
@@ -994,7 +994,7 @@ class TT(object):
         else:
             raise TypeError('Unsupported parameter.')
 
-    def full(self):
+    def full(self) -> np.ndarray:
         """
         Conversion to full format.
 
@@ -1026,7 +1026,7 @@ class TT(object):
 
         return full_tensor
 
-    def matricize(self):
+    def matricize(self) -> np.ndarray:
         """
         Matricization of tensor trains.
 
@@ -1062,7 +1062,7 @@ class TT(object):
                    threshold: float=0.0, 
                    max_rank: int=np.infty, 
                    progress: bool=False, 
-                   string: str='Left-orthonormalization'):
+                   string: str='Left-orthonormalization') -> 'TT':
         """
         Left-orthonormalization of tensor trains.
 
@@ -1160,7 +1160,7 @@ class TT(object):
     def ortho_right(self, start_index: Optional[int]=None, 
                     end_index: int=1, 
                     threshold: float=0, 
-                    max_rank: int=np.infty):
+                    max_rank: int=np.infty) -> 'TT':
         """
         Right-orthonormalization of tensor trains.
 
@@ -1247,7 +1247,7 @@ class TT(object):
         else:
             raise TypeError('Start and end indices must be integers.')
 
-    def ortho(self, threshold: float=0, max_rank: int=np.infty):
+    def ortho(self, threshold: float=0, max_rank: int=np.infty) -> 'TT':
         """
         Left- and right-orthonormalization of tensor trains.
 
@@ -1287,7 +1287,7 @@ class TT(object):
         else:
             raise ValueError('Threshold must be greater or equal 0.')
 
-    def norm(self, p: int=2):
+    def norm(self, p: int=2) -> float:
         """
         Norm of tensor trains.
 
@@ -1388,7 +1388,7 @@ class TT(object):
     def tt2qtt(self, 
                row_dims: List[List[int]], 
                col_dims: List[List[int]], 
-               threshold: float=0):
+               threshold: float=0) -> 'TT':
         """
         Conversion from TT format into QTT format.
 
@@ -1471,7 +1471,7 @@ class TT(object):
 
         return qtt_tensor
 
-    def qtt2tt(self, merge_numbers: List[int]):
+    def qtt2tt(self, merge_numbers: List[int]) -> 'TT':
         """
         Conversion from QTT format into TT format.
 
@@ -1536,7 +1536,7 @@ class TT(object):
             max_rank:  int=np.infty, 
             ortho_l:   bool=True, 
             ortho_r:   bool=True, 
-            overwrite: bool=False): 
+            overwrite: bool=False) -> Tuple['TT', 'TT', 'TT']: 
         """
         Computation of a global SVD of a tensor train.
         Construct a singular value decomposition of a (non-operator) tensor train t in the form of tensor networks u, s,
