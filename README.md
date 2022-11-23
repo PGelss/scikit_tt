@@ -1,7 +1,7 @@
 ![scikit-tt - A toolbox for tensor-train computations](https://raw.githubusercontent.com/PGelss/scikit_tt/master/logo.png)
 
 <p align="center">
-  <a href="https://travis-ci.org/PGelss/scikit_tt"><img src="https://img.shields.io/travis/PGelss/scikit_tt.svg"><a>
+  <a href="https://github.com/PGelss/scikit_tt/actions"><img src="https://github.com/PGelss/scikit_tt/actions/workflows/python-app.yml/badge.svg?branch=actions"><a>
   <a href="https://codecov.io/gh/PGelss/scikit_tt/branch/master"><img src="https://img.shields.io/codecov/c/github/PGelss/scikit_tt.svg"><a>
 </p>
 
