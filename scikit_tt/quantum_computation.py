@@ -96,6 +96,6 @@ def plot_histogram(samples, probabilities):
     tick_label=[np.array2string(samples[i,:].astype(int), separator='')[-2:0:-1] for i in range(samples.shape[0])]
     for i, v in enumerate(probabilities):
         plt.text(i, v+0.01, str('%.3f' %v), horizontalalignment='center', fontsize=12)
-    plt.bar(np.arange(rows.shape[0]), probabilities, tick_label=tick_label)
+    plt.bar(np.arange(samples.shape[0]), probabilities, tick_label=tick_label)
     plt.tight_layout()
     plt.show()
