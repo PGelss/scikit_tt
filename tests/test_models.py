@@ -89,7 +89,73 @@ class TestModels(TestCase):
         generator = np.array(
             [[[0, 0, 0], [0, 1, 0], [0, 0, 0]], [[0, 1, 0], [1, 1, 1], [0, 1, 0]], [[0, 0, 0], [0, 1, 0], [0, 0, 0]]])
         self.vicsek_fractal.append(np.kron(np.kron(generator, generator), generator))
+        
+        # quantum models
+        # --------------
+        
+        self.H_quantum = 1/np.sqrt(2) * np.array([[1,1],[1,-1]])
+        self.C0_quantum = np.array([[1,0],[0,0]])
+        self.C1_quantum = np.array([[0,0],[0,1]])
+        self.A_quantum = self.H_quantum @ self.C0_quantum @ self.H_quantum
+        self.B_quantum = self.H_quantum @ self.C1_quantum @ self.H_quantum
+        self.NOT_quantum = np.array([[0,1],[1,0]])
+        self.CNOT_quantum = np.kron(self.C0_quantum, np.eye(2)) + np.kron(self.C1_quantum, self.NOT_quantum)
+        
+        # QFA
+        self.qfa_mat = np.zeros([16,16])
+        self.qfa_mat[0:2,0:2] = np.eye(2)
+        self.qfa_mat[8:10,8:10] = np.eye(2)
+        self.qfa_mat[10:12,2:4] = np.eye(2)
+        self.qfa_mat[12:14,4:6] = np.eye(2)
+        self.qfa_mat[6:8,6:8] = self.NOT_quantum
+        self.qfa_mat[14:16,14:16] = self.NOT_quantum
+        self.qfa_mat[2:4,10:12] = self.NOT_quantum
+        self.qfa_mat[4:6,12:14] = self.NOT_quantum
+        
+        # QFAN
+        self.number_of_adders = 3
+        self.qfan_mat = np.kron(np.eye(64), self.qfa_mat)@np.kron(np.kron(np.eye(8), self.qfa_mat), np.eye(8))@np.kron(self.qfa_mat, np.eye(64))
+        
+        # Simon's algorithm
+        self.simon_G1 = np.kron(self.H_quantum, np.eye(2))
+        self.simon_G1 = np.kron(self.simon_G1, self.simon_G1)
+        self.simon_G1 = np.kron(self.simon_G1, self.simon_G1)
+        self.simon_G2 = np.kron(np.eye(64),self.CNOT_quantum)
+        self.simon_G2 = self.simon_G2 @ np.kron(np.kron(np.eye(16),self.CNOT_quantum), np.eye(4))
+        self.simon_G2 = self.simon_G2 @ np.kron(np.kron(np.eye(4),self.CNOT_quantum), np.eye(16))
+        self.simon_G2 = self.simon_G2 @ np.kron(self.CNOT_quantum, np.eye(64))
+        self.simon_G3 = np.kron(self.C0_quantum, np.eye(128)) + np.kron(np.kron(self.C1_quantum, np.eye(16)), np.kron(self.NOT_quantum,np.eye(4)))
+        self.simon_G3 = self.simon_G3 @ np.kron(self.CNOT_quantum, np.eye(64))
+        self.simon_mat = self.simon_G1 @ self.simon_G3 @ self.simon_G2 @ self.simon_G1
+        self.simon_state = self.simon_mat @ np.eye(256)[:,0]
+        
+    def test_qfa(self):
+        """test for QFA"""
 
+        # construct TT representation of QFA
+        qfa = mdl.qfa()
+                
+        # check if construction is correct
+        self.assertEqual(np.linalg.norm(qfa.matricize()-self.qfa_mat), 0)
+        
+    def test_qfan(self):
+        """test for QFAN"""
+
+        # construct TT representation of QFAN
+        qfan = mdl.qfan(self.number_of_adders)
+                
+        # check if construction is correct
+        self.assertEqual(np.linalg.norm(qfan.matricize()-self.qfan_mat), 0)
+        
+    def test_simon(self):
+        """test for Simon's algorithm"""
+
+        # construct TT representation of Simon's circuit
+        simon = mdl.simon()
+                
+        # check if construction is correct
+        self.assertLess(np.linalg.norm(simon.matricize()-self.simon_state), 1e-14)
+        
     def test_cantor_dust(self):
         """test for Cantor dust"""
 
