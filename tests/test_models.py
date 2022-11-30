@@ -129,6 +129,16 @@ class TestModels(TestCase):
         self.simon_mat = self.simon_G1 @ self.simon_G3 @ self.simon_G2 @ self.simon_G1
         self.simon_state = self.simon_mat @ np.eye(256)[:,0]
         
+        # (inverse) quantum Fourtier transform
+        self.qft_n = 4
+        self.qft_m = 2**self.qft_n
+            
+        # Shor's algorithm
+        self.shor_M = 15
+        self.shor_a = [2,4,7,8]
+        self.shor_n = 4
+        self.shor_m = 2**(2*self.shor_n)
+        
     def test_qfa(self):
         """test for QFA"""
 
@@ -155,6 +165,101 @@ class TestModels(TestCase):
                 
         # check if construction is correct
         self.assertLess(np.linalg.norm(simon.matricize()-self.simon_state), 1e-14)
+        
+    def test_qft(self):
+        """test for Quantum Fourier transform"""
+        
+        self.qft_basis_vec = np.asarray(np.unravel_index(np.arange(self.qft_m), [2]*self.qft_n)).T
+        self.qft_basis_tt = [None]*self.qft_m
+        for i in range(self.qft_m):
+            self.qft_basis_tt[i] = tt.unit([2]*self.qft_n,self.qft_basis_vec[i,:])
+        
+        # construct TT representation of QFT
+        G = mdl.qft(self.qft_n)
+        
+        # basis for fractional binary numbers
+        frac_basis = np.array([2**(-k) for k in range(1,self.qft_n+1)])
+        
+        for i in range(self.qft_m):
+            
+            # construct final states for basis states as inputs
+            res_tt = self.qft_basis_tt[i]
+            for j in range(self.qft_n):
+                res_tt = (G[j]@res_tt).ortho(threshold=1e-12)
+                
+            # compute fractional binary numbers
+            frac_1 = np.exp(2*np.pi*1j*np.inner(self.qft_basis_vec[i,-1:],frac_basis[:1]))
+            frac_2 = np.exp(2*np.pi*1j*np.inner(self.qft_basis_vec[i,-2:],frac_basis[:2]))
+            
+            # compute vector representation of final state
+            res_mat = 1/(np.sqrt(2**self.qft_n)) * np.kron([1, frac_2], [1, frac_1])
+            for j in range(2,self.qft_n):
+                frac = np.exp(2*np.pi*1j*np.inner(self.qft_basis_vec[i,-(j+1):],frac_basis[:(j+1)]))
+                res_mat = np.kron([1, frac], res_mat)
+    
+            # check if construction is correct
+            self.assertLess(np.linalg.norm(res_tt.matricize()-res_mat), 1e-14)
+            
+    def test_iqft(self):
+        """test for inverse Quantum Fourier transform"""
+        
+        self.qft_basis_vec = np.asarray(np.unravel_index(np.arange(self.qft_m), [2]*self.qft_n)).T
+        self.qft_basis_tt = [None]*self.qft_m
+        for i in range(self.qft_m):
+            self.qft_basis_tt[i] = tt.unit([2]*self.qft_n,self.qft_basis_vec[i,:])
+        
+        # construct TT representation of inverse QFT
+        G = mdl.iqft(self.qft_n)
+        
+        # basis for fractional binary numbers
+        frac_basis = np.array([2**(-k) for k in range(1,self.qft_n+1)])
+        
+        for i in range(self.qft_m):
+            
+            # construct final states for random basis states as inputs
+            res_tt = self.qft_basis_tt[i]
+            for j in range(self.qft_n):
+                res_tt = (G[j]@res_tt).ortho(threshold=1e-12)
+                
+            # compute fractional binary numbers
+            frac_1 = np.exp(-2*np.pi*1j*np.inner(self.qft_basis_vec[i,-1:],frac_basis[:1]))
+            frac_2 = np.exp(-2*np.pi*1j*np.inner(self.qft_basis_vec[i,-2:],frac_basis[:2]))
+            
+            # compute vector representation of final state
+            res_mat = 1/(np.sqrt(2**self.qft_n)) * np.kron([1, frac_2], [1, frac_1])
+            for j in range(2,self.qft_n):
+                frac = np.exp(-2*np.pi*1j*np.inner(self.qft_basis_vec[i,-(j+1):],frac_basis[:(j+1)]))
+                res_mat = np.kron([1, frac], res_mat)
+    
+            # check if construction is correct
+            self.assertLess(np.linalg.norm(res_tt.matricize()-res_mat), 1e-14)
+            
+    def test_shor(self):
+        """test for Shor's algorithm"""
+        
+        # construct matrix representation of oracle for given values of a
+        self.shor_G = [None]*len(self.shor_a)
+        for i in range(len(self.shor_a)):
+            self.shor_G[i] = np.zeros([2**(3*self.shor_n)]*2)
+            # for any j>3: a**j mod 15 = 1
+            for j in range(4):
+                ind_x = list(np.unravel_index(j, [2]*(2*self.shor_n))) 
+                ind_y = list(np.unravel_index(int(np.mod(self.shor_a[i]**j, self.shor_M)), [2]*self.shor_n))
+                G_tmp = 1
+                for k in range(self.shor_n):
+                    G_tmp = np.kron(G_tmp, np.linalg.matrix_power(self.NOT_quantum,ind_y[k]))
+                for k in range(2*self.shor_n-1, 2*self.shor_n-3, -1):
+                    G_tmp = np.kron(np.diag(np.eye(2)[:,ind_x[k]]), G_tmp)
+                G_tmp = np.kron(np.eye(64), G_tmp)
+                self.shor_G[i] = self.shor_G[i] + G_tmp
+        
+        for i in range(len(self.shor_a)):
+            
+            # construct TT representation
+            G_tt = mdl.shor(self.shor_a[i])
+            
+            # check if construction is correct
+            self.assertLess(np.linalg.norm(G_tt.matricize()-self.shor_G[i]), 1e-12)
         
     def test_cantor_dust(self):
         """test for Cantor dust"""
