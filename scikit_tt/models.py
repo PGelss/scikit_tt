@@ -326,7 +326,74 @@ def shor(a):
     
     return G
 
+def exciton_chain(n_site, alpha, beta):
+    """
+    Chain of coupled excitons
+    
+    Construct the Hamiltonian of a periodic and homogeneous chain of 
+    excitons, see [1]_. Further models, including chains of coupled excitons
+    and phonons are available in the package WaveTrain 
+    (https://github.com/PGelss/wave_train)
 
+    Parameters
+    ----------
+    n_site : int
+        number of excitons
+    alpha : float
+        excitonic site energy
+    beta : float
+        coupling strength (NN)
+
+    Returns
+    -------
+    hamiltonian: TT
+        Hamiltonian corresponding to the system
+        
+    References
+    ----------
+    .. [1] P. Gelß, R. Klein, S. Matera, B. Schmidt. "Solving the time-independent Schrödinger equation for 
+           chains of coupled excitons and phonons using tensor trains", 
+           J. Chem. Phys., 2022
+    """
+        
+    # ladder operators
+    raising  = np.diag([1], -1)
+    lowering = np.diag([1], 1)
+    identity = np.eye(2)
+    qu_numbr = raising @ lowering
+    
+    # SLIM components
+    S = alpha * qu_numbr
+    L = beta * np.stack((raising, lowering), axis=-1)
+    I = identity
+    M = np.stack((lowering, raising))
+    
+    # construct TT decomposition
+    cores = [None] * n_site
+    cores[0] = np.zeros([1, 2, 2, 6])  
+    cores[0][0, :, :, 0] = S
+    cores[0][0, :, :, 1:3] = L
+    cores[0][0, :, :, 3] = I
+    cores[0][0, :, :, 4:6] = M.transpose([1, 2, 0])
+    cores[-1] = np.zeros([6, 2, 2, 1])   
+    cores[-1][0, :, :, 0] = I
+    cores[-1][1:3, :, :, 0] = M
+    cores[-1][3, :, :, 0] = S
+    cores[-1][4:6, :, :, 0] = L.transpose([2, 0, 1])
+    for i in range(1, n_site - 1):
+        cores[i] = np.zeros([6, 2, 2, 6])
+        cores[i][0, :, :, 0] = I
+        cores[i][1:3, :, :, 0] = M
+        cores[i][3, :, :, 0] = S
+        cores[i][3, :, :, 1:3] = L
+        cores[i][3, :, :, 3] = I
+        cores[i][4, :, :, 4] = I
+        cores[i][5, :, :, 5] = I
+    hamiltonian = TT(cores)
+        
+    return hamiltonian
+
+            
 def cantor_dust(dimension, level):
     """
     Construction of a (multidimensional) Cantor dust.

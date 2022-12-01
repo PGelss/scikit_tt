@@ -261,6 +261,40 @@ class TestModels(TestCase):
             # check if construction is correct
             self.assertLess(np.linalg.norm(G_tt.matricize()-self.shor_G[i]), 1e-12)
         
+    def test_exciton(self):
+        """test for exciton chain"""
+        
+        # order, excitonic site energy, and coupling strength
+        n_site = 5
+        alpha=1e-1
+        beta=-1e-2
+        
+        # ladder operators
+        raising  = np.diag([1], -1)        
+        lowering = np.diag([1], 1)
+        
+        # matricized SLIM components
+        S = alpha * raising @ lowering
+        LM = beta*(np.kron(raising, lowering) + np.kron(lowering, raising))
+        
+        # construct matrix representation
+        op_mat = np.zeros([2**n_site, 2**n_site])
+        op_mat = op_mat + np.kron(S, np.eye(2**(n_site-1)))
+        for i in range(1,n_site-1):
+            op_mat = op_mat + np.kron(np.kron(np.eye(2**i), S), np.eye(2**(n_site-1-i)))
+        op_mat = op_mat + np.kron(np.eye(2**(n_site-1)), S)
+        op_mat = op_mat + np.kron(LM,np.eye(2**(n_site-2)))
+        for i in range(1,n_site-1):
+            op_mat = op_mat + np.kron(np.kron(np.eye(2**i), LM),np.eye(2**(n_site-2-i)))
+            
+        op_mat = op_mat + beta * (np.kron(np.kron(raising, np.eye(2**(n_site-2))), lowering) + np.kron(np.kron(lowering, np.eye(2**(n_site-2))), raising))
+            
+        # construct TT representation
+        op = mdl.exciton_chain(n_site, alpha, beta)
+        
+        # check if construction is correct
+        self.assertLess(np.linalg.norm(op.matricize()-op_mat), 1e-14)
+        
     def test_cantor_dust(self):
         """test for Cantor dust"""
 
