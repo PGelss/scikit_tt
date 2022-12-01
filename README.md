@@ -2,6 +2,9 @@
 
 <p align="center">
   <a href="https://github.com/PGelss/scikit_tt/actions"><img src="https://github.com/PGelss/scikit_tt/actions/workflows/workflow.yml/badge.svg"><a>
+  &nbsp;&nbsp;
+  <a href="https://github.com/PGelss/scikit_tt/"><img src="https://sloc.xyz/github/PGelss/scikit_tt/"></a>
+  &nbsp;&nbsp;
   <a href="https://codecov.io/gh/PGelss/scikit_tt/branch/master"><img src="https://img.shields.io/codecov/c/github/PGelss/scikit_tt.svg"><a>
 </p>
 
