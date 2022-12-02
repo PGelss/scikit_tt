@@ -72,59 +72,27 @@ pip install git+https://github.com/PGelss/scikit_tt
 
 The tensor-train class - implemented in the module [*tensor-train.py*](scikit_tt/tensor_train.py) - is the core of **Scikit-TT** and enables us to work with the tensor-train format. We define tensor trains in terms of different attributes such as *order*, *row_dims*, *col_dims*, *ranks*, and *cores*. That is, a tensor train (operator) 
 
-<p align="center">
-  <img src="https://latex.codecogs.com/gif.latex?T%20%5Cin%20%5Cmathbb%7BR%7D%5E%7B%28m_1%20%5Ctimes%20n_1%29%20%5Ctimes%20%5Cdots%20%5Ctimes%20%28m_d%5Ctimes%20n_d%29%7D">
-</p>
-
-<!-- T \in \mathbb{R}^{(m_1 \times n_1) \times \dots \times (m_d\times n_d)} -->
+$$\large{T \in \mathbb{R}^{(m_1 \times n_1) \times \dots \times (m_d\times n_d)}}$$
 
 with graphical representation
 
+<br>
 <p align="center">
-  <img src="https://latex.codecogs.com/gif.latex?%5C%2C%5Ctext%7B---%7D%5C%2C%7B%5Cfootnotesize%20r_0%7D%5C%2C%5Ctext%7B---%7D%5C%2C%20%5Cbegin%7Bmatrix%7D%20%7C%5C%5C%20%7B%5Cfootnotesize%20n_1%7D%5C%5C%20%7C%20%5C%5C%20%5Cboxed%7BT_1%7D%20%5C%5C%20%7C%20%5C%5C%20%7B%5Cfootnotesize%20m_1%7D%5C%5C%20%7C%20%5Cend%7Bmatrix%7D%20%5C%2C%5Ctext%7B---%7D%5C%2C%7B%5Cfootnotesize%20r_1%7D%5C%2C%5Ctext%7B---%7D%5C%2C%20%5Cbegin%7Bmatrix%7D%20%7C%5C%5C%20%7B%5Cfootnotesize%20n_2%7D%5C%5C%20%7C%20%5C%5C%20%5Cboxed%7BT_2%7D%20%5C%5C%20%7C%20%5C%5C%20%7B%5Cfootnotesize%20m_2%7D%5C%5C%20%7C%20%5Cend%7Bmatrix%7D%20%5C%2C%5Ctext%7B---%7D%5C%2C%7B%5Cfootnotesize%20r_2%7D%5C%2C%5Ctext%7B---%7D%5C%2C%20%5Cbegin%7Bmatrix%7D%20%7C%5C%5C%20%7B%5Cfootnotesize%20n_3%7D%5C%5C%20%7C%20%5C%5C%20%5Cboxed%7BT_3%7D%20%5C%5C%20%7C%20%5C%5C%20%7B%5Cfootnotesize%20m_3%7D%5C%5C%20%7C%20%5Cend%7Bmatrix%7D%20%5C%2C%5Ctext%7B------%7D%5Ccdots%5Ccdots%5Ctext%7B------%7D%5C%2C%20%5Cbegin%7Bmatrix%7D%20%7C%5C%5C%20%7B%5Cfootnotesize%20n_d%7D%5C%5C%20%7C%20%5C%5C%20%5Cboxed%7BT_d%7D%20%5C%5C%20%7C%20%5C%5C%20%7B%5Cfootnotesize%20m_d%7D%5C%5C%20%7C%20%5Cend%7Bmatrix%7D%20%5C%2C%5Ctext%7B---%7D%5C%2C%7B%5Cfootnotesize%20r_d%7D%5C%2C%5Ctext%7B---%7D%5C%2C">
+  $$
+  \large{
+  \rule[2.5pt]{10pt}{0.4pt} \,\,\, {\small r_0} \,\,\, \rule[2.5pt]{10pt}{0.4pt} \,\,\, 
+  \begin{matrix} |\\ {\small n_1}\\ |\\ \framebox[22pt]{ $\underset{\phantom{0}}{\stackrel{\phantom{0}}{T^{(1)}}}$}  \\ | \\ {\small m_1}\\|\end{matrix} 
+  \,\,\, \rule[2.5pt]{10pt}{0.4pt} \,\,\, {\small r_1} \,\,\, \rule[2.5pt]{10pt}{0.4pt} \,\,\, 
+  \begin{matrix} |\\ {\small n_2}\\ |\\ \framebox[22pt]{ $\underset{\phantom{0}}{\stackrel{\phantom{0}}{T^{(2)}}}$}  \\ | \\ {\small m_2}\\|\end{matrix}
+  \,\,\, \rule[2.5pt]{10pt}{0.4pt} \,\,\, {\small r_2} \,\,\, \rule[2.5pt]{10pt}{0.4pt} \,\,\, 
+  \begin{matrix} |\\ {\small n_3}\\ |\\ \framebox[22pt]{ $\underset{\phantom{0}}{\stackrel{\phantom{0}}{T^{(3)}}}$}  \\ | \\ {\small m_3}\\|\end{matrix}
+  \,\,\, \rule[2.5pt]{20pt}{0.4pt} \,\,\, \cdots\cdots \,\,\, \rule[2.5pt]{20pt}{0.4pt} \,\,\,
+  \begin{matrix} |\\ {\small n_d}\\ |\\ \framebox[22pt]{ $\underset{\phantom{0}}{\stackrel{\phantom{0}}{T^{(d)}}}$}  \\ | \\ {\small m_d}\\|\end{matrix}
+  \,\,\, \rule[2.5pt]{10pt}{0.4pt} \,\,\, {\small r_d} \,\,\, \rule[2.5pt]{10pt}{0.4pt}
+  }
+  $$
 </p>
-
-<!-- \,\text{---}\,{\footnotesize r_0}\,\text{---}\,
-\begin{matrix}
-|\\
-{\footnotesize n_1}\\
-|   \\
-\boxed{T_1}  \\
-| \\
-{\footnotesize m_1}\\
-|
-\end{matrix}
-\,\text{---}\,{\footnotesize r_1}\,\text{---}\,
-\begin{matrix}
-|\\
-{\footnotesize n_2}\\
-|   \\
-\boxed{T_2}   \\
-| \\
-{\footnotesize m_2}\\
-|
-\end{matrix}
-\,\text{---}\,{\footnotesize r_2}\,\text{---}\,
-\begin{matrix}
-|\\
-{\footnotesize n_3}\\
-|   \\
-\boxed{T_3}  \\
-| \\
-{\footnotesize m_3}\\
-|
-\end{matrix}
-\,\text{------}\cdots\cdots\text{------}\,
-\begin{matrix}
-|\\
-{\footnotesize n_d}\\
-|   \\
-\boxed{T_d}  \\
-| \\
-{\footnotesize m_d}\\
-|
-\end{matrix}
-\,\text{---}\,{\footnotesize r_d}\,\text{---}\, -->
+<br>
 
 is given by ```order=d```, ```row_dims=[m_1,...,m_d]```, ```col_dims=[n_1,...,n_d]```, ```ranks=[r_0,...,r_d]```, and ```cores=[T_1,...,T_d]```. An overview of the member functions of the class is shown in the following list.
 
