@@ -5,6 +5,7 @@ import scikit_tt.models as mdl
 import scikit_tt.tensor_train as tt
 import scikit_tt.solvers.ode as ode
 import numpy as np
+import scipy.sparse.linalg as splin
 
 
 class TestODE(TestCase):
@@ -18,24 +19,37 @@ class TestODE(TestCase):
         # set ranks for approximations
         self.rank = 4
         self.max_rank = 15
-
+        
+    def test_hod(self):
+        """test for higher-order differencing"""
+        
+        # compute numerical solution of the ODE
+        operator = -1j*mdl.exciton_chain(4, 1e-1, -1e-2)
+        initial_value = tt.unit(operator.row_dims, [0] * operator.order)
+        step_size = 0.1
+        number_of_steps = 500
+        solution = ode.hod(operator, initial_value, step_size, number_of_steps, order=4, previous_value=None, op_hod=None, threshold=1e-12, max_rank=10, normalize=0, progress=False)
+        solution = np.squeeze(solution[-1].matricize())
+        solution_mat = splin.expm(step_size*number_of_steps*operator.matricize())@np.squeeze(initial_value.matricize())
+        
+        # check if matrix- and tensor-based results are sufficiently close
+        self.assertLess(np.linalg.norm(solution-solution_mat), 1e-12)
+        
     def test_explicit_euler(self):
         """test for explicit Euler method"""
-
+        
         # compute numerical solution of the ODE
         operator = mdl.signaling_cascade(2).tt2qtt([[2] * 6] * 2, [[2] * 6] * 2)
         initial_value = tt.unit(operator.row_dims, [0] * operator.order)
-        step_sizes = [0.1] * 3000
-        solution = ode.explicit_euler(operator, initial_value, step_sizes, progress=False, max_rank=self.max_rank)
-
-        # compute norm of the derivatives at the final 10 time steps
-        derivatives = []
-        for i in range(10):
-            derivatives.append((operator.dot(solution[-i - 1])).norm())
-
-        # check if explicit Euler method converged to stationary distribution
-        for i in range(10):
-            self.assertLess(derivatives[i], self.tol)
+        step_size = 0.1
+        number_of_steps = 300
+        step_sizes = [step_size] * number_of_steps
+        solution = ode.explicit_euler(operator, initial_value, step_sizes, progress=False, threshold=1e-14, max_rank=15)
+        solution = np.squeeze(solution[-1].matricize())
+        solution_mat = splin.expm_multiply(step_size*number_of_steps*operator.matricize(), np.squeeze(initial_value.matricize()))
+        
+        # check if matrix- and tensor-based results are sufficiently close
+        self.assertLess(np.linalg.norm(solution-solution_mat), 1e-3)
 
     def test_implicit_euler(self):
         """test for implicit Euler method"""
@@ -48,7 +62,7 @@ class TestODE(TestCase):
         solution_als = ode.implicit_euler(operator, initial_value, initial_guess, step_sizes, tt_solver='als',
                                           progress=False)
         solution_mals = ode.implicit_euler(operator, initial_value, initial_guess, step_sizes, tt_solver='mals',
-                                           max_rank=self.rank, progress=False)
+                                            max_rank=self.rank, progress=False)
 
         # compute norm of the derivatives at the final 10 time steps
         derivatives_als = []
@@ -77,7 +91,7 @@ class TestODE(TestCase):
         solution_als = ode.trapezoidal_rule(operator, initial_value, initial_guess, step_sizes, tt_solver='als',
                                             progress=False)
         solution_mals = ode.trapezoidal_rule(operator, initial_value, initial_guess, step_sizes, tt_solver='mals',
-                                             max_rank=self.rank, progress=False)
+                                              max_rank=self.rank, progress=False)
 
         # compute norm of the derivatives at the final 10 time steps
         derivatives_als = []
@@ -121,9 +135,9 @@ class TestODE(TestCase):
         initial_value = tt.unit(operator.row_dims, [0] * operator.order)
         initial_guess = tt.ones(operator.row_dims, [1] * operator.order, ranks=self.rank).ortho_right()
         solution_ie, _ = ode.adaptive_step_size(operator, initial_value, initial_guess, 300, step_size_first=1,
-                                             second_method='two_step_Euler', progress=False)
+                                              second_method='two_step_Euler', progress=False)
         solution_tr, _ = ode.adaptive_step_size(operator, initial_value, initial_guess, 300, step_size_first=1,
-                                             second_method='trapezoidal_rule', progress=False)
+                                              second_method='trapezoidal_rule', progress=False)
 
         # compute norm of the derivatives at the final time step
         derivative_ie = (operator.dot(solution_ie[-1])).norm()

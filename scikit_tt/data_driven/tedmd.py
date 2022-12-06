@@ -4,12 +4,17 @@ import scikit_tt.data_driven.transform as tdt
 from scikit_tt.data_driven.transform import Function
 import numpy as np
 from scipy import linalg
+from typing import List, Tuple, Union
 from scikit_tt.tensor_train import TT
 import scikit_tt.utils as utl
 
 
-def amuset_hosvd(data_matrix, x_indices, y_indices, basis_list, threshold=1e-2,
-                 max_rank=np.infty, progress=False):
+def amuset_hosvd(data_matrix: np.ndarray, 
+                 x_indices: np.ndarray,
+                 y_indices: np.ndarray, 
+                 basis_list: List[List[Function]],
+                 threshold: float=1e-2,
+                 max_rank: int=np.infty, progress: bool=False) -> Tuple[np.ndarray, Union['TT', List['TT']]]:
     """
     AMUSEt (AMUSE on tensors) using HOSVD.
 
@@ -20,16 +25,22 @@ def amuset_hosvd(data_matrix, x_indices, y_indices, basis_list, threshold=1e-2,
     ----------
     data_matrix : np.ndarray
         snapshot matrix
+
     x_indices : np.ndarray or list[np.ndarray]
         index sets for snapshot matrix x
+        
     y_indices : np.ndarray or list[np.ndarray]
         index sets for snapshot matrix y
+        
     basis_list : list[list[Function]]
         list of basis functions in every mode
+        
     threshold : float, optional
         threshold for SVD/HOSVD, default is 1e-2
+        
     max_rank : int
         maximum rank of truncated SVD
+        
     progress : boolean, optional
         whether to show progress bar, default is False
 
@@ -37,6 +48,7 @@ def amuset_hosvd(data_matrix, x_indices, y_indices, basis_list, threshold=1e-2,
     -------
     eigenvalues : np.ndarray or list[np.ndarray]
         tEDMD eigenvalues
+        
     eigentensors : TT or list[TT]
         tEDMD eigentensors in TT format
 
@@ -49,31 +61,38 @@ def amuset_hosvd(data_matrix, x_indices, y_indices, basis_list, threshold=1e-2,
     # define quantities
     eigenvalues = []
     eigentensors = []
-    cores = [None]*(len(basis_list)+1)
+    cores = [None] * (len(basis_list)+1)
 
     # number of snapshots
     m = data_matrix.shape[1]
+
     # number of modes
     p = len(basis_list)
+
     # mode dimensions
     n = [len(basis_list[i]) for i in range(p)]
 
     residual = np.ones((1, m))
     r_i = residual.shape[0]
+
     for i in range(len(basis_list)):
         # Directly evaluate tensor product between residual and basis for mode i:
+
         core_tmp = np.zeros((r_i, n[i], m))
+
         for j in range(m):
             psi_kj = np.array([basis_list[i][k](data_matrix[:, j]) for k in range(n[i])])
             core_tmp[:, :, j] = np.outer(residual[:, j], psi_kj)
+
         # Truncated SVD:
         u, s, v = utl.truncated_svd(core_tmp.reshape([core_tmp.shape[0]*core_tmp.shape[1], core_tmp.shape[2]]),
                                     threshold=threshold, max_rank=max_rank)
         cores[i] = u.reshape([core_tmp.shape[0], core_tmp.shape[1], 1, u.shape[1]])
         residual = np.diag(s).dot(v)
-        r_i = residual.shape[0]
+        r_i      = residual.shape[0]
+
     cores[-1] = residual.reshape([residual.shape[0], residual.shape[1], 1, 1])
-    psi = TT(cores)
+    psi       = TT(cores)
 
 
     # # construct transformed data tensor in TT format using direct approach
@@ -98,7 +117,8 @@ def amuset_hosvd(data_matrix, x_indices, y_indices, basis_list, threshold=1e-2,
         # solve reduced eigenvalue problem
         eigenvalues_reduced, eigenvectors_reduced = np.linalg.eig(matrix)
         idx = (np.abs(eigenvalues_reduced - 1)).argsort()
-        eigenvalues_reduced = np.real(eigenvalues_reduced[idx])
+
+        eigenvalues_reduced  = np.real(eigenvalues_reduced[idx])
         eigenvectors_reduced = np.real(eigenvectors_reduced[:, idx])
 
         # construct eigentensors
@@ -111,13 +131,18 @@ def amuset_hosvd(data_matrix, x_indices, y_indices, basis_list, threshold=1e-2,
 
     # only return lists if more than one set of x-indices/y-indices was given
     if len(x_indices) == 1:
-        eigenvalues = eigenvalues[0]
+        eigenvalues  = eigenvalues[0]
         eigentensors = eigentensors[0]
 
     return eigenvalues, eigentensors
 
 
-def amuset_hocur(data_matrix, x_indices, y_indices, basis_list, max_rank=1000, multiplier=2, progress=False):
+def amuset_hocur(data_matrix: np.ndarray,
+                 x_indices: Union[np.ndarray, List[np.ndarray]], 
+                 y_indices: Union[np.ndarray, List[np.ndarray]],
+                 basis_list: List[List[Function]], 
+                 max_rank: int=1000, multiplier: int=2, progress: bool=False
+                 ) -> Tuple[Union[np.ndarray, List[np.ndarray]], Union['TT', List['TT']]]:
     """
     AMUSEt (AMUSE on tensors) using HOCUR.
 
@@ -128,16 +153,22 @@ def amuset_hocur(data_matrix, x_indices, y_indices, basis_list, max_rank=1000, m
     ----------
     data_matrix : np.ndarray
         snapshot matrix
+        
     x_indices : np.ndarray or list[np.ndarray]
         index sets for snapshot matrix x
+        
     y_indices : np.ndarray or list[np.ndarray]
         index sets for snapshot matrix y
+        
     basis_list : list[list[Function]]
         list of basis functions in every mode
+        
     max_rank : int, optional
         maximum ranks for HOSVD as well as HOCUR, default is 1000
+        
     multiplier : int
         multiplier for HOCUR
+        
     progress : boolean, optional
         whether to show progress bar, default is False
 
@@ -145,6 +176,7 @@ def amuset_hocur(data_matrix, x_indices, y_indices, basis_list, max_rank=1000, m
     -------
     eigenvalues : np.ndarray or list[np.ndarray]
         tEDMD eigenvalues
+        
     eigentensors : TT or list[TT]
         tEDMD eigentensors in TT format
 
@@ -199,7 +231,10 @@ def amuset_hocur(data_matrix, x_indices, y_indices, basis_list, max_rank=1000, m
     return eigenvalues, eigentensors
 
 
-def _reduced_matrix(last_core, x_indices, y_indices, threshold=1e-3):
+def _reduced_matrix(last_core: np.ndarray,
+                    x_indices: np.ndarray, 
+                    y_indices: np.ndarray, 
+                    threshold: float=1e-3) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """
     Compute reduced matrix for AMUSEt.
 
@@ -207,10 +242,13 @@ def _reduced_matrix(last_core, x_indices, y_indices, threshold=1e-3):
     ----------
     last_core : np.ndarray
         last TT core of left-orthonormalized psi_z
+        
     x_indices : np.ndarray
         index set for snapshot matrix x
+        
     y_indices : np.ndarray
         index set for snapshot matrix y
+        
     threshold : float, optional
         threshold for SVD, default is 1e-4
 
@@ -218,10 +256,13 @@ def _reduced_matrix(last_core, x_indices, y_indices, threshold=1e-3):
     -------
     matrix : np.ndarray
         reduced matrix
+        
     u : np.ndarray
         left-orthonormal matrix of the SVD of the last core of psi_x
+        
     s : np.ndarray
         vector of singular values of the SVD of the last core of psi_x
+        
     v : np.ndarray
         right-orthonormal matrix of the SVD of the last core of psi_x
     """
