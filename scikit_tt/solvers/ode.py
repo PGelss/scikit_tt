@@ -1,13 +1,22 @@
+import numpy as np
+import scipy as sp
+
+from typing import List, Union
+
 import scikit_tt.tensor_train as tt
 from scikit_tt.tensor_train import TT
 import scikit_tt.utils as utl
 from scikit_tt.solvers import sle
-import numpy as np
-import scipy as sp
 import time as _time
 
 
-def explicit_euler(operator, initial_value, step_sizes, threshold=1e-12, max_rank=50, normalize=1, progress=True):
+def explicit_euler(operator: 'TT', 
+                   initial_value: 'TT',
+                   step_sizes: List[float], 
+                   threshold: float=1e-12,
+                   max_rank: int=50,
+                   normalize: int=1,
+                   progress: bool=True) -> List['TT']:
     """
     Explicit Euler method for linear differential equations in the TT format.
 
@@ -15,16 +24,22 @@ def explicit_euler(operator, initial_value, step_sizes, threshold=1e-12, max_ran
     ----------
     operator : TT
         TT operator of the differential equation
+
     initial_value : TT
         initial value of the differential equation
+
     step_sizes : list[float]
         step sizes for the application of the implicit Euler method
+
     threshold : float, optional
         threshold for reduced SVD decompositions, default is 1e-12
+
     max_rank : int, optional
         maximum rank of the solution, default is 50
+
     normalize : {0, 1, 2}, optional
         no normalization if 0, otherwise the solution is normalized in terms of Manhattan or Euclidean norm in each step
+
     progress : bool, optional
         whether to show the progress of the algorithm or not, default is True
 
@@ -64,7 +79,7 @@ def explicit_euler(operator, initial_value, step_sizes, threshold=1e-12, max_ran
     return solution
 
 
-def errors_expl_euler(operator, solution, step_sizes):
+def errors_expl_euler(operator: 'TT', solution: List['TT'], step_sizes: List[float]) -> List[float]:
     """
     Compute approximation errors of the explicit Euler method.
 
@@ -72,8 +87,10 @@ def errors_expl_euler(operator, solution, step_sizes):
     ----------
     operator : TT
         TT operator of the differential equation
+
     solution : list[TT]
         approximate solution of the linear differential equation
+
     step_sizes : list[float]
         step sizes for the application of the implicit Euler method
 
@@ -95,7 +112,14 @@ def errors_expl_euler(operator, solution, step_sizes):
     return errors
 
 
-def symmetric_euler(operator, initial_value, step_sizes, previous_value=None, threshold=1e-12, max_rank=50, normalize=1, progress=True):
+def symmetric_euler(operator: 'TT', 
+                    initial_value: 'TT',
+                    step_sizes: List[float], 
+                    previous_value: 'TT'=None,
+                    threshold: float=1e-12,
+                    max_rank: int=50,
+                    normalize: int=1,
+                    progress: bool=True) -> List['TT']:
     """
     Time-symmetrized explicit Euler ('second order differencing' in quantum mechanics) for linear differential
     equations in the TT format, see [1]_, [2]_.
@@ -179,8 +203,14 @@ def symmetric_euler(operator, initial_value, step_sizes, previous_value=None, th
                      cpu_time=_time.time() - start_time)
 
     return solution
-
-def fod(operator, initial_value, step_sizes, previous_value=None, threshold=1e-12, max_rank=50, normalize=1, progress=True):
+def fod(operator: 'TT', 
+        initial_value: 'TT',
+        step_sizes: List[float], 
+        previous_value: 'TT'=None,
+        threshold: float=1e-12,
+        max_rank: int=50,
+        normalize: int=1,
+        progress: bool=True) -> List['TT']:
     """
     Fourth order differencing for linear differential equations in the TT format.
 
@@ -188,18 +218,25 @@ def fod(operator, initial_value, step_sizes, previous_value=None, threshold=1e-1
     ----------
     operator : TT
         TT operator of the differential equation
+
     initial_value : TT
         initial value of the differential equation
+
     step_sizes : list[float]
         step sizes
+
     previous_value: TT, optional, default is None
         previous step for symmetric Euler; if not given one explicit Euler step is computed backwards in time
+
     threshold : float, optional
         threshold for reduced SVD decompositions, default is 1e-12
+
     max_rank : int, optional
         maximum rank of the solution, default is 50
+
     normalize : {0, 1, 2}, optional
         no normalization if 0, otherwise the solution is normalized in terms of Manhattan or Euclidean norm in each step
+
     progress : bool, optional
         whether to show the progress of the algorithm or not, default is True
 
@@ -224,6 +261,7 @@ def fod(operator, initial_value, step_sizes, previous_value=None, threshold=1e-1
 
             if previous_value==None:
                 solution_prev = (tt.eye(operator.row_dims) - step_sizes[0]*operator).dot(solution[0])
+
             else:
                 solution_prev = previous_value
 
@@ -237,10 +275,10 @@ def fod(operator, initial_value, step_sizes, previous_value=None, threshold=1e-1
             solution_prev = solution[i-1].copy()
 
         # compute next time step from current and previous time step
-        tt_one = operator.dot(solution[i]).ortho(threshold=threshold, max_rank=np.infty)
+        tt_one   = operator.dot(solution[i]).ortho(threshold=threshold, max_rank=np.infty)
         tt_three = operator.dot(tt_one).ortho(threshold=threshold, max_rank=np.infty)
         tt_three = operator.dot(tt_three)
-        tt_tmp = solution_prev + 2*step_sizes[i]*tt_one + (1/3)*step_sizes[i]**3*tt_three
+        tt_tmp   = solution_prev + 2*step_sizes[i]*tt_one + (1/3)*step_sizes[i]**3*tt_three
 
         # truncate ranks of the solution
         tt_tmp = tt_tmp.ortho(threshold=threshold, max_rank=max_rank)
@@ -259,7 +297,17 @@ def fod(operator, initial_value, step_sizes, previous_value=None, threshold=1e-1
     return solution
 
 
-def hod(operator, initial_value, step_size, number_of_steps, order=2, previous_value=None, op_hod=None, threshold=1e-12, max_rank=50, normalize=1, progress=True):
+def hod(operator: 'TT', 
+        initial_value: 'TT',
+        step_size: float, 
+        number_of_steps: int,
+        order: int=2,
+        previous_value: 'TT'=None,
+        op_hod: 'TT'=None,
+        threshold: float=1e-12,
+        max_rank: int=50,
+        normalize: int=1,
+        progress: bool=True) -> List['TT']:
     """
     Higher-order differencing for linear differential equations in the TT format.
 
@@ -267,24 +315,34 @@ def hod(operator, initial_value, step_size, number_of_steps, order=2, previous_v
     ----------
     operator : TT
         TT operator of the differential equation (assuming operator = -iH with Hamiltonian H)
+
     initial_value : TT
         initial value of the differential equation
+
     step_size : float
         step size
+
     number_of_steps : int
         number of time steps
+
     order : int, optional
         order of the differncing scheme, must be even, default is 2
+
     previous_value: TT, optional, default is None
         previous step; if not given one explicit Euler half-step and afterwards one HOD half-step are computed backwards in time
+
     op_hod : TT, optional, default is None
         TT operator for the HOD scheme
+
     threshold : float, optional
         threshold for reduced SVD decompositions, default is 1e-12
+
     max_rank : int, optional
         maximum rank of the solution, default is 50
+
     normalize : {0, 1, 2}, optional
         no normalization if 0, otherwise the solution is normalized in terms of Manhattan or Euclidean norm in each step
+
     progress : bool, optional
         whether to show the progress of the algorithm or not, default is True
 
@@ -305,9 +363,11 @@ def hod(operator, initial_value, step_size, number_of_steps, order=2, previous_v
     if op_hod == None:
         op_hod = 2*step_size*operator.copy()
         op_tmp = operator.copy()
+
         for k in range(2,order//2+1):
             op_tmp = op_tmp.dot(operator).dot(operator)
             op_hod = op_hod + 2/np.math.factorial(2*k-1) * step_size**(2*k-1) * op_tmp
+
         op_hod = op_hod.ortho(threshold=threshold)
 
     # initialize solution
@@ -323,9 +383,11 @@ def hod(operator, initial_value, step_size, number_of_steps, order=2, previous_v
             if previous_value==None:
                 op_first = step_size*operator.copy()
                 op_tmp = operator.copy()
+
                 for k in range(2,order//2+1):
                     op_tmp = op_tmp.dot(operator).dot(operator)
                     op_first = op_first + 2/np.math.factorial(2*k-1) * (step_size/2)**(2*k-1) * op_tmp
+
                 op_first = op_first.ortho(threshold=threshold)
 
                 # explicit Euler half step
@@ -367,8 +429,10 @@ def hod(operator, initial_value, step_size, number_of_steps, order=2, previous_v
     return solution
 
 
-def implicit_euler(operator, initial_value, initial_guess, step_sizes, repeats=1, tt_solver='als', threshold=1e-12,
-                   max_rank=np.infty, micro_solver='solve', normalize=1, progress=True):
+def implicit_euler(operator: 'TT', initial_value: 'TT', initial_guess: 'TT', 
+                   step_sizes: List[float], repeats: int=1, 
+                   tt_solver: str='als', threshold: float=1e-12,
+                   max_rank=np.infty, micro_solver='solve', normalize=1, progress=True) -> List['TT']:
     """
     Implicit Euler method for linear differential equations in the TT format.
 
@@ -376,24 +440,34 @@ def implicit_euler(operator, initial_value, initial_guess, step_sizes, repeats=1
     ----------
     operator : TT
         TT operator of the differential equation
+
     initial_value : TT
         initial value of the differential equation
+        
     initial_guess : TT
         initial guess for the first step
+        
     step_sizes : list[float]
         step sizes for the application of the implicit Euler method
+        
     repeats : int, optional
         number of repeats of the (M)ALS in each iteration step, default is 1
+        
     tt_solver : string, optional
         algorithm for solving the systems of linear equations in the TT format, default is 'als'
+        
     threshold : float, optional
         threshold for reduced SVD decompositions, default is 1e-12
+        
     max_rank : int, optional
         maximum rank of the solution, default is infinity
+        
     micro_solver : string, optional
         algorithm for obtaining the solutions of the micro systems, can be 'solve' or 'lu', default is 'solve'
+        
     normalize : {0, 1, 2}, optional
         no normalization if 0, otherwise the solution is normalized in terms of Manhattan or Euclidean norm in each step
+        
     progress : bool, optional
         whether to show the progress of the algorithm or not, default is True
 
@@ -440,7 +514,7 @@ def implicit_euler(operator, initial_value, initial_guess, step_sizes, repeats=1
     return solution
 
 
-def errors_impl_euler(operator, solution, step_sizes):
+def errors_impl_euler(operator: 'TT', solution: List['TT'], step_sizes: List[float]):
     """
     Compute approximation errors of the implicit Euler method.
 
@@ -448,8 +522,10 @@ def errors_impl_euler(operator, solution, step_sizes):
     ----------
     operator : TT
         TT operator of the differential equation
+
     solution : list[TT]
         approximate solution of the linear differential equation
+
     step_sizes : list[float]
         step sizes for the application of the implicit Euler method
 
@@ -471,8 +547,11 @@ def errors_impl_euler(operator, solution, step_sizes):
     return errors
 
 
-def trapezoidal_rule(operator, initial_value, initial_guess, step_sizes, repeats=1, tt_solver='als', threshold=1e-12,
-                     max_rank=np.infty, micro_solver='solve', normalize=1, progress=True):
+def trapezoidal_rule(operator: 'TT', initial_value: 'TT', initial_guess: 'TT',
+                     step_sizes: List[float], repeats: int=1, 
+                     tt_solver: str='als', threshold=1e-12,
+                     max_rank: int=np.infty, micro_solver: str='solve',
+                     normalize: int=1, progress: bool=True) -> List['TT']:
     """
     Trapezoidal rule for linear differential equations in the TT format.
 
@@ -480,24 +559,34 @@ def trapezoidal_rule(operator, initial_value, initial_guess, step_sizes, repeats
     ----------
     operator : TT
         TT operator of the differential equation
+
     initial_value : TT
         initial value of the differential equation
+        
     initial_guess : TT
         initial guess for the first step
+
     step_sizes : list[float]
         step sizes for the application of the trapezoidal rule
+        
     repeats : int, optional
         number of repeats of the (M)ALS in each iteration step, default is 1
+        
     tt_solver : string, optional
         algorithm for solving the systems of linear equations in the TT format, default is 'als'
+        
     threshold : float, optional
         threshold for reduced SVD decompositions, default is 1e-12
+        
     max_rank : int, optional
         maximum rank of the solution, default is infinity
+        
     micro_solver : string, optional
         algorithm for obtaining the solutions of the micro systems, can be 'solve' or 'lu', default is 'solve'
+        
     normalize : {0, 1, 2}, optional
         no normalization if 0, otherwise the solution is normalized in terms of Manhattan or Euclidean norm in each step
+        
     progress : bool, optional
         whether to show the progress of the algorithm or not, default is True
 
@@ -545,7 +634,8 @@ def trapezoidal_rule(operator, initial_value, initial_guess, step_sizes, repeats
     return solution
 
 
-def errors_trapezoidal(operator, solution, step_sizes):
+def errors_trapezoidal(operator: 'TT', solution: List['TT'], 
+                       step_sizes: List[float]) -> List[float]:
     """
     Compute approximation errors of the trapezoidal rule.
 
@@ -553,8 +643,10 @@ def errors_trapezoidal(operator, solution, step_sizes):
     ----------
     operator : TT
         TT operator of the differential equation
+
     solution : list[TT]
         approximate solution of the linear differential equation
+
     step_sizes : list[float]
         step sizes for the application of the implicit Euler method
 
@@ -576,10 +668,14 @@ def errors_trapezoidal(operator, solution, step_sizes):
     return errors
 
 
-def adaptive_step_size(operator, initial_value, initial_guess, time_end, step_size_first=1e-10, repeats=1,
-                       solver='solve',
-                       error_tol=1e-1, closeness_tol=0.5, step_size_min=1e-14, step_size_max=10, closeness_min=1e-3,
-                       factor_max=2, factor_safe=0.9, second_method='two_step_Euler', normalize=1, progress=True):
+def adaptive_step_size(operator: 'TT', initial_value: 'TT', initial_guess: 'TT', 
+                       time_end: float, step_size_first: float=1e-10, 
+                       repeats: int=1, solver: str='solve',
+                       error_tol: float=1e-1, closeness_tol: float=0.5,
+                       step_size_min: float=1e-14, step_size_max: float=10, 
+                       closeness_min: float=1e-3, factor_max: float=2, 
+                       factor_safe: float=0.9, second_method:str ='two_step_Euler', 
+                       normalize: int=1, progress: bool=True) -> List['TT']:
     """
     Adaptive step size method.
 
@@ -587,37 +683,53 @@ def adaptive_step_size(operator, initial_value, initial_guess, time_end, step_si
     ----------
     operator : TT
         TT operator of the differential equation
+
     initial_value : TT
         initial value of the differential equation
+
     initial_guess : TT
         initial guess for the first step
+
     time_end : float
         time point to which the ODE should be integrated
+
     step_size_first : float, optional
         first time step, default is 1e-10
+
     repeats : int, optional
         number of repeats of the ALS in each iteration step, default is 1
+
     solver : string, optional
         algorithm for obtaining the solutions of the micro systems, can be 'solve' or 'lu', default is 'solve'
+
     error_tol : float, optional
         tolerance for relative local error, default is 1e-1
+
     closeness_tol : float, optional
         tolerance for relative change in the closeness to the stationary distribution, default is 0.5
+
     step_size_min : float, optional
         minimum step size, default is 1e-14
+
     step_size_max : float, optional
         maximum step size, default is 10
+
     closeness_min : float, optional
         minimum closeness value, default is 1e-3
+
     factor_max : float, optional
         maximum factor for step size adaption, default is 2
+
     factor_safe : float, optional
         safety factor for step size adaption, default is 0.9
+
     second_method : {'two_step_Euler', 'trapezoidal_rule'}, optional
         which higher-order method should be used, can be 'two_step_Euler' or 'trapezoidal_rule', default is
         'two_step_Euler'
+
     normalize : {0, 1, 2}, optional
         no normalization if 0, otherwise the solution is normalized in terms of Manhattan or Euclidean norm in each step
+
     progress : bool, optional
         whether to show the progress of the algorithm or not, default is True
 
@@ -662,13 +774,16 @@ def adaptive_step_size(operator, initial_value, initial_guess, time_end, step_si
             t_2 = sle.als(tt.eye(operator.row_dims) - 0.5 * step_size * operator, t_tmp.copy(), solution[-1],
                           solver=solver,
                           repeats=repeats)
+
             t_2 = sle.als(tt.eye(operator.row_dims) - 0.5 * step_size * operator, t_2.copy(), solution[-1],
                           solver=solver,
                           repeats=repeats)
+
         if second_method == 'trapezoidal_rule':
             t_2 = sle.als(tt.eye(operator.row_dims) - 0.5 * step_size * operator, t_tmp.copy(),
                           (tt.eye(operator.row_dims) + 0.5 * step_size * operator).dot(solution[-1]), solver=solver,
                           repeats=repeats)
+
         # normalize solution
         if normalize > 0:
             t_2 = (1 / t_2.norm(p=normalize)) * t_2
@@ -681,7 +796,7 @@ def adaptive_step_size(operator, initial_value, initial_guess, time_end, step_si
         closeness_difference = (closeness - closeness_pre) / closeness_pre
 
         # compute factors for step size adaption
-        factor_local = error_tol / local_error
+        factor_local     = error_tol / local_error
         factor_closeness = closeness_tol / np.abs(closeness_difference)
 
         # compute new step size
@@ -694,15 +809,23 @@ def adaptive_step_size(operator, initial_value, initial_guess, time_end, step_si
             solution.append(t_2.copy())
             time_steps.append(time)
             t_tmp = t_1
+
             utl.progress('Running adaptive step size method', 100 * time / time_end, show=progress,
                          cpu_time=_time.time() - start_time)
             closeness_pre = closeness
+
         else:
             step_size = step_size_new
 
     return solution, time_steps
 
-def lie_splitting(S, L, I, M, initial_value, step_size, number_of_steps, threshold=1e-12, max_rank=50, normalize=1, K=None):
+def lie_splitting(S : Union[np.ndarray, List[np.ndarray]],
+                  L : Union[np.ndarray, List[np.ndarray]],
+                  I : Union[np.ndarray, List[np.ndarray]],
+                  M : Union[np.ndarray, List[np.ndarray]],
+                  initial_value: 'TT', step_size: float, number_of_steps: int, 
+                  threshold: float=1e-12, max_rank: int=50,
+                  normalize: int=1, K: List[np.ndarray]=None) -> List['TT']:
     """
     Lie splitting for ODEs with non-periodic SLIM operators.
 
@@ -710,24 +833,34 @@ def lie_splitting(S, L, I, M, initial_value, step_size, number_of_steps, thresho
     ----------
     S : ndarray or list[ndarrays]
         single-site components of SLIM decomposition
+
     L : ndarray or list[ndarrays]
         left two-site components of SLIM decomposition
+
     I : ndarray or list[ndarrays]
         identity components of SLIM decomposition
+
     M : ndarray or list[ndarrays]
         right two-site components of SLIM decomposition
+
     initial_value : TT
         initial value of the differential equation
+
     step_size : float
         step size
+
     number_of_steps : int
         number of time steps
+
     threshold : float, optional
         threshold for reduced SVDs, default is 1e-12
+
     max_rank : int, optional
         maximum rank of the solution, default is 50
+
     normalize : {0, 1, 2}, optional
         no normalization if 0, otherwise the solution is normalized in terms of Manhattan or Euclidean norm in each step
+
     K : list[ndarrays], optional
         list of propagators
 
@@ -766,7 +899,14 @@ def lie_splitting(S, L, I, M, initial_value, step_size, number_of_steps, thresho
 
     return solution
 
-def strang_splitting(S, L, I, M, initial_value, step_size, number_of_steps, threshold=1e-12, max_rank=50, normalize=0, K=None):
+def strang_splitting(S : Union[np.ndarray, List[np.ndarray]],                     
+                     L : Union[np.ndarray, List[np.ndarray]],
+                     I : Union[np.ndarray, List[np.ndarray]],
+                     M : Union[np.ndarray, List[np.ndarray]],
+                     initial_value: 'TT', step_size: float, number_of_steps: int, 
+                     threshold: float=1e-12, max_rank: int=50,
+                     normalize: int=0, K: List[np.ndarray]=None) -> List['TT']:
+
     """
     Strang splitting for ODEs with non-periodic SLIM operators.
 
@@ -774,24 +914,34 @@ def strang_splitting(S, L, I, M, initial_value, step_size, number_of_steps, thre
     ----------
     S : ndarray or list[ndarrays]
         single-site components of SLIM decomposition
+
     L : ndarray or list[ndarrays]
         left two-site components of SLIM decomposition
+
     I : ndarray or list[ndarrays]
         identity components of SLIM decomposition
+
     M : ndarray or list[ndarrays]
         right two-site components of SLIM decomposition
+
     initial_value : TT
         initial value of the differential equation
+
     step_size : float
         step size
+
     number_of_steps : int
         number of time steps
+
     threshold : float, optional
         threshold for reduced SVDs, default is 1e-12
+
     max_rank : int, optional
         maximum rank of the solution, default is 50
+
     normalize : {0, 1, 2}, optional
         no normalization if 0, otherwise the solution is normalized in terms of Manhattan or Euclidean norm in each step
+
     K : list[ndarrays], optional
         list of propagators
 
@@ -831,7 +981,13 @@ def strang_splitting(S, L, I, M, initial_value, step_size, number_of_steps, thre
 
     return solution
 
-def yoshida_splitting(S, L, I, M, initial_value, step_size, number_of_steps, threshold=1e-12, max_rank=50, normalize=0):
+def yoshida_splitting(S : Union[np.ndarray, List[np.ndarray]],
+                      L : Union[np.ndarray, List[np.ndarray]],
+                      I : Union[np.ndarray, List[np.ndarray]],
+                      M : Union[np.ndarray, List[np.ndarray]],
+                      initial_value: 'TT', step_size: float, number_of_steps: int, 
+                      threshold: float=1e-12, max_rank: int=50,
+                      normalize: int=0) -> List['TT']:
     """
     Yoshida splitting for ODEs with non-periodic SLIM operators.
 
@@ -839,22 +995,31 @@ def yoshida_splitting(S, L, I, M, initial_value, step_size, number_of_steps, thr
     ----------
     S : ndarray or list[ndarrays]
         single-site components of SLIM decomposition
+
     L : ndarray or list[ndarrays]
         left two-site components of SLIM decomposition
+
     I : ndarray or list[ndarrays]
         identity components of SLIM decomposition
+
     M : ndarray or list[ndarrays]
         right two-site components of SLIM decomposition
+
     initial_value : TT
         initial value of the differential equation
+
     step_size : float
         step size
+
     number_of_steps : int
         number of time steps
+
     threshold : float, optional
         threshold for reduced SVDs, default is 1e-12
+
     max_rank : int, optional
         maximum rank of the solution, default is 50
+
     normalize : {0, 1, 2}, optional
         no normalization if 0, otherwise the solution is normalized in terms of Manhattan or Euclidean norm in each step
 
@@ -902,7 +1067,13 @@ def yoshida_splitting(S, L, I, M, initial_value, step_size, number_of_steps, thr
 
     return solution
 
-def kahan_li_splitting(S, L, I, M, initial_value, step_size, number_of_steps, threshold=1e-12, max_rank=50, normalize=0):
+def kahan_li_splitting(S : Union[np.ndarray, List[np.ndarray]],
+                       L : Union[np.ndarray, List[np.ndarray]],
+                       I : Union[np.ndarray, List[np.ndarray]],
+                       M : Union[np.ndarray, List[np.ndarray]],
+                       initial_value: 'TT', step_size: float, number_of_steps: int, 
+                       threshold: float=1e-12, max_rank: int=50,
+                       normalize: int=0) -> List['TT']:
     """
     Kahan-Li splitting for ODEs with non-periodic SLIM operators.
 
@@ -910,22 +1081,31 @@ def kahan_li_splitting(S, L, I, M, initial_value, step_size, number_of_steps, th
     ----------
     S : ndarray or list[ndarrays]
         single-site components of SLIM decomposition
+
     L : ndarray or list[ndarrays]
         left two-site components of SLIM decomposition
+
     I : ndarray or list[ndarrays]
         identity components of SLIM decomposition
+
     M : ndarray or list[ndarrays]
         right two-site components of SLIM decomposition
+
     initial_value : TT
         initial value of the differential equation
+
     step_size : float
         step size
+
     number_of_steps : int
         number of time steps
+
     threshold : float, optional
         threshold for reduced SVDs, default is 1e-12
+
     max_rank : int, optional
         maximum rank of the solution, default is 50
+
     normalize : {0, 1, 2}, optional
         no normalization if 0, otherwise the solution is normalized in terms of Manhattan or Euclidean norm in each step
 
@@ -981,7 +1161,11 @@ def kahan_li_splitting(S, L, I, M, initial_value, step_size, number_of_steps, th
 
     return solution
 
-def __splitting_propagators(S, L, I, M, order, step_size, coefficients):
+def __splitting_propagators(S: Union[np.ndarray, List[np.ndarray]],
+                            L: Union[np.ndarray, List[np.ndarray]],
+                            I: Union[np.ndarray, List[np.ndarray]],
+                            M: Union[np.ndarray, List[np.ndarray]],
+                            order: int, step_size: float, coefficients: List[float]):
 
     if isinstance(S, list):
 
@@ -1039,7 +1223,9 @@ def __splitting_propagators(S, L, I, M, order, step_size, coefficients):
     return K
 
 
-def __splitting_stage(K, indices, tmp, threshold, max_rank):
+def __splitting_stage(K: Union[np.ndarray, List[np.ndarray]],
+                      indices: np.ndarray, tmp, 
+                      threshold: float, max_rank: int):
 
     for i in indices:
 

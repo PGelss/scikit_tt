@@ -4,9 +4,8 @@ import scikit_tt.utils as utl
 import time as _time
 import numpy as np
 from scipy import linalg
-from typing import List, Tuple, TypeVar, Union, Optional
+from typing import List, Tuple, Union, Optional
 
-T = TypeVar('T', int, float, np.complex)
 
 class TT(object):
     """
@@ -149,9 +148,9 @@ class TT(object):
 
     def __init__(self, x: Union[List[np.ndarray], np.ndarray], 
                  threshold: float=0, 
-                 max_rank: int=np.infty, 
-                 progress: bool=False, 
-                 string: str=None):
+                 max_rank:  int=np.infty, 
+                 progress:  bool=False, 
+                 string:    str=None):
         """
         Parameters
         ----------
@@ -204,6 +203,7 @@ class TT(object):
             # check if order of ndarray is a multiple of 2
             if np.mod(x.ndim, 2) == 0:
 
+                
                 # show progress
                 if string is None:
                     string = 'HOSVD'
@@ -389,7 +389,7 @@ class TT(object):
         tt_prod = self.copy()
 
         # check if scalar is int, float, or complex
-        if isinstance(scalar, (int, np.integer, float, np.float, complex, np.complex)):
+        if isinstance(scalar, (int, float, complex)):
 
             # multiply first core by scalar
             tt_prod.cores[0] = scalar * tt_prod.cores[0]
@@ -957,8 +957,7 @@ class TT(object):
         if isinstance(indices, list):
 
             # check is all indices are ints
-            print(indices)
-            if np.all([isinstance(indices[i], (int, np.integer)) for i in range(len(indices))]):
+            if np.all([isinstance(indices[i], (int, np.int32, np.int64)) for i in range(len(indices))]):
 
                 # check if length of indices is correct
                 if len(indices) == 2 * self.order:
@@ -1107,7 +1106,7 @@ class TT(object):
 
             if isinstance(threshold, (int, float)) and threshold >= 0:
 
-                if (isinstance(max_rank, (int, np.integer)) and max_rank > 0) or max_rank == np.infty:
+                if (isinstance(max_rank, (int, np.int32, np.int64)) and max_rank > 0) or max_rank == np.infty:
 
                     for i in range(start_index, end_index + 1):
 
@@ -1194,11 +1193,11 @@ class TT(object):
         if start_index is None:
             start_index = self.order - 1
 
-        if isinstance(start_index, (int, np.integer)) and isinstance(end_index, (int, np.integer)):
+        if isinstance(start_index, (int, np.int32, np.int64)) and isinstance(end_index, (int, np.int32, np.int64)):
 
-            if isinstance(threshold, (int, np.integer, float, np.float)) and threshold >= 0:
+            if isinstance(threshold, (int, np.int32, np.int64, float, np.float32, np.float64)) and threshold >= 0:
 
-                if (isinstance(max_rank, (int, np.integer)) and max_rank > 0) or max_rank == np.infty:
+                if (isinstance(max_rank, (int, np.int32, np.int64)) and max_rank > 0) or max_rank == np.infty:
 
                     for i in range(start_index, end_index - 1, -1):
 
@@ -1271,9 +1270,9 @@ class TT(object):
             if max_rank is not a positive integer
         """
 
-        if isinstance(threshold, (int, np.integer, float, np.float)) and threshold >= 0:
+        if isinstance(threshold, (int, np.int32, np.int64, float, np.float32, np.float64)) and threshold >= 0:
 
-            if (isinstance(max_rank, (int, np.integer)) and max_rank > 0) or max_rank == np.infty:
+            if (isinstance(max_rank, (int, np.int32, np.int64)) and max_rank > 0) or max_rank == np.infty:
 
                 # left- and right-orthonormalize self
                 self.ortho_left(threshold=threshold, max_rank=np.infty).ortho_right(threshold=threshold,
@@ -1704,7 +1703,7 @@ class TT(object):
         return t_diag
     
 
-    def squeeze(t) -> 'TT':
+    def squeeze(self) -> 'TT':
         """
         Squeeze TT decomposition.
 
@@ -1725,7 +1724,7 @@ class TT(object):
         # find cores with row and column dimension equal to 1
         no_mode_list = []
         for i in range(t.order):
-            if t.row_dims[i] == 1 and t.col_dims[i]==1:
+            if self.row_dims[i] == 1 and self.col_dims[i] == 1:
                 no_mode_list.append(i)
 
         # cores with row or column dimension (or both) larger than 1
@@ -1740,16 +1739,16 @@ class TT(object):
         # if first cores have row and column dimension equal to 1,
         # contract from the left with first relevant core
         if mode_list[0]>0:
-            core_tmp = t.cores[0][0,0,0,:][None,:]
+            core_tmp = self.cores[0][0,0,0,:][None,:]
             for i in range(1,mode_list[0]):
                 core_tmp = core_tmp@t.cores[i][:,0,0,:]
-            t.cores[mode_list[0]] = np.tensordot(core_tmp, t.cores[mode_list[0]], axes=(1,0))
+            self.cores[mode_list[0]] = np.tensordot(core_tmp, self.cores[mode_list[0]], axes=(1,0))
 
         # contract cores with row and column dimension with relevant cores from the right
         for i in range(len(mode_list)-1):
-            core_tmp = t.cores[mode_list[i]]
+            core_tmp = self.cores[mode_list[i]]
             for j in range(mode_list[i]+1,mode_list[i+1]):
-                core_tmp = core_tmp@t.cores[j][:,0,0,:]
+                core_tmp = core_tmp@self.cores[j][:,0,0,:]
             cores.append(core_tmp)
 
         # construct squeezed TT decomposition
@@ -2013,11 +2012,11 @@ def residual_error(operator: 'TT', lhs: 'TT', rhs: 'TT') -> float:
     for i in range(operator.order):
         Ax = np.tensordot(operator.cores[i], lhs.cores[i], axes=(2,1)).transpose([0, 3, 1, 4, 2, 5]).reshape([operator.ranks[i]*lhs.ranks[i], operator.row_dims[i], operator.ranks[i+1]*lhs.ranks[i+1]])
         b = rhs.cores[i].reshape(rhs.ranks[i], rhs.row_dims[i], rhs.ranks[i+1])
-        if i==0:
+        if i == 0:
             core = np.append(Ax, -b, axis=2)
             [u, s, v] = linalg.svd(core.reshape([core.shape[0]*core.shape[1], core.shape[2]]), full_matrices=False, overwrite_a=True, check_finite=False, lapack_driver='gesvd')
             M = np.diag(s).dot(v)
-        elif i==operator.order-1:
+        elif i == (operator.order - 1):
             core = np.append(Ax, b, axis=0)
             core = np.tensordot(M, core, axes=(1,0))
             error = np.linalg.norm(core.flatten())
