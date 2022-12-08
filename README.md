@@ -19,8 +19,8 @@ The simulation and analysis of high-dimensional problems is often infeasible due
 - recovery of governing equations of dynamical systems [[7](README.md#11-references)],
 - creating fractal patterns with tensor products [[9](README.md#11-references)],
 - computation of metastable and coherent sets [[10](README.md#11-references)],
-- [[11](README.md#11-references)]
-- tensor-based image classification [[12](README.md#11-references)].
+- approximation of infinitesimal Koopman generators [[11][12](README.md#11-references)]
+- tensor-based image classification [[13](README.md#13-references)].
 
 **Scikit-TT** provides a powerful TT class as well as different modules comprising solvers for algebraic problems, the automatic construction of tensor trains, and data-driven methods. Furthermore, several examples for the diverse application areas are included.
 
@@ -39,7 +39,7 @@ The simulation and analysis of high-dimensional problems is often infeasible due
    - [Regression methods](README.md#53-regression-methods)
      - [Multidimensional approximation of nonlinear dynamical systems (MANDy)](README.md#531-multidimensional-approximation-of-nonlinear-dynamical-systems-mandy)
      - [Kernel-based MANDy](README.md#532-kernel-based-mandy)
-     - [Alternating ridge regression (ARR)](README.md#533-alternating-ridge-regression-arr)
+     - [Alternating ridge regression (ARR)](README.md#533-alternating-ridge-regression)
    - [Tensor-based extended dynamic mode decomposition (tEDMD)](README.md#54-tensor-based-extended-dynamic-mode-decomposition-tedmd)
      - [Tensor-based infinitesimal generator EDMD (tgEDMD)](README.md#541-tensor-based-infinitesimal-generator-edmd-tgedmd)
    - [Ulam's method](README.md#55-ulams-method)
@@ -233,11 +233,11 @@ MANDy combines the data-driven recovery of dynamical systems with tensor decompo
 
 #### 5.3.2 Kernel-based MANDy
 
-Instead of computing the coefficient tensors explicitly, kernel-based MANDy can be used to indirectly represent those tensors by inverting gram matrices corresponding to the given transformed data tensors. Then, a sequence of Hadamard products is exploited to speed up computations. See [[12](README.md#11-references)] for details.
+Instead of computing the coefficient tensors explicitly, kernel-based MANDy can be used to indirectly represent those tensors by inverting gram matrices corresponding to the given transformed data tensors. Then, a sequence of Hadamard products is exploited to speed up computations. See [[13](README.md#11-references)] for details.
 
 #### 5.3.3 Alternating ridge regression
 
-The exact computation of the coefficient tensors (indirectly or directly represented) may lead to high TT ranks. An alternative is the application of ARR to the regression problem in order to compute a low-rank representation of the coefficient tensor by iteratively solving low-dimensional regression problems. See [[12](README.md#11-references)] for details.
+The exact computation of the coefficient tensors (indirectly or directly represented) may lead to high TT ranks. An alternative is the application of ARR to the regression problem in order to compute a low-rank representation of the coefficient tensor by iteratively solving low-dimensional regression problems. See [[13](README.md#11-references)] for details.
 
 ### 5.4 Tensor-based extended dynamic mode decomposition (tEDMD)
 
@@ -390,7 +390,9 @@ The current version of **Scikit-TT** is [1.1](https://github.com/PGelss/scikit_t
 
 [11] M. Lücke, "Tensor-based Extended Dynamic Mode Decomposition for approximating the infinitesimal Koopman Generator", Universität Paderborn, 2020
 
-[12] S. Klus, P. Gelß, "Tensor-Based Algorithms for Image Classification", Algorithms 12 (11), 2019
+[12] M. Lücke, F. Nüske, "tgEDMD: Approximation of the Kolmogorov Operator in Tensor Train Format", Journal of Nonlinear Science 32 (44), 2022
 
-[13] I. Oseledets, E. Tyrtyshnikov, "TT-cross approximation for multidimensional arrays", Linear Algebra and its Applications 432 (1) (2010)
+[13] S. Klus, P. Gelß, "Tensor-Based Algorithms for Image Classification", Algorithms 12 (11), 2019
+
+[14] I. Oseledets, E. Tyrtyshnikov, "TT-cross approximation for multidimensional arrays", Linear Algebra and its Applications 432 (1) (2010)
 
