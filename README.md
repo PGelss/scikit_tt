@@ -19,7 +19,7 @@ The simulation and analysis of high-dimensional problems is often infeasible due
 - recovery of governing equations of dynamical systems [[7](README.md#11-references)],
 - creating fractal patterns with tensor products [[9](README.md#11-references)],
 - computation of metastable and coherent sets [[10](README.md#11-references)],
-- approximation of infinitesimal Koopman generators [[11](README.md#11-references)[12](README.md#11-references)]
+- approximation of infinitesimal Koopman generators [[11](README.md#11-references)][[12](README.md#11-references)]
 - tensor-based image classification [[13](README.md#13-references)].
 
 **Scikit-TT** provides a powerful TT class as well as different modules comprising solvers for algebraic problems, the automatic construction of tensor trains, and data-driven methods. Furthermore, several examples for the diverse application areas are included.
