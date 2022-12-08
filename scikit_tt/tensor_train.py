@@ -1723,15 +1723,15 @@ class TT(object):
 
         # find cores with row and column dimension equal to 1
         no_mode_list = []
-        for i in range(t.order):
+        for i in range(self.order):
             if self.row_dims[i] == 1 and self.col_dims[i] == 1:
                 no_mode_list.append(i)
 
         # cores with row or column dimension (or both) larger than 1
-        mode_list = list(np.setdiff1d(np.arange(t.order), no_mode_list))
+        mode_list = list(np.setdiff1d(np.arange(self.order), no_mode_list))
 
         # append t.order for later loop
-        mode_list += [t.order]
+        mode_list += [self.order]
 
         # define core list
         cores = []
@@ -1741,7 +1741,7 @@ class TT(object):
         if mode_list[0]>0:
             core_tmp = self.cores[0][0,0,0,:][None,:]
             for i in range(1,mode_list[0]):
-                core_tmp = core_tmp@t.cores[i][:,0,0,:]
+                core_tmp = core_tmp@self.cores[i][:,0,0,:]
             self.cores[mode_list[0]] = np.tensordot(core_tmp, self.cores[mode_list[0]], axes=(1,0))
 
         # contract cores with row and column dimension with relevant cores from the right

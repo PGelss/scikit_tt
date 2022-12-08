@@ -1,5 +1,5 @@
 import numpy as np
-from typing import List
+from typing import List, Union
 from scikit_tt.data_driven.transform import Function
 from scikit_tt.tensor_train import TT
 
@@ -440,7 +440,7 @@ def _reduced_matrix_tgedmd(u: List['TT'],
 def _contraction_step_LPsi_u(psi_k: list, 
                              x: np.ndarray, bx: np.ndarray, sig_x: np.ndarray, 
                              u_k: np.ndarray, position: str="middle", 
-                             v: np.ndarray=None) np.ndarray:
+                             v: np.ndarray=None) -> np.ndarray:
     """
     Helper function for the tensor network contraction Lpsi(x)^T \times \hat{U}, for
      one data point x, within non-reversible tgEDMD. The contraction is performed using
