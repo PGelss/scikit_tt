@@ -1,4 +1,4 @@
-![scikit-tt - A toolbox for tensor-train computations](https://raw.githubusercontent.com/PGelss/scikit_tt/master/logo.png)
+![scikit-tt - A toolbox for tensor-train computations](https://raw.githubusercontent.com/PGelss/scikit_tt/logo.png)
 
 <p align="center">
   <a href="https://github.com/PGelss/scikit_tt/actions"><img src="https://github.com/PGelss/scikit_tt/actions/workflows/workflow.yml/badge.svg"><a>
