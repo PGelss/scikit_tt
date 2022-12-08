@@ -72,7 +72,7 @@ pip install git+https://github.com/PGelss/scikit_tt
 
 The tensor-train class - implemented in the module [*tensor-train.py*](scikit_tt/tensor_train.py) - is the core of **Scikit-TT** and enables us to work with the tensor-train format. We define tensor trains in terms of different attributes such as *order*, *row_dims*, *col_dims*, *ranks*, and *cores*. That is, a tensor train (operator) 
 
-$$\large{T \in \mathbb{R}^{(m_1 \times n_1) \times \dots \times (m_d\times n_d)}}$$
+$$\large{T \in \mathbb{C}^{(m_1 \times n_1) \times \dots \times (m_d\times n_d)}}$$
 
 with graphical representation
 
