@@ -1,5 +1,5 @@
 import numpy as np
-from typing import List, Union
+from typing import List, Union, Tuple
 from scikit_tt.data_driven.transform import Function
 from scikit_tt.tensor_train import TT
 
