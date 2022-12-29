@@ -124,6 +124,7 @@ def amuset_hosvd(data_matrix: np.ndarray,
         # construct eigentensors
         eigentensors_tmp = psi
         eigentensors_tmp.cores[-1] = u.dot(np.diag(np.reciprocal(s))).dot(eigenvectors_reduced)[:, :, None, None]
+        eigentensors_tmp.row_dims[-1] = eigentensors_tmp.cores[-1].shape[1]
 
         # append results
         eigenvalues.append(eigenvalues_reduced)
