@@ -444,16 +444,49 @@ class TT(object):
             if column dimensions of self do not match row dimensions of tt_mul
         """
 
+        def core_multiplication(core_1: np.ndarray, core_2: np.ndarray):
+            """
+            Multiplies two 4-dimensional cores of the following shapes:
+
+                (r1 x m x n x r2) (s1 x n x p x s2)
+            Returns:
+
+                Product U of cores T and S of shape (r1 * s1 x m x p x r2 * s2)
+                
+            """
+
+            # Prepare cores for matrix multiplication
+            c1_row = np.arange(core_1.shape[ 0], dtype = np.intp)[:, None]
+            c1_col = np.arange(core_1.shape[-1], dtype = np.intp)[None, :]
+
+            c2_row = np.arange(core_2.shape[ 0], dtype = np.intp)[:, None]
+            c2_col = np.arange(core_2.shape[-1], dtype = np.intp)[None, :]
+
+            # Index and broadcast accordingly
+            core1_broad = core_1[c1_row, :, :, c1_col][:, None, :, None, :, :]
+            core2_broad = core_2[c2_row, :, :, c2_col][None, :, None, :, :, :]
+
+            contraction = core1_broad @ core2_broad
+
+            reshape_contraction = contraction.reshape(
+
+                    core_1.shape[ 0] * core_2.shape[ 0],
+                    core_1.shape[-1] * core_2.shape[-1],
+                    core_1.shape[ 1], 
+                    core_2.shape[ 2]
+            )
+
+            result = reshape_contraction.transpose(0, 2, 3, 1)
+
+            return result
+
         if isinstance(tt_mul, TT):
 
             # check if dimensions match
             if self.col_dims == tt_mul.row_dims:
 
                 # multiply TT cores
-                cores = [
-                    np.tensordot(self.cores[i], tt_mul.cores[i], axes=(2, 1)).transpose([0, 3, 1, 4, 2, 5]).reshape((
-                        self.ranks[i] * tt_mul.ranks[i], self.row_dims[i], tt_mul.col_dims[i],
-                        self.ranks[i + 1] * tt_mul.ranks[i + 1])) for i in range(self.order)]
+                cores = [core_multiplication(self.cores[i], tt_mul.cores[i]) for i in range(self.order)]
 
                 # define product tensor
                 tt_prod = TT(cores)
