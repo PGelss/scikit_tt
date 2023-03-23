@@ -9,7 +9,7 @@ import scikit_tt.utils as utl
 
 
 def amuset_hosvd(data_matrix, x_indices, y_indices, basis_list, threshold=1e-2,
-                 max_rank=np.infty, progress=False):
+                 max_rank=np.infty, progress=False, ef_tf=False):
     """
     AMUSEt (AMUSE on tensors) using HOSVD.
 
@@ -32,6 +32,8 @@ def amuset_hosvd(data_matrix, x_indices, y_indices, basis_list, threshold=1e-2,
         maximum rank of truncated SVD
     progress : boolean, optional
         whether to show progress bar, default is False
+    et_tf: boolean, optional
+        if True, return eigenfunctions evaluated at snapshots
 
     Returns
     -------
@@ -104,7 +106,8 @@ def amuset_hosvd(data_matrix, x_indices, y_indices, basis_list, threshold=1e-2,
         # construct eigentensors
         eigentensors_tmp = psi
         eigentensors_tmp.cores[-1] = u.dot(np.diag(np.reciprocal(s))).dot(eigenvectors_reduced)[:, :, None, None]
-
+        eigentensors_tmp.row_dims[-1] = eigentensors_tmp.cores[-1].shape[1]
+        
         # append results
         eigenvalues.append(eigenvalues_reduced)
         eigentensors.append(eigentensors_tmp)
@@ -114,7 +117,11 @@ def amuset_hosvd(data_matrix, x_indices, y_indices, basis_list, threshold=1e-2,
         eigenvalues = eigenvalues[0]
         eigentensors = eigentensors[0]
 
-    return eigenvalues, eigentensors
+    if ef_tf:
+        eigenfunctions = v.T.dot(eigenvectors_reduced)
+        return eigenvalues, eigentensors, eigenfunctions
+    else:
+        return eigenvalues, eigentensors
 
 
 def amuset_hocur(data_matrix, x_indices, y_indices, basis_list, max_rank=1000, multiplier=2, progress=False):
