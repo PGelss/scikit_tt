@@ -17,7 +17,8 @@ def amuset_hosvd(data_matrix: np.ndarray,
                  threshold: float=1e-2,
                  max_rank: int=np.infty, 
                  progress: bool=False,
-                 ef_tf=False) -> Tuple[np.ndarray, Union['TT', List['TT']]]:
+                 ef_tf: bool=False,
+                 st_tf: bool=False) -> Tuple[np.ndarray, Union['TT', List['TT']]]:
     """
     AMUSEt (AMUSE on tensors) using HOSVD.
 
@@ -49,6 +50,9 @@ def amuset_hosvd(data_matrix: np.ndarray,
         
     et_tf: boolean, optional
         if True, return eigenfunctions evaluated at snapshots
+        
+    st_tf: boolean, optional
+        if True, return singular tensors
 
     Returns
     -------
@@ -123,6 +127,15 @@ def amuset_hosvd(data_matrix: np.ndarray,
         # solve reduced eigenvalue problem
         eigenvalues_reduced, eigenvectors_reduced = np.linalg.eig(matrix)
         idx = (np.abs(eigenvalues_reduced - 1)).argsort()
+        
+        if ef_tf:
+            eigenfunctions = v.T.dot(eigenvectors_reduced)
+            
+        if st_tf:
+            u_reduced, s_reduced, v_reduced = np.linalg.svd(matrix)
+            left_singtensors = psi
+            left_singtensors.cores[-1] = u.dot(np.diag(np.reciprocal(s))).dot(u_reduced)[:,:,None,None]
+            singvalues = s_reduced
 
         eigenvalues_reduced  = np.real(eigenvalues_reduced[idx])
         eigenvectors_reduced = np.real(eigenvectors_reduced[:, idx])
@@ -141,9 +154,18 @@ def amuset_hosvd(data_matrix: np.ndarray,
         eigenvalues  = eigenvalues[0]
         eigentensors = eigentensors[0]
 
-    if ef_tf:
-        eigenfunctions = v.T.dot(eigenvectors_reduced)
+    if ef_tf and st_tf:
+        
+        return eigenvalues, eigentensors, eigenfunctions, singvalues, left_singtensors
+    
+    elif ef_tf:
+        
         return eigenvalues, eigentensors, eigenfunctions
+    
+    elif st_tf:
+        
+        return eigenvalues, eigentensors, singvalues, left_singtensors
+        
     else:
         return eigenvalues, eigentensors
 
