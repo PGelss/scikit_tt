@@ -2,19 +2,20 @@
 # coding: utf-8
 
 import numpy as np
-from qiskit import QuantumCircuit, execute, Aer
-from qiskit.visualization import plot_histogram
-from scikit_tt.tensor_train import TT # pip install git+https://github.com/PGelss/scikit_tt
 import matplotlib.pyplot as plt
-import time
 
-def sampling(qubits_out, measure_list, number_of_samples, plot_tf=False):
+from scikit_tt.tensor_train import TT # pip install git+https://github.com/PGelss/scikit_tt
+from typing import List
+
+
+def sampling(quantum_state: 'TT', measure_list: List[float], number_of_samples: int, plot_tf: bool=False):
     """Sampling in MPS format.
     
     Parameters
     ----------
     quantum_state: TT
         MPS/TT representation of quantum state, has to be right-orthonormal
+
     measure_list: list
         ...
     number_of_samples: int
@@ -36,8 +37,8 @@ def sampling(qubits_out, measure_list, number_of_samples, plot_tf=False):
     """
 
     # compute probabilities as TT decomposition
-    qubits_diag = TT.diag(qubits_out, measure_list)
-    probabilities = (qubits_diag.transpose(conjugate=True)@qubits_out)
+    qubits_diag = TT.diag(quantum_state, measure_list)
+    probabilities = (qubits_diag.transpose(conjugate=True)@quantum_state)
 
     # squeeze probability tensor
     probabilities = TT.squeeze(probabilities)

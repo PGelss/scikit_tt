@@ -18,11 +18,12 @@ def header(title=None, subtitle=None):
         subtitle of the procedure
     """
 
-    print('                                               ')
-    print('.  __    __               ___    ___ ___       ')
-    print('. /__`  /  `  |  |__/  |   |      |   |        ')
-    print('| .__/  \__,  |  |  \  |   |      |   |        ')
-    print('o ─────────── o ────── o ─ o ──── o ─ o ── ─  ─')
+    r'                                               '
+    r'.  __    __               ___    ___ ___       '
+    r'. /__`  /  `  |  |__/  |   |      |   |        '
+    r'| .__/  \__,  |  |  \  |   |      |   |        '
+    r'o ─────────── o ────── o ─ o ──── o ─ o ── ─  ─'
+
     if title is not None:
         print('|')
         print('o ─ ' + title)
@@ -32,7 +33,7 @@ def header(title=None, subtitle=None):
     print(' ')
 
 
-def progress(str_text, percent, cpu_time=0, show=True, width=47):
+def progress(str_text: str, percent: float, cpu_time: float=0, show: bool=True, width: int=47):
     """
     Show progress in percent.
 
@@ -106,7 +107,7 @@ class timer(object):
     def __exit__(self, exc_type, exc_value, traceback):
         self.elapsed = time.time() - self.start_time
 
-def truncated_svd(matrix, threshold=0, max_rank=np.infty, rel_truncation=True,):
+def truncated_svd(matrix: np.ndarray, threshold: float=0, max_rank: int=np.infty, rel_truncation: bool=True):
     """
     Compute truncated SVD.
 

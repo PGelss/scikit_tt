@@ -4,6 +4,7 @@
 import sys
 import numpy as np
 import scipy.linalg as lin
+from typing import List
 import scikit_tt.data_driven.transform as tdt
 from scikit_tt.data_driven.transform import Function
 from scikit_tt.tensor_train import TT
@@ -11,7 +12,14 @@ import scikit_tt.utils as utl
 import time as _time
 
 
-def arr(x_data, y_data, basis_list, initial_guess, repeats=1, rcond=10**-2, string='ARR', progress=True):
+def arr(x_data: np.ndarray, 
+        y_data: np.ndarray, 
+        basis_list: List[List[Function]],
+        initial_guess: 'TT', 
+        repeats: int=1, 
+        rcond: float=10**-2, 
+        string: str='ARR', 
+        progress=True) -> 'TT':
     """
     Alternating ridge regression on transformed data tensors.
 
@@ -21,18 +29,25 @@ def arr(x_data, y_data, basis_list, initial_guess, repeats=1, rcond=10**-2, stri
     ----------
     x_data : np.ndarray
         snapshot matrix which is transformed
+
     y_data : np.ndarray
         snapshot matrix for the right-hand side
+
     basis_list : list[list[Function]]
         list of basis functions in every mode
+
     initial_guess : TT
         initial guess for the solution of operator @ x = right_hand_side
+
     repeats : int, optional
         number of repeats of the ALS, default is 1
+
     rcond : float, optional
         cut-off ratio for singular values of the subproblems, parameter for NumPy's lstsq, default is 1e-2
+
     string : string, optional
         string to show above progress bar
+
     progress : boolean, optional
         whether to show progress bar, default is True
 
@@ -127,7 +142,7 @@ def arr(x_data, y_data, basis_list, initial_guess, repeats=1, rcond=10**-2, stri
     return solution
 
 
-def mandy_cm(x, y, phi, threshold=0):
+def mandy_cm(x: np.ndarray, y: np.ndarray, phi: List[Function], threshold: float=0.0) -> 'TT':
     """
     Multidimensional Approximation of Nonlinear Dynamics (MANDy).
 
@@ -137,10 +152,13 @@ def mandy_cm(x, y, phi, threshold=0):
     ----------
     x : np.ndarray
         snapshot matrix of size d x m (e.g., coordinates)
+
     y : np.ndarray
         corresponding snapshot matrix of size d x m (e.g., derivatives)
+
     phi : list[Function]
         list of basis functions
+
     threshold : float, optional
         threshold for SVDs, default is 0
 
@@ -174,7 +192,10 @@ def mandy_cm(x, y, phi, threshold=0):
     return xi
 
 
-def mandy_fm(x, y, phi, threshold=0, add_one=True):
+def mandy_fm(x: np.ndarray, 
+             y: np.ndarray, 
+             phi: List[Function], 
+             threshold: float=0.0, add_one: bool=True) -> 'TT':
     """
     Multidimensional Approximation of Nonlinear Dynamics (MANDy).
 
@@ -184,12 +205,16 @@ def mandy_fm(x, y, phi, threshold=0, add_one=True):
     ----------
     x : np.ndarray
         snapshot matrix of size d x m (e.g., coordinates)
+
     y : np.ndarray
         corresponding snapshot matrix of size d x m (e.g., derivatives)
+
     phi : list[Function]
         list of basis functions
+
     threshold : float, optional
         threshold for SVDs, default is 0
+
     add_one : bool, optional
         whether to add the basis function 1 to the cores or not, default is True
 
@@ -224,7 +249,7 @@ def mandy_fm(x, y, phi, threshold=0, add_one=True):
     return xi
 
 
-def mandy_kb(x, y, basis_list):
+def mandy_kb(x: np.ndarray, y: np.ndarray, basis_list: List[List[Function]]) -> np.ndarray:
     """
     Kernel-based MANDy.
 
@@ -235,8 +260,10 @@ def mandy_kb(x, y, basis_list):
     ----------
     x : np.ndarray
         snapshot matrix of size d x m (e.g., coordinates)
+
     y : np.ndarray
         corresponding snapshot matrix of size d' x m (e.g., derivatives)
+
     basis_list : list[list[Function]]
         list of basis functions in every mode
 
@@ -267,7 +294,11 @@ def mandy_kb(x, y, basis_list):
 # private functions # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
-def __arr_construct_stack_left(i, stack_left, x_data, basis_list, solution):
+def __arr_construct_stack_left(i: int,
+                               stack_left: List[np.ndarray],
+                               x_data: np.ndarray,
+                               basis_list: List[List[Function]],
+                               solution: 'TT'):
     """
     Construct left stack for ARR
 
@@ -275,12 +306,16 @@ def __arr_construct_stack_left(i, stack_left, x_data, basis_list, solution):
     ----------
     i : int
         core index
+
     stack_left : list[np.ndarray]
         left stack
+
     x_data : np.ndarray
         snapshot matrix which is transformed
+
     basis_list : list[list[Function]]
         list of basis functions in every mode
+
     solution : TT
         approximated solution of the system of linear equations
     """
@@ -301,7 +336,11 @@ def __arr_construct_stack_left(i, stack_left, x_data, basis_list, solution):
         stack_left[i] = np.einsum('ij, kj, ikl -> lj', stack_left[i - 1], stack_left[i], solution.cores[i - 1][:,:,0,:])
 
 
-def __arr_construct_stack_right(i, stack_right, x_data, basis_list, solution):
+def __arr_construct_stack_right(i: int, 
+                                stack_right: List[np.ndarray], 
+                                x_data: np.ndarray, 
+                                basis_list: List[List[Function]],
+                                solution: 'TT'):
     """
     Construct right stack for ARR.
 
@@ -309,12 +348,16 @@ def __arr_construct_stack_right(i, stack_right, x_data, basis_list, solution):
     ----------
     i : int
         core index
+
     stack_right : list[np.ndarray]
         right stack
+
     x_data : np.ndarray
         snapshot matrix which is transformed
+
     basis_list : list[list[Function]]
         list of basis functions in every mode
+
     solution : TT
         approximated solution of the system of linear equations
     """
@@ -335,7 +378,12 @@ def __arr_construct_stack_right(i, stack_right, x_data, basis_list, solution):
         stack_right[i] = np.einsum('ikl, kj, lj -> ij', solution.cores[i + 1][:,:,0,:], stack_right[i], stack_right[i + 1])
 
 
-def __arr_construct_micro_matrix(i, stack_left, stack_right, x_data, basis_list, solution):
+def __arr_construct_micro_matrix(i: int, 
+                                 stack_left:  List[np.ndarray], 
+                                 stack_right: List[np.ndarray],
+                                 x_data: np.ndarray, 
+                                 basis_list: List[List[Function]],
+                                 solution: 'TT') -> np.ndarray:
     """
     Construct micro matrix for ARR.
 
@@ -343,14 +391,19 @@ def __arr_construct_micro_matrix(i, stack_left, stack_right, x_data, basis_list,
     ----------
     i : int
         core index
+
     stack_left : list[np.ndarray]
         left stack
+
     stack_right : list[np.ndarray]
         right stack
+
     x_data : np.ndarray
         snapshot matrix which is transformed
+
     basis_list : list[list[Function]]
         list of basis functions in every mode
+
     solution : TT
         approximated solution of the system of linear equations
 
@@ -372,7 +425,9 @@ def __arr_construct_micro_matrix(i, stack_left, stack_right, x_data, basis_list,
     return micro_matrix
 
 
-def __arr_update_core(i, micro_matrix, rhs, solution, rcond, direction):
+def __arr_update_core(i: int, 
+                      micro_matrix: np.ndarray, rhs: np.ndarray,
+                      solution: 'TT', rcond: float, direction: str):
     """
     Update TT core for ARR.
 
@@ -380,14 +435,19 @@ def __arr_update_core(i, micro_matrix, rhs, solution, rcond, direction):
     ----------
     i : int
         core index
+
     micro_op : np.ndarray
         micro matrix for ith TT core
+
     rhs : np.ndarray
         right-hand side for ith TT core
+
     solution : TT
         approximated solution of the system of linear equations
+
     rcond : float
         cut-off ratio for singular values of the subproblems, parameter for NumPy's lstsq
+
     direction : string
         'forward' if first half sweep, 'backward' if second half sweep
     """

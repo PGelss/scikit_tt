@@ -4,6 +4,7 @@ import scikit_tt.utils as utl
 import time as _time
 import numpy as np
 from scipy import linalg
+from typing import List, Tuple, Union, Optional
 
 
 class TT(object):
@@ -15,7 +16,7 @@ class TT(object):
 
         ``[cores[0] , ..., cores[d-1]]``,
 
-    where ``cores[i]`` is an ndarry with dimensions
+    where ``cores[i]`` is an ndarray with dimensions
 
         ``ranks[i] x row_dims[i] x col_dims[i] x ranks[i+1]``.
 
@@ -34,66 +35,86 @@ class TT(object):
     Attributes
     ----------
     order : int
-        order of the tensor train
+        Order of the tensor train
     row_dims : list[int]
-        list of the row dimensions of the tensor train
+        List of the row dimensions of the tensor train
     col_dims : list[int]
-        list of the column dimensions of the tensor train
+        List of the column dimensions of the tensor train
     ranks : list[int]
-        list of the ranks of the tensor train
+        List of the ranks of the tensor train
     cores : list[np.ndarray]
-        list of the cores of the tensor train
+        List of the cores of the tensor train
 
     Methods
     -------
     print(t)
-        string representation of tensor trains
+        String representation of tensor trains
     +
-        sum of two tensor trains
+        Sum of two tensor trains
     -
-        difference of two tensor trains
+        Difference of two tensor trains
     *
-        multiplication of tensor trains and scalars
+        Multiplication of tensor trains and scalars
     @/dot(t,u)
-        multiplication of two tensor trains
+        Multiplication of two tensor trains
     tensordot
-        index contraction between two tensortrains
+        Index contraction between two tensortrains
     rank_tensordot
-        index contraction between TT and matrix along the rank-dimension
+        Index contraction between TT and matrix along the rank-dimension
     concatenate
-        concatenate cores of two TT
-    transpose(t)
-        transpose of a tensor train
+        Concatenate cores of two TT
+    transpose
+        Transpose of a tensor train
     rank_transpose
-        rank-transpose of a tensor train
+        Rank-transpose of a tensor train
     conj
-        complex conjugate of a tensor train
-    isoperator(t)
-        check is given tensor train is an operator
-    copy(t)
-        deep copy of a tensor train
-    element(t, indices)
-        element of t at given indices
-    full(t)
-        convert tensor train to full format
-    matricize(t)
-        matricization of a tensor train
-    ortho_left(t)
-        left-orthonormalization of a tensor train
-    ortho_right(t)
-        right-orthonormalization of a tensor train
-    ortho(t)
-        left- and right-orthonormalization of a tensor train
-    norm(t)
-        norm of a tensor train
+        Complex conjugate of a tensor train
+    isoperator
+        Check is given tensor train is an operator
+    copy
+        Deep copy of a tensor train
+    element
+        Element of t at given indices
+    full
+        Convert tensor train to full format
+    matricize
+        Matricization of a tensor train
+    ortho_left
+        Left-orthonormalization of a tensor train
+    ortho_right
+        Right-orthonormalization of a tensor train
+    ortho
+        Left- and right-orthonormalization of a tensor train
+    norm
+        Norm of a tensor train
     tt2qtt
-        conversion from TT format into QTT format
+        Conversion from TT format into QTT format
     qtt2tt
-        conversion from QTT format into TT format
+        Conversion from QTT format into TT format
     svd
         Computation of a global SVD of a tensor train
     pinv
         Computation of the pseudoinverse of a tensor train
+    diag
+        Construction of diagonal MPO from MPS
+    squeeze
+        Squeeze TT decomposition
+    zeros 
+        Tensor train filled with zeros
+    ones
+        Tensor train filled with ones
+    eye
+        Identity tensor train
+    unit
+        Canonical unit tensor
+    rand
+        Random tensor train
+    canonical
+        Full-rank tensor train consisting of tensor products of the canonical basis
+    uniform
+       Uniformly distributed tensor train 
+    residual_error
+        Compute the residual error ||A@x-b|| in TT format. 
 
     References
     ----------
@@ -108,7 +129,7 @@ class TT(object):
     >>> import numpy as np
     >>> from scikit_tt.tensor_train import TT
     >>>
-    >>> cores = [np.random.rand([1, 2, 3, 4]), np.random.rand([4, 3, 2, 1])]
+    >>> cores = [np.random.rand(1, 2, 3, 4), np.random.rand(4, 3, 2, 1)]
     >>> t = TT(cores)
     >>> print(t)
     >>> ...
@@ -118,14 +139,18 @@ class TT(object):
     >>> import numpy as np
     >>> from scikit_tt.tensor_train import TT
     >>>
-    >>> x = np.random.rand([1, 2, 3, 4, 5, 6])
-    >>> t = TT(cores)
+    >>> x = np.random.rand(1, 2, 3, 4, 5, 6)
+    >>> t = TT(x) 
     >>> print(t)
     >>> ...
 
     """
 
-    def __init__(self, x, threshold=0, max_rank=np.infty, progress=False, string=None):
+    def __init__(self, x: Union[List[np.ndarray], np.ndarray], 
+                 threshold: float=0, 
+                 max_rank:  int=np.infty, 
+                 progress:  bool=False, 
+                 string:    str=None):
         """
         Parameters
         ----------
@@ -178,6 +203,7 @@ class TT(object):
             # check if order of ndarray is a multiple of 2
             if np.mod(x.ndim, 2) == 0:
 
+                
                 # show progress
                 if string is None:
                     string = 'HOSVD'
@@ -253,7 +279,7 @@ class TT(object):
                 '                  col_dims = {n}, \n'
                 '                  ranks    = {r}'.format(d=self.order, m=self.row_dims, n=self.col_dims, r=self.ranks))
 
-    def __add__(self, tt_add):
+    def __add__(self, tt_add: 'TT') -> 'TT':
         """
         Sum of two tensor trains.
 
@@ -317,7 +343,7 @@ class TT(object):
         else:
             raise TypeError('Unsupported parameter.')
 
-    def __sub__(self, tt_sub):
+    def __sub__(self, tt_sub: 'TT') -> 'TT': 
         """
         Difference of two tensor trains.
 
@@ -339,7 +365,7 @@ class TT(object):
 
         return tt_diff
 
-    def __mul__(self, scalar):
+    def __mul__(self, scalar: Union[int, float, complex]) -> 'TT':
         """
         Left-multiplication of tensor trains and scalars.
 
@@ -363,7 +389,7 @@ class TT(object):
         tt_prod = self.copy()
 
         # check if scalar is int, float, or complex
-        if isinstance(scalar, (int, np.integer, float, np.float, complex, np.complex)):
+        if isinstance(scalar, (int, float, complex)):
 
             # multiply first core by scalar
             tt_prod.cores[0] = scalar * tt_prod.cores[0]
@@ -373,7 +399,7 @@ class TT(object):
 
         return tt_prod
 
-    def __rmul__(self, scalar):
+    def __rmul__(self, scalar: float) -> 'TT':
         """
         Right-multiplication of tensor trains and scalars.
 
@@ -393,7 +419,7 @@ class TT(object):
 
         return tt_prod
 
-    def __matmul__(self, tt_mul):
+    def __matmul__(self, tt_mul: 'TT') -> 'TT':
         """
         Multiplication of tensor trains.
 
@@ -418,16 +444,49 @@ class TT(object):
             if column dimensions of self do not match row dimensions of tt_mul
         """
 
+        def core_multiplication(core_1: np.ndarray, core_2: np.ndarray):
+            """
+            Multiplies two 4-dimensional cores of the following shapes:
+
+                (r1 x m x n x r2) (s1 x n x p x s2)
+            Returns:
+
+                Product U of cores T and S of shape (r1 * s1 x m x p x r2 * s2)
+                
+            """
+
+            # Prepare cores for matrix multiplication
+            c1_row = np.arange(core_1.shape[ 0], dtype = np.intp)[:, None]
+            c1_col = np.arange(core_1.shape[-1], dtype = np.intp)[None, :]
+
+            c2_row = np.arange(core_2.shape[ 0], dtype = np.intp)[:, None]
+            c2_col = np.arange(core_2.shape[-1], dtype = np.intp)[None, :]
+
+            # Index and broadcast accordingly
+            core1_broad = core_1[c1_row, :, :, c1_col][:, None, :, None, :, :]
+            core2_broad = core_2[c2_row, :, :, c2_col][None, :, None, :, :, :]
+
+            contraction = core1_broad @ core2_broad
+
+            reshape_contraction = contraction.reshape(
+
+                    core_1.shape[ 0] * core_2.shape[ 0],
+                    core_1.shape[-1] * core_2.shape[-1],
+                    core_1.shape[ 1], 
+                    core_2.shape[ 2]
+            )
+
+            result = reshape_contraction.transpose(0, 2, 3, 1)
+
+            return result
+
         if isinstance(tt_mul, TT):
 
             # check if dimensions match
             if self.col_dims == tt_mul.row_dims:
 
                 # multiply TT cores
-                cores = [
-                    np.tensordot(self.cores[i], tt_mul.cores[i], axes=(2, 1)).transpose([0, 3, 1, 4, 2, 5]).reshape((
-                        self.ranks[i] * tt_mul.ranks[i], self.row_dims[i], tt_mul.col_dims[i],
-                        self.ranks[i + 1] * tt_mul.ranks[i + 1])) for i in range(self.order)]
+                cores = [core_multiplication(self.cores[i], tt_mul.cores[i]) for i in range(self.order)]
 
                 # define product tensor
                 tt_prod = TT(cores)
@@ -443,7 +502,7 @@ class TT(object):
         else:
             raise TypeError('Unsupported argument.')
 
-    def dot(self, tt_mul):
+    def dot(self, tt_mul: 'TT') -> 'TT':
         """
         Multiplication of tensor trains.
 
@@ -464,7 +523,10 @@ class TT(object):
 
         return tt_prod
 
-    def tensordot(self, other, num_axes, mode='last-first', overwrite=False):
+    def tensordot(self, other: 'TT', 
+                  num_axes: int, 
+                  mode: str='last-first',
+                  overwrite: bool=False) -> 'TT':
         """
         Computes index contraction between self and other.
 
@@ -638,7 +700,9 @@ class TT(object):
 
         return tdot
 
-    def rank_tensordot(self, matrix, mode='last', overwrite=False):
+    def rank_tensordot(self, matrix: np.ndarray, 
+                       mode: str='last', 
+                       overwrite: bool=False) -> 'TT':
         """
         Return index contraction between self and a 2D-array matrix along the first/last rank axis of the first/last
         core of self. Thus, this method is only useful in the unusual case where self.ranks[0] or self.ranks[-1] != 1.
@@ -681,7 +745,8 @@ class TT(object):
         tdot.ranks = [tdot.cores[i].shape[0] for i in range(tdot.order)] + [tdot.cores[-1].shape[3]]
         return tdot
 
-    def concatenate(self, other, overwrite=False):
+    def concatenate(self, other: Union['TT', List[np.ndarray]],
+                    overwrite: bool=False) -> 'TT':
         """
         Expand the list of cores of self by appending more cores.
         If other is a TT, concatenate the cores of self and the cores of other.
@@ -727,7 +792,10 @@ class TT(object):
 
         return tt
 
-    def transpose(self, cores=None, conjugate=False, overwrite=False):
+    def transpose(self, 
+                  cores: Optional[List[int]]=None, 
+                  conjugate: bool=False,
+                  overwrite: bool=False) -> 'TT':
         """
         Transpose of tensor trains.
 
@@ -791,7 +859,7 @@ class TT(object):
 
         return tt_transpose
 
-    def rank_transpose(self, overwrite=False):
+    def rank_transpose(self, overwrite: bool=False) -> 'TT':
         """
         Computes the rank-transposed of self.
 
@@ -835,7 +903,7 @@ class TT(object):
 
         return tt_transpose
 
-    def conj(self, overwrite=False):
+    def conj(self, overwrite: bool=False) -> 'TT':
         """
         Complex conjugate of tensor trains.
 
@@ -862,7 +930,7 @@ class TT(object):
 
         return tt_conj
 
-    def isoperator(self):
+    def isoperator(self) -> bool:
         """
         Operator check.
 
@@ -877,7 +945,7 @@ class TT(object):
 
         return op_bool
 
-    def copy(self):
+    def copy(self) -> 'TT':
         """
         Deep copy of tensor trains.
 
@@ -895,7 +963,7 @@ class TT(object):
 
         return tt_copy
 
-    def element(self, indices):
+    def element(self, indices: List[int]) -> float:
         """
         Single element of tensor trains.
 
@@ -922,7 +990,7 @@ class TT(object):
         if isinstance(indices, list):
 
             # check is all indices are ints
-            if np.all([isinstance(indices[i], (int, np.integer)) for i in range(len(indices))]):
+            if np.all([isinstance(indices[i], (int, np.int32, np.int64)) for i in range(len(indices))]):
 
                 # check if length of indices is correct
                 if len(indices) == 2 * self.order:
@@ -958,7 +1026,7 @@ class TT(object):
         else:
             raise TypeError('Unsupported parameter.')
 
-    def full(self):
+    def full(self) -> np.ndarray:
         """
         Conversion to full format.
 
@@ -990,7 +1058,7 @@ class TT(object):
 
         return full_tensor
 
-    def matricize(self):
+    def matricize(self) -> np.ndarray:
         """
         Matricization of tensor trains.
 
@@ -1021,10 +1089,14 @@ class TT(object):
 
         return tt_mat
 
-    def ortho_left(self, start_index=0, end_index=None, threshold=0, max_rank=np.infty, progress=False,
-                   string='Left-orthonormalization'):
+    def ortho_left(self, start_index: int=0, 
+                   end_index: Optional[int]=None, 
+                   threshold: float=0.0, 
+                   max_rank: int=np.infty, 
+                   progress: bool=False, 
+                   string: str='Left-orthonormalization') -> 'TT':
         """
-        left-orthonormalization of tensor trains.
+        Left-orthonormalization of tensor trains.
 
         Parameters
         ----------
@@ -1063,11 +1135,11 @@ class TT(object):
         if end_index is None:
             end_index = self.order - 2
 
-        if isinstance(start_index, (int, np.integer)) and isinstance(end_index, (int, np.integer)):
+        if isinstance(start_index, int) and isinstance(end_index, int):
 
-            if isinstance(threshold, (int, np.integer, float, np.float)) and threshold >= 0:
+            if isinstance(threshold, (int, float)) and threshold >= 0:
 
-                if (isinstance(max_rank, (int, np.integer)) and max_rank > 0) or max_rank == np.infty:
+                if (isinstance(max_rank, (int, np.int32, np.int64)) and max_rank > 0) or max_rank == np.infty:
 
                     for i in range(start_index, end_index + 1):
 
@@ -1117,9 +1189,12 @@ class TT(object):
         else:
             raise TypeError('Start and end indices must be integers.')
 
-    def ortho_right(self, start_index=None, end_index=1, threshold=0, max_rank=np.infty):
+    def ortho_right(self, start_index: Optional[int]=None, 
+                    end_index: int=1, 
+                    threshold: float=0, 
+                    max_rank: int=np.infty) -> 'TT':
         """
-        right-orthonormalization of tensor trains.
+        Right-orthonormalization of tensor trains.
 
         Parameters
         ----------
@@ -1151,11 +1226,11 @@ class TT(object):
         if start_index is None:
             start_index = self.order - 1
 
-        if isinstance(start_index, (int, np.integer)) and isinstance(end_index, (int, np.integer)):
+        if isinstance(start_index, (int, np.int32, np.int64)) and isinstance(end_index, (int, np.int32, np.int64)):
 
-            if isinstance(threshold, (int, np.integer, float, np.float)) and threshold >= 0:
+            if isinstance(threshold, (int, np.int32, np.int64, float, np.float32, np.float64)) and threshold >= 0:
 
-                if (isinstance(max_rank, (int, np.integer)) and max_rank > 0) or max_rank == np.infty:
+                if (isinstance(max_rank, (int, np.int32, np.int64)) and max_rank > 0) or max_rank == np.infty:
 
                     for i in range(start_index, end_index - 1, -1):
 
@@ -1204,9 +1279,9 @@ class TT(object):
         else:
             raise TypeError('Start and end indices must be integers.')
 
-    def ortho(self, threshold=0, max_rank=np.infty):
+    def ortho(self, threshold: float=0, max_rank: int=np.infty) -> 'TT':
         """
-        left- and right-orthonormalization of tensor trains.
+        Left- and right-orthonormalization of tensor trains.
 
         Parameters
         ----------
@@ -1228,9 +1303,9 @@ class TT(object):
             if max_rank is not a positive integer
         """
 
-        if isinstance(threshold, (int, np.integer, float, np.float)) and threshold >= 0:
+        if isinstance(threshold, (int, np.int32, np.int64, float, np.float32, np.float64)) and threshold >= 0:
 
-            if (isinstance(max_rank, (int, np.integer)) and max_rank > 0) or max_rank == np.infty:
+            if (isinstance(max_rank, (int, np.int32, np.int64)) and max_rank > 0) or max_rank == np.infty:
 
                 # left- and right-orthonormalize self
                 self.ortho_left(threshold=threshold, max_rank=np.infty).ortho_right(threshold=threshold,
@@ -1244,7 +1319,7 @@ class TT(object):
         else:
             raise ValueError('Threshold must be greater or equal 0.')
 
-    def norm(self, p=2):
+    def norm(self, p: int=2) -> float:
         """
         Norm of tensor trains.
 
@@ -1342,9 +1417,12 @@ class TT(object):
         else:
             raise ValueError('p must be 1 or 2.')
 
-    def tt2qtt(self, row_dims, col_dims, threshold=0):
+    def tt2qtt(self, 
+               row_dims: List[List[int]], 
+               col_dims: List[List[int]], 
+               threshold: float=0) -> 'TT':
         """
-        conversion from TT format into QTT format.
+        Conversion from TT format into QTT format.
 
         Split the TT cores of a given tensor train in order to obtain a QTT representation.
 
@@ -1425,9 +1503,9 @@ class TT(object):
 
         return qtt_tensor
 
-    def qtt2tt(self, merge_numbers):
+    def qtt2tt(self, merge_numbers: List[int]) -> 'TT':
         """
-        conversion from QTT format into TT format.
+        Conversion from QTT format into TT format.
 
         Contract the QTT cores of a given quantized tensor train in order to obtain a TT representation.
 
@@ -1484,7 +1562,13 @@ class TT(object):
 
         return tt_tensor
 
-    def svd(self, index, threshold=0, max_rank=np.infty, ortho_l=True, ortho_r=True, overwrite=False):
+    def svd(self, 
+            index:     int, 
+            threshold: float=0.0, 
+            max_rank:  int=np.infty, 
+            ortho_l:   bool=True, 
+            ortho_r:   bool=True, 
+            overwrite: bool=False) -> Tuple['TT', 'TT', 'TT']: 
         """
         Computation of a global SVD of a tensor train.
         Construct a singular value decomposition of a (non-operator) tensor train t in the form of tensor networks u, s,
@@ -1565,7 +1649,12 @@ class TT(object):
 
         return u, s, v
 
-    def pinv(self, index, threshold=0, ortho_l=True, ortho_r=True, overwrite=False):
+    def pinv(self, 
+             index:     int, 
+             threshold: float=0.0, 
+             ortho_l:   bool=True,
+             ortho_r:   bool=True,
+             overwrite: bool=False) -> 'TT':
         """
         Computation of the pseudoinverse of a tensor train.
 
@@ -1615,8 +1704,9 @@ class TT(object):
 
         return p_inv
     
-    def diag(t, diag_list):
-        """Construction of diagonal MPO from MPS.
+    def diag(self, t: 'TT', diag_list: List) -> 'TT':
+        """
+        Construction of diagonal MPO from MPS.
 
         Parameters
         ----------
@@ -1646,8 +1736,9 @@ class TT(object):
         return t_diag
     
 
-    def squeeze(t):
-        """Squeeze TT decomposition.
+    def squeeze(self) -> 'TT':
+        """
+        Squeeze TT decomposition.
 
         Contract cores with row and column dimension 1 with neighboring cores.
 
@@ -1665,15 +1756,15 @@ class TT(object):
 
         # find cores with row and column dimension equal to 1
         no_mode_list = []
-        for i in range(t.order):
-            if t.row_dims[i] == 1 and t.col_dims[i]==1:
+        for i in range(self.order):
+            if self.row_dims[i] == 1 and self.col_dims[i] == 1:
                 no_mode_list.append(i)
 
         # cores with row or column dimension (or both) larger than 1
-        mode_list = list(np.setdiff1d(np.arange(t.order), no_mode_list))
+        mode_list = list(np.setdiff1d(np.arange(self.order), no_mode_list))
 
         # append t.order for later loop
-        mode_list += [t.order]
+        mode_list += [self.order]
 
         # define core list
         cores = []
@@ -1681,16 +1772,16 @@ class TT(object):
         # if first cores have row and column dimension equal to 1,
         # contract from the left with first relevant core
         if mode_list[0]>0:
-            core_tmp = t.cores[0][0,0,0,:][None,:]
+            core_tmp = self.cores[0][0,0,0,:][None,:]
             for i in range(1,mode_list[0]):
-                core_tmp = core_tmp@t.cores[i][:,0,0,:]
-            t.cores[mode_list[0]] = np.tensordot(core_tmp, t.cores[mode_list[0]], axes=(1,0))
+                core_tmp = core_tmp@self.cores[i][:,0,0,:]
+            self.cores[mode_list[0]] = np.tensordot(core_tmp, self.cores[mode_list[0]], axes=(1,0))
 
         # contract cores with row and column dimension with relevant cores from the right
         for i in range(len(mode_list)-1):
-            core_tmp = t.cores[mode_list[i]]
+            core_tmp = self.cores[mode_list[i]]
             for j in range(mode_list[i]+1,mode_list[i+1]):
-                core_tmp = core_tmp@t.cores[j][:,0,0,:]
+                core_tmp = core_tmp@self.cores[j][:,0,0,:]
             cores.append(core_tmp)
 
         # construct squeezed TT decomposition
@@ -1702,9 +1793,9 @@ class TT(object):
 # construction of specific tensor-train decompositions
 # ----------------------------------------------------
 
-def zeros(row_dims, col_dims, ranks=1):
+def zeros(row_dims: List[int], col_dims: List[int], ranks: Union[int, List[int]]=1) -> 'TT':
     """
-    tensor train of all zeros.
+    Tensor train filled with zeros.
 
     Parameters
     ----------
@@ -1718,7 +1809,7 @@ def zeros(row_dims, col_dims, ranks=1):
     Returns
     -------
     TT
-        tensor train of all zeros
+        Tensor train filled with zeros
     """
 
     # set ranks of tt_zeros
@@ -1734,9 +1825,9 @@ def zeros(row_dims, col_dims, ranks=1):
     return tt_zeros
 
 
-def ones(row_dims, col_dims, ranks=1):
+def ones(row_dims: List[int], col_dims: List[int], ranks: Union[int, List[int]]=1) -> 'TT':
     """
-    tensor train of all ones.
+    Tensor train filled with ones.
 
     Parameters
     ----------
@@ -1750,7 +1841,7 @@ def ones(row_dims, col_dims, ranks=1):
     Returns
     -------
     TT
-        tensor train of all ones
+        Tensor train filled with ones
     """
 
     # set ranks of tt_ones
@@ -1766,9 +1857,9 @@ def ones(row_dims, col_dims, ranks=1):
     return tt_ones
 
 
-def eye(dims):
+def eye(dims: List[int]) -> 'TT':
     """
-    identity tensor train.
+    Identity tensor train.
 
     Parameters
     ----------
@@ -1778,7 +1869,7 @@ def eye(dims):
     Returns
     -------
     TT
-        identity tensor train
+        Identity tensor train
     """
 
     # define cores of tt_eye
@@ -1792,7 +1883,7 @@ def eye(dims):
     return tt_eye
 
 
-def unit(dims, inds):
+def unit(dims: List[int], inds: List[int]) -> 'TT':
     """
     Canonical unit tensor.
 
@@ -1817,9 +1908,9 @@ def unit(dims, inds):
     return t
 
 
-def rand(row_dims, col_dims, ranks=1):
+def rand(row_dims : List[int], col_dims: List[int], ranks: Union[int, List[int]]=1) -> 'TT':
     """
-    random tensor train.
+    Random tensor train.
 
     Parameters
     ----------
@@ -1849,9 +1940,9 @@ def rand(row_dims, col_dims, ranks=1):
     return tt_rand
 
 
-def canonical(row_dims, max_rank):
+def canonical(row_dims: List[int], max_rank: int) -> 'TT':
     """
-    full-rank tensor train consisting of tensor products of the canonical basis.
+    Full-rank tensor train consisting of tensor products of the canonical basis.
 
     Parameters
     ----------
@@ -1896,9 +1987,9 @@ def canonical(row_dims, max_rank):
     return tt_canonical
 
 
-def uniform(row_dims, ranks=1, norm=1):
+def uniform(row_dims: List[int], ranks: Union[int, List[int]]=1, norm: float=1) -> 'TT':
     """
-    uniformly distributed tensor train.
+    Uniformly distributed tensor train.
 
     Parameters
     ----------
@@ -1931,7 +2022,7 @@ def uniform(row_dims, ranks=1, norm=1):
     return tt_uni
 
 
-def residual_error(operator, lhs, rhs):
+def residual_error(operator: 'TT', lhs: 'TT', rhs: 'TT') -> float:
     """
     Compute the residual error ||A@x-b|| in TT format. Since the ranks of A@x may be too large for storing
     the complete tensor train, the residual error is computed in a core-wise manner. 
@@ -1954,11 +2045,11 @@ def residual_error(operator, lhs, rhs):
     for i in range(operator.order):
         Ax = np.tensordot(operator.cores[i], lhs.cores[i], axes=(2,1)).transpose([0, 3, 1, 4, 2, 5]).reshape([operator.ranks[i]*lhs.ranks[i], operator.row_dims[i], operator.ranks[i+1]*lhs.ranks[i+1]])
         b = rhs.cores[i].reshape(rhs.ranks[i], rhs.row_dims[i], rhs.ranks[i+1])
-        if i==0:
+        if i == 0:
             core = np.append(Ax, -b, axis=2)
             [u, s, v] = linalg.svd(core.reshape([core.shape[0]*core.shape[1], core.shape[2]]), full_matrices=False, overwrite_a=True, check_finite=False, lapack_driver='gesvd')
             M = np.diag(s).dot(v)
-        elif i==operator.order-1:
+        elif i == (operator.order - 1):
             core = np.append(Ax, b, axis=0)
             core = np.tensordot(M, core, axes=(1,0))
             error = np.linalg.norm(core.flatten())

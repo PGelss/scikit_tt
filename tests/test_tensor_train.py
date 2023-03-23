@@ -99,7 +99,7 @@ class TestTT(TestCase):
         err = 0
 
         # loop through all elements of the tensor
-        for i in range(np.int(np.prod(self.row_dims + self.col_dims))):
+        for i in range(int(np.prod(self.row_dims + self.col_dims))):
 
             # convert flat index
             j = np.unravel_index(i, self.row_dims + self.col_dims)
@@ -615,7 +615,7 @@ class TestTT(TestCase):
         t_ones = tt.ones(self.row_dims, self.col_dims).full().flatten()
 
         # construct full array of all ones
-        t_full = np.ones(np.int(np.prod(self.row_dims)) * np.int(np.prod(self.col_dims)))
+        t_full = np.ones(int(np.prod(self.row_dims)) * int(np.prod(self.col_dims)))
 
         # compute relative error
         rel_err = np.linalg.norm(t_ones - t_full) / np.linalg.norm(t_full)
@@ -630,7 +630,7 @@ class TestTT(TestCase):
         t_eye = tt.eye(self.row_dims).full().flatten()
 
         # construct identity matrix and flatten
-        t_full = np.eye(np.int(np.prod(self.row_dims))).flatten()
+        t_full = np.eye(int(np.prod(self.row_dims))).flatten()
 
         # compute relative error
         rel_err = np.linalg.norm(t_eye - t_full) / np.linalg.norm(t_full)
@@ -645,7 +645,7 @@ class TestTT(TestCase):
         t_unit = tt.unit(self.row_dims, [0] * self.order).full().flatten()
 
         # construct unit vector
-        t_full = np.eye(np.int(np.prod(self.row_dims)), 1).T
+        t_full = np.eye(int(np.prod(self.row_dims)), 1).T
 
         # compute relative error
         rel_err = np.linalg.norm(t_unit - t_full) / np.linalg.norm(t_full)

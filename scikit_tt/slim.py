@@ -4,9 +4,13 @@
 import numpy as np
 from scipy import linalg
 from scikit_tt.tensor_train import TT
+from typing import List, Union, Tuple
 
 
-def slim_mme(state_space, single_cell_reactions, two_cell_reactions, threshold=0):
+def slim_mme(state_space: List[int], 
+             single_cell_reactions: List[List[List[Union[int, float]]]],
+             two_cell_reactions:    List[List[List[Union[int, float]]]],
+             threshold: float=0) -> 'TT':
     """
     SLIM decomposition for Markov generators.
 
@@ -19,13 +23,16 @@ def slim_mme(state_space, single_cell_reactions, two_cell_reactions, threshold=0
     ----------
     state_space : list[int]
         number of states of each cell in the NNIS
+
     single_cell_reactions :  list[list[list[int or float]]]
         list of considered single-cell reactions, i.e. single_cell_reactions[i][j] is a list of the form
         [reactant_state, product_state, reactions_rate] describing the jth reaction on the ith cell.
+
     two_cell_reactions : list[list[list[int or float]]]
         list of considered two-cell reactions, i.e. two_cell_reactions[i][j] is a list of the form
         [reactant_state_i, product_state_i, reactant_state_i+1, product_state_i+1, reactions_rate] describing the jth
         reaction between the ith and the (i+1)th cell.
+
     threshold : float, optional
         threshold for the singular value decomposition of the two-cell reaction cores, default is 1e-14
 
@@ -66,11 +73,17 @@ def slim_mme(state_space, single_cell_reactions, two_cell_reactions, threshold=0
 
         # sum over all single-cell reactions
         for j in range(len(single_cell_reactions[i])):
+
             dimension = state_space[i]
+
             reactant_state = single_cell_reactions[i][j][0]
-            product_state = single_cell_reactions[i][j][1]
-            net_change = product_state - reactant_state
-            reaction_rate = single_cell_reactions[i][j][2]
+
+            product_state  = single_cell_reactions[i][j][1]
+
+            net_change     = product_state - reactant_state
+
+            reaction_rate  = single_cell_reactions[i][j][2]
+
             s_mat[i] = s_mat[i] + reaction_rate * (np.eye(dimension, k=-net_change) - np.eye(dimension)).dot(np.diag(
                 np.eye(dimension)[:, reactant_state]))
 
@@ -86,13 +99,18 @@ def slim_mme(state_space, single_cell_reactions, two_cell_reactions, threshold=0
         for j in range(len(two_cell_reactions[i])):
             dimension_1 = state_space[i]
             dimension_2 = state_space[i + 1]
+
             reactant_state_1 = two_cell_reactions[i][j][0]
             reactant_state_2 = two_cell_reactions[i][j][2]
+
             product_state_1 = two_cell_reactions[i][j][1]
             product_state_2 = two_cell_reactions[i][j][3]
+
             net_change_1 = product_state_1 - reactant_state_1
             net_change_2 = product_state_2 - reactant_state_2
+
             reaction_rate = two_cell_reactions[i][j][4]
+
             super_core = super_core + reaction_rate * (np.tensordot(
                 np.eye(dimension_1, k=-net_change_1).dot(np.diag(np.eye(dimension_1)[:, reactant_state_1])),
                 np.eye(dimension_2, k=-net_change_2).dot(np.diag(np.eye(dimension_2)[:, reactant_state_2])), axes=0)
@@ -118,13 +136,18 @@ def slim_mme(state_space, single_cell_reactions, two_cell_reactions, threshold=0
         for j in range(len(two_cell_reactions[-1])):
             dimension_1 = state_space[-1]
             dimension_2 = state_space[0]
+
             reactant_state_1 = two_cell_reactions[-1][j][0]
             reactant_state_2 = two_cell_reactions[-1][j][2]
+
             product_state_1 = two_cell_reactions[-1][j][1]
             product_state_2 = two_cell_reactions[-1][j][3]
+
             net_change_1 = product_state_1 - reactant_state_1
             net_change_2 = product_state_2 - reactant_state_2
+
             reaction_rate = two_cell_reactions[-1][j][4]
+
             super_core = super_core + reaction_rate * (np.tensordot(
                 np.eye(dimension_1, k=-net_change_1).dot(np.diag(np.eye(dimension_1)[:, reactant_state_1])),
                 np.eye(dimension_2, k=-net_change_2).dot(np.diag(np.eye(dimension_2)[:, reactant_state_2])), axes=0)
@@ -146,25 +169,28 @@ def slim_mme(state_space, single_cell_reactions, two_cell_reactions, threshold=0
     # -------------------------------
 
     cores = [np.zeros([1, state_space[0], state_space[0], 2 + ranks[0] + ranks[-1]])]
-    cores[0][0, :, :, 0] = s_mat[0]
-    cores[0][0, :, :, 1:1 + ranks[0]] = l_mat[0]
-    cores[0][0, :, :, 1 + ranks[0]] = i_mat[0]
+
+    cores[0][0, :, :, 0]                                     = s_mat[0]
+    cores[0][0, :, :, 1:1 + ranks[0]]                        = l_mat[0]
+    cores[0][0, :, :, 1 + ranks[0]]                          = i_mat[0]
     cores[0][0, :, :, 2 + ranks[0]:2 + ranks[0] + ranks[-1]] = m_mat[0]
 
     for i in range(1, len(state_space) - 1):
         cores.append(np.zeros([2 + ranks[i - 1] + ranks[-1], state_space[i], state_space[i], 2 + ranks[i] + ranks[-1]]))
-        cores[i][0, :, :, 0] = i_mat[i]
-        cores[i][1:1 + ranks[i - 1], :, :, 0] = m_mat[i]
-        cores[i][1 + ranks[i - 1], :, :, 0] = s_mat[i]
+        cores[i][0, :, :, 0]                             = i_mat[i]
+        cores[i][1:1 + ranks[i - 1], :, :, 0]            = m_mat[i]
+        cores[i][1 + ranks[i - 1], :, :, 0]              = s_mat[i]
         cores[i][1 + ranks[i - 1], :, :, 1:1 + ranks[i]] = l_mat[i]
-        cores[i][1 + ranks[i - 1], :, :, 1 + ranks[i]] = i_mat[i]
+        cores[i][1 + ranks[i - 1], :, :, 1 + ranks[i]]   = i_mat[i]
+
         for j in range(ranks[-1]):
             cores[i][2 + ranks[i] + j, :, :, 2 + ranks[i] + j] = i_mat[i]
 
     cores.append(np.zeros([2 + ranks[-2] + ranks[-1], state_space[-1], state_space[-1], 1]))
-    cores[-1][0, :, :, 0] = i_mat[-1]
-    cores[-1][1:1 + ranks[-2], :, :, 0] = m_mat[-1]
-    cores[-1][1 + ranks[-2], :, :, 0] = s_mat[-1]
+
+    cores[-1][0, :, :, 0]                                       = i_mat[-1]
+    cores[-1][1:1 + ranks[-2], :, :, 0]                         = m_mat[-1]
+    cores[-1][1 + ranks[-2], :, :, 0]                           = s_mat[-1]
     cores[-1][2 + ranks[-2]:2 + ranks[-2] + ranks[-1], :, :, 0] = l_mat[-1]
 
     operator = TT(cores)
@@ -172,7 +198,10 @@ def slim_mme(state_space, single_cell_reactions, two_cell_reactions, threshold=0
     return operator
 
 
-def slim_mme_hom(state_space, single_cell_reactions, two_cell_reactions, cyclic=True, threshold=0):
+def slim_mme_hom(state_space: List[int], 
+                 single_cell_reactions: List[List[Union[int, float]]],
+                 two_cell_reactions:    List[List[Union[int, float]]], 
+                 cyclic:    bool=True, threshold: float=0) -> 'TT':
     """
     Homogeneous SLIM decomposition for Markov generators.
 
@@ -183,15 +212,19 @@ def slim_mme_hom(state_space, single_cell_reactions, two_cell_reactions, cyclic=
     ----------
     state_space : list[int]
         number of states of each cell in the NNIS
+
     single_cell_reactions : list[list[int or float]]
         list of considered single-cell reactions, i.e. single_cell_reactions[i] is a list of the form
         [reactant_state, product_state, reactions_rate] describing the ith reaction on each cell.
+
     two_cell_reactions : list[list[int or float]]
         list of considered two-cell reactions, i.e. two_cell_reactions[i] is a list of the form
         [reactant_state_i, product_state_i, reactant_state_i+1, product_state_i+1, reactions_rate] describing the ith
         reaction between neighboring cells
+
     cyclic : bool, optional
         whether the system is cyclic or not, default is True
+
     threshold : float, optional
         threshold for the singular value decomposition of the two-cell reaction core, default is 1e-14
 
@@ -210,8 +243,10 @@ def slim_mme_hom(state_space, single_cell_reactions, two_cell_reactions, cyclic=
     # adapt parameters
     order = len(state_space)
     single_cell_reactions = [single_cell_reactions for _ in range(order)]
+
     if cyclic is True:
         two_cell_reactions = [two_cell_reactions for _ in range(order)]
+
     else:
         two_cell_reactions = [two_cell_reactions for _ in range(order - 1)]
 
@@ -221,7 +256,7 @@ def slim_mme_hom(state_space, single_cell_reactions, two_cell_reactions, cyclic=
     return operator
 
 
-def __slim_tcr_decomposition(super_core, threshold):
+def __slim_tcr_decomposition(super_core: np.ndarray, threshold: float) -> Tuple[np.ndarray, np.ndarray, int]:
     """
     Two-cell reaction decomposition.
 
@@ -231,6 +266,7 @@ def __slim_tcr_decomposition(super_core, threshold):
     ----------
     super_core : np.ndarray
         tensor with order 4
+
     threshold : float
             threshold for reduced SVD decompositions
 
@@ -250,11 +286,15 @@ def __slim_tcr_decomposition(super_core, threshold):
 
     # apply SVD in order to split the super-core
     [u, s, v] = linalg.svd(super_core.reshape(dimension_1 ** 2, dimension_2 ** 2),
-                           full_matrices=False, overwrite_a=True, check_finite=False, lapack_driver='gesvd')
+                           full_matrices = False, 
+                           overwrite_a   = True, 
+                           check_finite  = False, 
+                           lapack_driver ='gesvd')
 
     # rank reduction
     if threshold != 0:
         indices = np.where(s / s[0] > threshold)[0]
+
         u = u[:, indices]
         s = s[indices]
         v = v[indices, :]
@@ -263,4 +303,5 @@ def __slim_tcr_decomposition(super_core, threshold):
     rank = u.shape[1]
     core_left = (u.dot(np.diag(s))).reshape(dimension_1, dimension_1, rank)
     core_right = v.reshape(rank, dimension_2, dimension_2)
+
     return core_left, core_right, rank

@@ -4,6 +4,7 @@ from __future__ import division
 import numpy as np
 import scikit_tt.utils as utl
 import scipy.linalg as splin
+from typing import Union, List
 import time as _time
 from scikit_tt.tensor_train import TT
 from scipy.special import legendre
@@ -20,38 +21,46 @@ class Function(object):
     Can be initialized with or without dimension n. For every call, checks validity of input.
     """
 
-    def __init__(self, dimension=None):
+    def __init__(self, dimension: int=None):
         if dimension is None:
             self.dimension = 1
             self.initialized = False
+
         else:
             if dimension < 1:
                 raise ValueError('dimension has to be >= 1')
+
             self.dimension = dimension
             self.initialized = True
 
     def __call__(self, t):
         self.check_call_input(t)
+
         return 0
 
     def partial(self, t, direction):
         self.check_partial_input(t, direction)
+
         return 0
 
     def partial2(self, t, direction1, direction2):
         self.check_partial2_input(t, direction1, direction2)
+
         return 0
 
     def gradient(self, t):
         self.check_call_input(t)
+
         return np.array([self.partial(t, i) for i in range(self.dimension)])
 
     def hessian(self, t):
         self.check_call_input(t)
         hess = np.zeros((self.dimension, self.dimension))
+
         for i in range(self.dimension):
             for j in range(self.dimension):
                 hess[i, j] = self.partial2(t, i, j)
+
         return hess
 
     def check_call_input(self, t):
@@ -65,8 +74,10 @@ class Function(object):
         if not self.initialized:
             self.dimension = len(t)
             self.initialized = True
+
         elif len(t) != self.dimension:
             raise ValueError('wrong dimension of t')
+
         elif not 0 <= direction < self.dimension:
             raise ValueError('direction has to be >= 0 and < self.dimension')
 
@@ -74,8 +85,10 @@ class Function(object):
         if not self.initialized:
             self.dimension = len(t)
             self.initialized = True
+
         elif len(t) != self.dimension:
             raise ValueError('wrong dimension of t')
+
         elif not 0 <= direction1 < self.dimension or not 0 <= direction2 < self.dimension:
             raise ValueError('direction has to be >= 0 and < self.dimension')
 
@@ -88,40 +101,54 @@ class OneCoordinateFunction(Function):
     The checks are modified to secure that the coordinate is valid.
     """
 
-    def __init__(self, index, dimension=None):
+    def __init__(self, index: int, dimension: int=None):
+
         super(OneCoordinateFunction, self).__init__(dimension)
+
         if self.initialized and not 0 <= index < self.dimension:
             raise ValueError('index has to be >= 0 and < dimension')
+
         self.index = index
 
     def check_call_input(self, t):
         if not self.initialized:
             self.dimension = len(t)
+
             if not 0 <= self.index < self.dimension:
                 raise ValueError('index has to be >= 0 and < dimension')
+
             self.initialized = True
         # elif len(t) != self.dimension:
         #     raise ValueError('wrong dimension of t')
 
     def check_partial_input(self, t, direction):
+
         if not self.initialized:
             self.dimension = len(t)
+
             if not 0 <= self.index < self.dimension:
                 raise ValueError('index has to be >= 0 and < dimension')
+
             self.initialized = True
+
         elif len(t) != self.dimension:
             raise ValueError('wrong dimension of t')
+
         elif not 0 <= direction < self.dimension:
             raise ValueError('direction has to be >= 0 and < self.dimension')
 
     def check_partial2_input(self, t, direction1, direction2):
         if not self.initialized:
             self.dimension = len(t)
+
             if not 0 <= self.index < self.dimension:
                 raise ValueError('index has to be >= 0 and < dimension')
+
             self.initialized = True
+
         elif len(t) != self.dimension:
             raise ValueError('wrong dimension of t')
+
         elif not 0 <= direction1 < self.dimension or not 0 <= direction2 < self.dimension:
             raise ValueError('direction has to be >= 0 and < self.dimension')
 
@@ -143,7 +170,7 @@ class ConstantFunction(OneCoordinateFunction):
     Constant 1 function.
     """
 
-    def __init__(self, index, dimension=None):
+    def __init__(self, index: int, dimension: int=None):
         super(ConstantFunction, self).__init__(index, dimension)
 
     def __call__(self, t):
@@ -171,7 +198,7 @@ class ConstantFunction(OneCoordinateFunction):
 
 
 class IndicatorFunction(OneCoordinateFunction):
-    def __init__(self, index, a, b, dimension=None):
+    def __init__(self, index: int, a: float, b: float, dimension: int=None):
         """
         Indicator function in one coordiante.
 
@@ -200,7 +227,7 @@ class IndicatorFunction(OneCoordinateFunction):
 
 
 class Identity(OneCoordinateFunction):
-    def __init__(self, index, dimension=None):
+    def __init__(self, index: int, dimension: int=None):
         """
         Identiy function.
 
@@ -227,7 +254,7 @@ class Identity(OneCoordinateFunction):
 
 
 class Monomial(OneCoordinateFunction):
-    def __init__(self, index, exponent, prefactor=1, dimension=None):
+    def __init__(self, index: int, exponent: int, prefactor=1, dimension: int=None):
         """
         Monomial function.
 
@@ -264,7 +291,7 @@ class Monomial(OneCoordinateFunction):
 
 
 class Legendre(OneCoordinateFunction):
-    def __init__(self, index, degree, domain=1, dimension=None):
+    def __init__(self, index: int, degree: int, domain: float=1.0, dimension: int=None):
         """
         Legendre Polynomial.
 
@@ -301,7 +328,7 @@ class Legendre(OneCoordinateFunction):
 
 
 class Sin(OneCoordinateFunction):
-    def __init__(self, index, alpha, dimension=None):
+    def __init__(self, index: int, alpha: float, dimension: int=None):
         """
         Sine function.
 
@@ -334,7 +361,7 @@ class Sin(OneCoordinateFunction):
 
 
 class Cos(OneCoordinateFunction):
-    def __init__(self, index, alpha, dimension=None):
+    def __init__(self, index: int, alpha: float, dimension: int=None):
         """
         Cosine function.
 
@@ -342,6 +369,7 @@ class Cos(OneCoordinateFunction):
         ----------
         index : int
             define which entry of a snapshot is passed to the cosine function
+
         alpha : float
             prefactor
         """
@@ -366,7 +394,7 @@ class Cos(OneCoordinateFunction):
 
 
 class GaussFunction(OneCoordinateFunction):
-    def __init__(self, index, mean, variance, dimension=None):
+    def __init__(self, index: int, mean: float, variance: float, dimension: int=None):
         """
         Gauss function.
 
@@ -374,9 +402,12 @@ class GaussFunction(OneCoordinateFunction):
         ----------
         index : int
             define which entry of a snapshot is passed to the Gauss function
+
         mean : float
             mean of the distribution
+
         variance : float
+
         dimension : int, optional
         """
         super(GaussFunction, self).__init__(index, dimension)
@@ -405,7 +436,7 @@ class GaussFunction(OneCoordinateFunction):
 
 
 class PeriodicGaussFunction(OneCoordinateFunction):
-    def __init__(self, index, mean, variance, dimension=None):
+    def __init__(self, index: int, mean: float, variance: float, dimension: int=None):
         """
         Periodic Gauss function.
 
@@ -413,9 +444,12 @@ class PeriodicGaussFunction(OneCoordinateFunction):
         ----------
         index : int
             define which entry of a snapshot is passed to the periodic Gauss function
+            
         mean : float
             mean of the distribution
+            
         variance : float
+        
         dimension : int, optional
         """
         super(PeriodicGaussFunction, self).__init__(index, dimension)
@@ -441,7 +475,8 @@ class PeriodicGaussFunction(OneCoordinateFunction):
 
 
 class Bspline(OneCoordinateFunction):
-    def __init__(self, index, knots, degree, coeff, dimension=None):
+    def __init__(self, index: int, knots: Union[list, np.ndarray], 
+                 degree: int, coeff: Union[list, np.ndarray], dimension: int=None):
         """
         B-Spline basis function.
 
@@ -449,25 +484,33 @@ class Bspline(OneCoordinateFunction):
         ------------
         index : int
             define which entry of a snapshot is passed to the spline function
+
         knots : list or np.ndarray(n+1,)
             grid points where the pieces of the spline meet
             NOTE: this is not the extended knot vector, which is constructed internally
+
         degree : int
             degree of each piecewise polynomial
+
         coeff : list or np.ndarray(n + degree,)
             coefficient vector with respect to B-Spline basis
 
         """
         super(Bspline, self).__init__(index, dimension)
-        self.knots = knots
-        self.n = len(self.knots) - 1
+
+        self.knots  = knots
+        self.n      = len(self.knots) - 1
         self.degree = degree
+
         if not len(coeff) == (self.n + self.degree):
             raise ValueError('Coefficient vector does not match dimension of spline space, which is %d'%(
                     self.n + self.degree))
+
         self.coeff = coeff
+
         # Construct extended knot vector:
         self.t = np.concatenate((self.degree * [self.knots[0]], self.knots, self.degree * [self.knots[-1]]))
+
         # Construct spline:
         self.bsp = BSpline(self.t, self.coeff, self.degree)
         self.bsp1 = self.bsp.derivative(1)
@@ -478,6 +521,7 @@ class Bspline(OneCoordinateFunction):
 
     def partial(self, t, direction):
         self.check_partial_input(t, direction)
+
         if direction == self.index:
             return self.bsp1(t[self.index])
         return 0.0
@@ -486,7 +530,10 @@ class Bspline(OneCoordinateFunction):
         raise NotImplementedError('not yet implemented')
 
 # ################################## decompositions ###################################
-def basis_decomposition(x, phi, single_core=None):
+def basis_decomposition(x: np.ndarray, 
+                        phi: List[List[Function]], 
+                        single_core: int=None) -> Union['TT', np.ndarray]:
+
     """Construct a transformed data tensor in TT format.
 
     Given a set of basis functions phi, construct a TT decomposition psi of the tensor
@@ -509,8 +556,10 @@ def basis_decomposition(x, phi, single_core=None):
     ----------
     x: np.ndarray
         snapshot matrix of size d x m
+
     phi: list[list[Function]]
         list of basis functions in every mode
+
     single_core: None or int, optional
         return only the ith core of psi if single_core=i (<p), default is None
 
@@ -547,6 +596,7 @@ def basis_decomposition(x, phi, single_core=None):
 
         # insert elements of subsequent cores
         for i in range(1, p):
+
             for j in range(m):
                 # apply ith list of basis functions to all snapshots
                 cores[i][j, :, 0, j] = np.array([phi[i][k](x[:, j]) for k in range(n[i])])
@@ -564,6 +614,7 @@ def basis_decomposition(x, phi, single_core=None):
 
         # insert elements
         for j in range(m):
+
             # apply basis functions
             psi[0, :, 0, j] = np.array([phi[0][k](x[:, j]) for k in range(n[0])])
 
@@ -574,13 +625,14 @@ def basis_decomposition(x, phi, single_core=None):
 
         # insert elements
         for j in range(m):
+
             # apply basis functions
             psi[j, :, 0, j] = np.array([phi[single_core][k](x[:, j]) for k in range(n[single_core])])
 
     return psi
 
 
-def coordinate_major(x, phi, single_core=None):
+def coordinate_major(x: np.ndarray, phi: List[Function], single_core: int=None) -> 'TT':
     """Construct a transformed data tensor in TT format using the coordinate-major approach.
 
     Given a set of basis functions phi, construct a TT decomposition psi of the form::
@@ -603,8 +655,10 @@ def coordinate_major(x, phi, single_core=None):
     ----------
     x: np.ndarray
         snapshot matrix of size d x m
+
     phi: list[Function]
         list of basis functions
+
     single_core: None or int, optional
         return only the ith core of psi if single_core=i (<p), default is None
 
@@ -671,7 +725,9 @@ def coordinate_major(x, phi, single_core=None):
     return psi
 
 
-def function_major(x, phi, add_one=True, single_core=None):
+def function_major(x: np.ndarray, phi: List[Function], add_one: bool=True, 
+                   single_core: int=None) -> 'TT':
+
     """Construct a transformed data tensor in TT format using the function-major approach.
 
     Given a set of basis functions phi, construct a TT decomposition psi of the form::
@@ -694,8 +750,10 @@ def function_major(x, phi, add_one=True, single_core=None):
     ----------
     x : np.ndarray
         snapshot matrix of size d x m
+
     phi : list[Function]
         list of basis functions
+
     add_one: bool, optional
         whether to add the basis function 1 to the cores or not, default is True
 
@@ -736,9 +794,11 @@ def function_major(x, phi, add_one=True, single_core=None):
         # insert elements of subsequent cores
         for i in range(1, p):
             if add_one is True:
+
                 for j in range(m):
                     cores[i][j, 0, 0, j] = 1
                     cores[i][j, 1:, 0, j] = np.array([phi[i](x[k, j]) for k in range(d)])
+
             else:
                 for j in range(m):
                     cores[i][j, :, 0, j] = np.array([phi[i](x[k, j]) for k in range(d)])
@@ -756,6 +816,7 @@ def function_major(x, phi, add_one=True, single_core=None):
 
         # insert elements
         if add_one is True:
+
             for j in range(m):
                 psi[0, 0, 0, j] = 1
                 psi[0, 1:, 0, j] = np.array([phi[0](x[k, j]) for k in range(d)])
@@ -770,6 +831,7 @@ def function_major(x, phi, add_one=True, single_core=None):
 
         # insert elements
         if add_one is True:
+
             for j in range(m):
                 psi[j, 0, 0, j] = 1
                 psi[j, 1:, 0, j] = np.array([phi[single_core](x[k, j]) for k in range(d)])
@@ -780,7 +842,7 @@ def function_major(x, phi, add_one=True, single_core=None):
     return psi
 
 
-def gram(x_1, x_2, basis_list):
+def gram(x_1: np.ndarray, x_2: np.ndarray, basis_list: List[List[Function]]) -> np.ndarray:
     """Gram matrix.
 
     Compute the Gram matrix of two transformed data tensors psi_1=psi(x_1) and psi_2=psi(x_2), i.e., psi_1^T@psi_2. See
@@ -790,8 +852,10 @@ def gram(x_1, x_2, basis_list):
     ----------
     x_1: np.ndarray
         data matrix for psi_1
+
     x_2: np.ndarray
         data matrix for psi_2
+
     basis_list: list[list[Function]]
         list of basis functions in every mode
 
@@ -806,9 +870,11 @@ def gram(x_1, x_2, basis_list):
     """
     # compute gram by iteratively applying the Hadarmard product
     gram = np.ones([x_1.shape[1], x_2.shape[1]])
+
     for i in range(len(basis_list)):
         theta_1 = np.array([[basis_list[i][k](x_1[:, j]) for j in range(x_1.shape[1])]
                             for k in range(len(basis_list[i]))])
+
         theta_2 = np.array([[basis_list[i][k](x_2[:, j]) for j in range(x_2.shape[1])]
                             for k in range(len(basis_list[i]))])
 
@@ -822,7 +888,10 @@ def gram(x_1, x_2, basis_list):
     return gram
 
 
-def hocur(x, basis_list, ranks, repeats=1, multiplier=10, progress=True, string=None):
+def hocur(x: np.ndarray, basis_list: List[List[Function]], 
+          ranks: Union[List[int], int], repeats: int=1, multiplier: int=10,
+          progress: bool=True, string: str=None) -> 'TT':
+
     """Higher-order CUR decomposition of transformed data tensors.
 
     Given a snapshot matrix x and a list of basis functions in each mode, construct a TT decomposition of the
@@ -833,19 +902,25 @@ def hocur(x, basis_list, ranks, repeats=1, multiplier=10, progress=True, string=
     ----------
     x: np.ndarray
         data matrix
+
     basis_list: list[list[Function]]
         list of basis functions in every mode
+
     ranks: list[int] or int
         maximum TT ranks of the resulting TT representation; if type is int, then the ranks are set to
         [1, ranks, ..., ranks, 1]; note that - depending on the number of linearly independent rows/columns that have
         been found - the TT ranks may be reduced during the decomposition
+
     repeats: int, optional
         number of repeats, default is 1
+
     multiplier: int, optional
         multiply the number of initially chosen column indices (given by ranks) in order to increase the probability of
         finding a 'full' set of linearly independent columns; default is 10
+
     progress: bool, optional
         whether to show the progress of the algorithm or not, default is True
+
     string: string
         string to print; if None (default), then print 'HOCUR (repeats: <repeats>)'
 
@@ -897,6 +972,7 @@ def hocur(x, basis_list, ranks, repeats=1, multiplier=10, progress=True, string=
 
     if string is None:
         string = 'HOCUR'
+
     start_time = utl.progress(string, 0, show=progress)
 
     # start decomposition
@@ -941,6 +1017,7 @@ def hocur(x, basis_list, ranks, repeats=1, multiplier=10, progress=True, string=
             # define core
             if len(rows) < y.shape[1]:
                 y = y[:, :len(rows)]
+
             u_inv = np.linalg.inv(y[rows, :].copy())
             cores[i] = y.dot(u_inv).reshape([ranks[i], n[i], 1, ranks[i + 1]])
 
@@ -997,15 +1074,20 @@ def hocur(x, basis_list, ranks, repeats=1, multiplier=10, progress=True, string=
 
 # private functions # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
-def __hocur_first_col_inds(dimensions, ranks, multiplier):
+def __hocur_first_col_inds(dimensions: List[int], 
+                           ranks: List[int], 
+                           multiplier: int) -> List[List[int]]:
+
     """Create random column indices
 
     Parameters
     ----------
     dimensions: list[int]
         dimensions of a given tensor
+
     ranks: list[int]
         ranks for decomposition
+
     multiplier: int
         multiply the number of initially chosen column indices (given by ranks) in order to increase the probability of
         finding a 'full' set of linearly independent columns
@@ -1035,7 +1117,11 @@ def __hocur_first_col_inds(dimensions, ranks, multiplier):
     return col_inds
 
 
-def __hocur_extract_matrix(data, basis_list, row_coordinates_list, col_coordinates_list):
+def __hocur_extract_matrix(data: np.ndarray, 
+                           basis_list: List[List[Function]], 
+                           row_coordinates_list: List[List[int]], 
+                           col_coordinates_list: List[List[int]]) -> np.ndarray:
+
     """Extraction of a submatrix of a transformed data tensor.
 
     Given a set of row and column coordinates, extracts a submatrix from the transformed data tensor corresponding to
@@ -1045,10 +1131,13 @@ def __hocur_extract_matrix(data, basis_list, row_coordinates_list, col_coordinat
     ----------
     data: np.ndarray
         data matrix
+
     basis_list: list[list[Function]]
         list of basis functions in every mode
+
     row_coordinates_list: list[list[int]]
         list of row indices
+
     col_coordinates_list: list[list[int]]
         list of column indices
 
@@ -1167,7 +1256,7 @@ def __hocur_extract_matrix(data, basis_list, row_coordinates_list, col_coordinat
     return matrix
 
 
-def __hocur_find_li_cols(matrix, tol=1e-14):
+def __hocur_find_li_cols(matrix: np.ndarray, tol: float=1e-14) -> List[int]:
     """Find linearly independent columns of a matrix.
 
     Parameters
@@ -1197,7 +1286,10 @@ def __hocur_find_li_cols(matrix, tol=1e-14):
     return cols
 
 
-def __hocur_maxvolume(matrix, maximum_iterations=1000, tolerance=1e-5):
+def __hocur_maxvolume(matrix: np.ndarray, 
+                      maximum_iterations: int=1000,
+                      tolerance: float=1e-5) -> List[int]:
+
     """Find dominant submatrix.
 
     Find rows of a given rectangular matrix which build a maximum-volume submatrix, see [1]_.
@@ -1206,8 +1298,10 @@ def __hocur_maxvolume(matrix, maximum_iterations=1000, tolerance=1e-5):
     ----------
     matrix: np.ndarray (n,r)
         rectangular matrix with rank r
+
     maximum_iterations: int
         maximum number of iterations, default is 100
+
     tolerance: float
         tolerance for stopping criterion, default is 1e-5
 
