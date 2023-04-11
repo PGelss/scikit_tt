@@ -167,7 +167,11 @@ def enable_julia():
 
     Pkg.activate("../julia/ScikitTT")
 
-    from julia import ScikitTT 
+def get_julia_scikit():
+
+    from julia import ScikitTT as julia_scikit
+
+    return julia_scikit
 
 
 

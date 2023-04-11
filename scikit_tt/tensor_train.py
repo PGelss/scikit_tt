@@ -487,21 +487,23 @@ class TT(object):
             # check if dimensions match
             if self.col_dims == tt_mul.row_dims:
 
+                cores = []
+
                 implementation = get_env_var()
 
-                if julia_env is True:
-
-                    scikit_jl = utl.enable_julia()
-
-                    tt_prod = scikit_jl.tensor_train_multiplication(self, tt_mul)
-
-                else:
+                if implementation == "python":
 
                     # multiply TT cores
                     cores = [core_multiplication(self.cores[i], tt_mul.cores[i]) for i in range(self.order)]
 
-                    # define product tensor
-                    tt_prod = TT(cores)
+                elif implementation == "julia":
+
+                    julia_scikit = utl.get_julia_scikit()
+
+                    cores = julia_scikit.tensor_train_multiplication(self, tt_mul)
+
+                # define product tensor
+                tt_prod = TT(cores)
 
                 # set tt_prod to scalar if all dimensions are equal to 1
                 if np.prod(tt_prod.row_dims) == 1 and np.prod(tt_prod.col_dims) == 1:

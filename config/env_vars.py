@@ -9,6 +9,8 @@ def get_env_var():
 
         implementation = "python"
 
+        print("python implementation")
+
         return implementation
 
     elif os.environ.get("IMPL") == "julia":
@@ -16,6 +18,8 @@ def get_env_var():
         enable_julia()
 
         implementation = "julia"
+
+        print("julia implementation")
 
         return implementation
 
