@@ -10,18 +10,18 @@
 
 ## Short description
 
-The simulation and analysis of high-dimensional problems is often infeasible due to the curse of dimensionality. Using the *tensor-train format* (TT format) [[1](README.md#12-references), [2](README.md#12-references)], **Scikit-TT** can be applied to various numerical problems in order to reduce the memory consumption and the computational costs compared to classical approaches significantly. Possible application areas are:
+The simulation and analysis of high-dimensional problems is often infeasible due to the curse of dimensionality. Using the *tensor-train format* (TT format) [[1](README.md#13-references), [2](README.md#13-references)], **Scikit-TT** can be applied to various numerical problems in order to reduce the memory consumption and the computational costs compared to classical approaches significantly. Possible application areas are:
 
-- the computation of low-rank approximations for high-dimensional systems [[3](README.md#12-references)],
-- solving systems of linear equations and eigenvalue problems in the TT format [[4](README.md#12-references)],
-- representing operators based on nearest-neighbor interactions in the TT format [[5](README.md#12-references)],
-- constructing pseudoinverses for tensor-based reformulations of dimensionality reduction methods [[6](README.md#12-references)],
-- recovery of governing equations of dynamical systems [[7](README.md#12-references)],
-- creating fractal patterns with tensor products [[9](README.md#12-references)],
-- computation of metastable and coherent sets [[10](README.md#12-references)],
-- approximation of infinitesimal Koopman generators [[12](README.md#12-references)],
-- tensor-based image classification [[14](README.md#12-references)],
-- quantum simulation [[15](README.md#12-references)].
+- the computation of low-rank approximations for high-dimensional systems [[3](README.md#13-references)],
+- solving systems of linear equations and eigenvalue problems in the TT format [[4](README.md#13-references)],
+- representing operators based on nearest-neighbor interactions in the TT format [[5](README.md#13-references)],
+- constructing pseudoinverses for tensor-based reformulations of dimensionality reduction methods [[6](README.md#13-references)],
+- recovery of governing equations of dynamical systems [[7](README.md#13-references)],
+- creating fractal patterns with tensor products [[9](README.md#13-references)],
+- computation of metastable and coherent sets [[10](README.md#13-references)],
+- approximation of infinitesimal Koopman generators [[12](README.md#13-references)],
+- tensor-based image classification [[14](README.md#13-references)],
+- quantum simulation [[15](README.md#13-references)].
 
 **Scikit-TT** provides a powerful TT class as well as different modules comprising solvers for algebraic problems, the automatic construction of tensor trains, and data-driven methods. Furthermore, several examples for the diverse application areas are included.
 
@@ -49,12 +49,13 @@ The simulation and analysis of high-dimensional problems is often infeasible due
 8. [Examples](README.md#8-examples)
 9. [Tests](README.md#9-tests)
 10. [Utilities](README.md#10-utilities)
-11. [Additional information](README.md#11-additional-information)
+11. [Faster computations with Julia](README.md#11-julia)
+12. [Additional information](README.md#11-additional-information)
     - [Authors & contact](README.md#111-authors--contact)
     - [Built with](README.md#112-built-with)
     - [License](README.md#113-license)
     - [Versions](README.md#114-versions)
-12. [References](README.md#12-references)
+13. [References](README.md#12-references)
 
 ## 1. Installing
 
@@ -144,7 +145,7 @@ Different methods for solving systems of linear equations, eigenvalue problems, 
 
 ### 3.1 Systems of linear equations
 
-In order to approximate the solution of a system of linear equations in the TT format, a series of low-dimensional problems can be solved by fixing certain components of the tensor network. For this purpose, the *alternating linear scheme* (ALS) and the *modified alternating linear scheme* (MALS) [[4](README.md#12-references)] are implemented in [*sle.py*](scikit_tt/solvers/sle.py).
+In order to approximate the solution of a system of linear equations in the TT format, a series of low-dimensional problems can be solved by fixing certain components of the tensor network. For this purpose, the *alternating linear scheme* (ALS) and the *modified alternating linear scheme* (MALS) [[4](README.md#13-references)] are implemented in [*sle.py*](scikit_tt/solvers/sle.py).
 
 ```
 als ...................... alternating linear scheme for systems of linear equations in the TT format
@@ -153,7 +154,7 @@ mals ..................... modified ALS for systems of linear equations in the T
 
 ### 3.2 Generalized eigenvalue problems
 
-Besides power iteration methods [[8](README.md#12-references)], ALS and MALS can also be used to find approximations of eigenvalues and corresponding eigentensors of TT operators. The basic procedures of ALS and MALS - implemented in [*evp.py*](scikit_tt/solvers/evp.py) - for (generalized) eigenvalue problems are similar to the ones for systems of linear equations. The main difference is the type of optimization problem which has to be solved in the iteration steps. See [[4](README.md#12-references)] for details. The implemented version of ALS can either be used to compute single eigenpairs or sets of eigenpairs by using the block-TT format. Additionally, the Wielandt deflation technique can be used to compute the eigenvalues (and corresponding eigentensors) close to a given estimation.
+Besides power iteration methods [[8](README.md#13-references)], ALS and MALS can also be used to find approximations of eigenvalues and corresponding eigentensors of TT operators. The basic procedures of ALS and MALS - implemented in [*evp.py*](scikit_tt/solvers/evp.py) - for (generalized) eigenvalue problems are similar to the ones for systems of linear equations. The main difference is the type of optimization problem which has to be solved in the iteration steps. See [[4](README.md#13-references)] for details. The implemented version of ALS can either be used to compute single eigenpairs or sets of eigenpairs by using the block-TT format. Additionally, the Wielandt deflation technique can be used to compute the eigenvalues (and corresponding eigentensors) close to a given estimation.
 
 ```
 als ...................... ALS for generalized eigenvalue problems in the TT format
@@ -162,7 +163,7 @@ power_method ............. inverse power iteration method for eigenvalue problem
 
 ### 3.3 Linear differential equations
 
-In order to compute time-dependent or stationary distributions of linear differential equations in the TT format, **Scikit-TT** uses explicit as well as implicit integration schemes such as the Euler methods, trapezoidal rule, higher-order differencing schemes, and splitting methods, see [[16](README.md#12-references)], the latter two being an essential part of [*WaveTrain*](https://github.com/PGelss/wave_train). In order to approximate the solutions at each time step by using implicit methods, (M)ALS is employed. The methods can be found in [*ode.py*](scikit_tt/solvers/ode.py).
+In order to compute time-dependent or stationary distributions of linear differential equations in the TT format, **Scikit-TT** uses explicit as well as implicit integration schemes such as the Euler methods, trapezoidal rule, higher-order differencing schemes, and splitting methods, see [[16](README.md#13-references)], the latter two being an essential part of [*WaveTrain*](https://github.com/PGelss/wave_train). In order to approximate the solutions at each time step by using implicit methods, (M)ALS is employed. The methods can be found in [*ode.py*](scikit_tt/solvers/ode.py).
 
 ```
 explicit_euler ........... explicit Euler method for linear differential equations in the TT format
@@ -181,7 +182,7 @@ kahan_li_splitting ....... Kahan-Li splitting for ODEs with SLIM operator
 
 ## 4. SLIM decomposition
 
-The SLIM decomposition is a specific form of TT decompositions which represent tensors networks with a certain structure. For instance, tensor operators corresponding to nearest-neighbor interaction systems can be systematicly decomposed into a tensor-train operator using the algorithms in [*slim.py*](scikit_tt/slim.py). See [[5](README.md#12-references)] for details.
+The SLIM decomposition is a specific form of TT decompositions which represent tensors networks with a certain structure. For instance, tensor operators corresponding to nearest-neighbor interaction systems can be systematicly decomposed into a tensor-train operator using the algorithms in [*slim.py*](scikit_tt/slim.py). See [[5](README.md#13-references)] for details.
 
 ```
 slim_mme ................. SLIM decomposition for Markov generators
@@ -194,7 +195,7 @@ slim_mme_hom ............. SLIM decomposition for homogeneous Markov generators
 
 ### 5.1 Tensor-based dynamic mode decomposition (tDMD)
 
-tDMD is an extension of the classical dynamic mode decomposition which exploits the TT format to compute DMD modes and eigenvalues. The algorithms below can be found in [*tdmd.py*](scikit_tt/data_driven/tdmd.py). See [[6](README.md#12-references)] for details.
+tDMD is an extension of the classical dynamic mode decomposition which exploits the TT format to compute DMD modes and eigenvalues. The algorithms below can be found in [*tdmd.py*](scikit_tt/data_driven/tdmd.py). See [[6](README.md#13-references)] for details.
 
 ```
 tdmd_exact ............... exact tDMD algorithm
@@ -203,7 +204,7 @@ tdmd_standard ............ standard tDMD algorithm
 
 ### 5.2 Transformed data tensors
 
-Given time-series data and a set of basis functions, **Scikit-TT** provides methods to construct the counterparts of tranformed basis matrices, so-called transformed data tensors. The algorithms in [*transform.py*](scikit_tt/data_driven/transform.py) include general basis decompositions [[10](README.md#12-references)], coordinate- and function-major decompositions [[7](README.md#12-references)], as well as an approach to construct transformed data tensors using higher-order CUR decompositions (HOCUR) [[10, 11](README.md#12-references)]. Furthermore, different basis functions which are typicall used can be found in the module.
+Given time-series data and a set of basis functions, **Scikit-TT** provides methods to construct the counterparts of tranformed basis matrices, so-called transformed data tensors. The algorithms in [*transform.py*](scikit_tt/data_driven/transform.py) include general basis decompositions [[10](README.md#13-references)], coordinate- and function-major decompositions [[7](README.md#13-references)], as well as an approach to construct transformed data tensors using higher-order CUR decompositions (HOCUR) [[10, 11](README.md#13-references)]. Furthermore, different basis functions which are typicall used can be found in the module.
 
 ```
 ConstantFunction ......... constant function
@@ -235,20 +236,20 @@ mandy_kb ................. kernel-based MANDy
 
 #### 5.3.1 Multidimensional approximation of nonlinear dynamical systems (MANDy)
 
-MANDy combines the data-driven recovery of dynamical systems with tensor decompositions. It can be used for, e.g., the recovery of unknown governing equations from measurement data only. MANDy computes an exact TT decomposition of involved coefficient tensors. See [[7](README.md#12-references)] for details. 
+MANDy combines the data-driven recovery of dynamical systems with tensor decompositions. It can be used for, e.g., the recovery of unknown governing equations from measurement data only. MANDy computes an exact TT decomposition of involved coefficient tensors. See [[7](README.md#13-references)] for details. 
 
 
 #### 5.3.2 Kernel-based MANDy
 
-Instead of computing the coefficient tensors explicitly, kernel-based MANDy can be used to indirectly represent those tensors by inverting gram matrices corresponding to the given transformed data tensors. Then, a sequence of Hadamard products is exploited to speed up computations. See [[13](README.md#12-references)] for details.
+Instead of computing the coefficient tensors explicitly, kernel-based MANDy can be used to indirectly represent those tensors by inverting gram matrices corresponding to the given transformed data tensors. Then, a sequence of Hadamard products is exploited to speed up computations. See [[13](README.md#13-references)] for details.
 
 #### 5.3.3 Alternating ridge regression
 
-The exact computation of the coefficient tensors (indirectly or directly represented) may lead to high TT ranks. An alternative is the application of ARR to the regression problem in order to compute a low-rank representation of the coefficient tensor by iteratively solving low-dimensional regression problems. See [[13](README.md#12-references)] for details.
+The exact computation of the coefficient tensors (indirectly or directly represented) may lead to high TT ranks. An alternative is the application of ARR to the regression problem in order to compute a low-rank representation of the coefficient tensor by iteratively solving low-dimensional regression problems. See [[13](README.md#13-references)] for details.
 
 ### 5.4 Tensor-based extended dynamic mode decomposition (tEDMD)
 
-As described in [[10](README.md#12-references)], a tensor-based counterpart of EDMD is implemented in **Scikit-TT**. Given a data set and list of basis functions, tEDMD can be used to approximate eigenvalues and eigenfunctions of evolution operators, i.e., Perron-Frobenius and Koopman operators. The basic procedures of tEDMD - combinations of the TT format and so-called AMUSE - are implemented in [*tedmd.py*](scikit_tt/data_driven/tedmd.py).
+As described in [[10](README.md#13-references)], a tensor-based counterpart of EDMD is implemented in **Scikit-TT**. Given a data set and list of basis functions, tEDMD can be used to approximate eigenvalues and eigenfunctions of evolution operators, i.e., Perron-Frobenius and Koopman operators. The basic procedures of tEDMD - combinations of the TT format and so-called AMUSE - are implemented in [*tedmd.py*](scikit_tt/data_driven/tedmd.py).
 
 ```
 amuset_hosvd ............. tEDMD using AMUSEt with HOSVD
@@ -257,7 +258,7 @@ amuset_hocur ............. tEDMD using AMUSEt with HOCUR
 
 #### 5.4.1 Tensor-based infinitesimal generator EDMD (tgEDMD)
 
-A very similar approach to tEDMD can be used to approximate the infinitesimal Koopman generator if the underlying dynamics are given by a stochastic differential equation, see [[12, 13](README.md#12-references)]. The algorithms can be found in [*tgedmd.py*](scikit_tt/data_driven/tgedmd.py).
+A very similar approach to tEDMD can be used to approximate the infinitesimal Koopman generator if the underlying dynamics are given by a stochastic differential equation, see [[12, 13](README.md#13-references)]. The algorithms can be found in [*tgedmd.py*](scikit_tt/data_driven/tgedmd.py).
 
 ```
 amuset_hosvd ........................ tgEDMD using AMUSEt with HOSVD
@@ -268,7 +269,7 @@ generator_on_product_reversible ..... evaluation for the reversible case
 
 ### 5.5 Ulam's method
 
-Given transitions of particles in a 2- or 3-dimensional potentials, **Scikit-TT** can be used to approximate the corresponding Perron-Frobenius operator in TT format. The algorithms can be found in [*ulam.py*](scikit_tt/data_driven/ulam.py). See [[2](README.md#12-references)] for details.
+Given transitions of particles in a 2- or 3-dimensional potentials, **Scikit-TT** can be used to approximate the corresponding Perron-Frobenius operator in TT format. The algorithms can be found in [*ulam.py*](scikit_tt/data_driven/ulam.py). See [[2](README.md#13-references)] for details.
 
 ```
 ulam_2d .................. approximate Perron-Frobenius operators for 2-dimensional systems
@@ -276,7 +277,7 @@ ulam_3d .................. approximate Perron-Frobenius operators for 3-dimensio
 ```
 ## 6. Quantum simulation
     
-The TT format can be used to express not only the state of a quantum system but also quantum gates and entire quantum circuits as low-rank tensors. This allows us to analyze and simulate complex quantum circuits on classical computers and to gain insight into the underlying structure of the system. The corresponding sampling routine can be found in [*quantum_computation.py*](scikit_tt/quantum_computation.py). See [[15](README.md#12-references)] for details.
+The TT format can be used to express not only the state of a quantum system but also quantum gates and entire quantum circuits as low-rank tensors. This allows us to analyze and simulate complex quantum circuits on classical computers and to gain insight into the underlying structure of the system. The corresponding sampling routine can be found in [*quantum_computation.py*](scikit_tt/quantum_computation.py). See [[15](README.md#13-references)] for details.
     
 ```
 sampling ................. sampling of measurement outcomes for quantum states in TT format
@@ -285,7 +286,7 @@ plot_histogram ........... plot results of quantum sampling
     
 ## 7. Models
 
-The construction of several models from various fields such as heterogeneous catalysis [[3](README.md#12-references)], chemical reaction networks [[2](README.md#12-references)], and fractal geometry [[9](README.md#12-references)] is included in [*models.py*](scikit_tt/models.py). 
+The construction of several models from various fields such as heterogeneous catalysis [[3](README.md#13-references)], chemical reaction networks [[2](README.md#13-references)], and fractal geometry [[9](README.md#13-references)] is included in [*models.py*](scikit_tt/models.py). 
 
 ```
 cantor_dust .............. generalization of the Cantor set and the Cantor dust
@@ -309,7 +310,7 @@ vicsek_fractal ........... generalization of the Vicsek fractal
 
 ## 8. Examples
 
-Numerical experiments from different application areas are included in **Scikit-TT**. For instance, the application of the TT format to chemical master equations [[2](README.md#12-references)], heterogeneous catalytic processes [[3](README.md#12-references)], fluid dynamics [[6](README.md#12-references)], and dynamical systems [[6](README.md#12-references), [7](README.md#12-references)] can be found in the directory [*examples*](examples/).
+Numerical experiments from different application areas are included in **Scikit-TT**. For instance, the application of the TT format to chemical master equations [[2](README.md#13-references)], heterogeneous catalytic processes [[3](README.md#13-references)], fluid dynamics [[6](README.md#13-references)], and dynamical systems [[6](README.md#13-references), [7](README.md#13-references)] can be found in the directory [*examples*](examples/).
 
 ```
 ala10_rank_test ...........apply tEDMD to time series data of deca-alanine
@@ -368,9 +369,32 @@ timer .................... measure CPU time
 truncated_svd ............ compute truncated SVD 
 ```
 
-## 11. Additional information
+## 11. Faster computations with Julia
 
-### 11.1 Authors & contact
+To perform faster computations one can also call Julia implementations of several subroutines. For this, Julia, [PyJulia] (https://pyjulia.readthedocs.io/en/latest/index.html) and the PyCall [PyCall](https://github.com/JuliaPy/PyCall.jl) package have to be installed:  
+
+```
+using Pkg
+Pkg.add("PyCall")
+```
+
+One might also need to specify the Python version with which Scikit-TT was installed:
+
+```
+ENV["PYTHON"] = "path/to/python/executable"
+Pkg.build("PyCall")
+```
+
+If you are using a Conda environment it, the specification might look as follows:
+
+```
+ENV["PYTHON"] = "miniconda3/bin/python3.10"
+Pkg.build("PyCall")
+```
+
+## 12. Additional information
+
+### 12.1 Authors & contact
 
 * **Dr. Patrick Gelß** - CRC 1114, Freie Universität Berlin, Germany - _main developer_
   - address: Arnimallee 9, 14195 Berlin, Germany
@@ -382,19 +406,19 @@ truncated_svd ............ compute truncated SVD
 * **Dr. Feliks Nüske** - Institute of Mathematics, Paderborn University, Germany - _development of tEDMD_
 
 
-### 11.2 Built with
+### 12.2 Built with
 
 * [PyCharm](https://www.jetbrains.com/pycharm/)
 
-### 11.3 License
+### 12.3 License
 
 This project is licensed under the [LGPLv3+](https://www.gnu.org/licenses/lgpl-3.0.en.html) license - see [LICENSE.txt](LICENSE.txt) for details.
 
-### 11.4 Versions
+### 12.4 Versions
 
 The current version of **Scikit-TT** is [1.2](https://github.com/PGelss/scikit_tt/releases/latest). For a list of previous versions, click [here](https://github.com/PGelss/scikit_tt/releases).
 
-## 12. References
+## 13. References
 
 [1] I. V. Oseledets, "Tensor-Train Decomposition", SIAM Journal on Scientific Computing 33 (5) (2011)
 

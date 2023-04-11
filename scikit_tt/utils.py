@@ -4,6 +4,7 @@ import sys
 import numpy as np
 import scipy as sp
 import time
+import os
 
 
 def header(title=None, subtitle=None):
@@ -155,3 +156,19 @@ def truncated_svd(matrix: np.ndarray, threshold: float=0, max_rank: int=np.infty
         v = v[:np.minimum(v.shape[0], max_rank), :]
 
     return u, s, v
+
+def enable_julia():
+
+    from julia.api import Julia
+
+    jl = Julia(compiled_modules=False)
+
+    from julia import Pkg
+
+    Pkg.activate("../julia/ScikitTT")
+
+    from julia import ScikitTT 
+
+
+
+    
