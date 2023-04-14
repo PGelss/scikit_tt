@@ -1,0 +1,3 @@
+[scikit-tt]
+[scikit-tt.env_vars]
+IMPL = "python"

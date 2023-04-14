@@ -49,13 +49,13 @@ The simulation and analysis of high-dimensional problems is often infeasible due
 8. [Examples](README.md#8-examples)
 9. [Tests](README.md#9-tests)
 10. [Utilities](README.md#10-utilities)
-11. [Faster computations with Julia](README.md#11-julia)
-12. [Additional information](README.md#11-additional-information)
-    - [Authors & contact](README.md#111-authors--contact)
-    - [Built with](README.md#112-built-with)
-    - [License](README.md#113-license)
-    - [Versions](README.md#114-versions)
-13. [References](README.md#12-references)
+11. [Faster computations with Julia](README.md#11-faster-computations-with-julia)
+12. [Additional information](README.md#12-additional-information)
+    - [Authors & contact](README.md#121-authors--contact)
+    - [Built with](README.md#122-built-with)
+    - [License](README.md#123-license)
+    - [Versions](README.md#124-versions)
+13. [References](README.md#13-references)
 
 ## 1. Installing
 
