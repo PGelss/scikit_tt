@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*- 
 
-from julia_scikit.config.env_vars       import get_env_var
-from julia_scikit.config.implementation import get_julia_scikit
+from scikit_tt.julia_scikit.env_vars import get_env_var
 import scikit_tt.utils as utl
 import time as _time
 import numpy as np
