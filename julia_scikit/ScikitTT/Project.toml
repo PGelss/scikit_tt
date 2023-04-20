@@ -1,0 +1,17 @@
+name = "ScikitTT"
+uuid = "9e218bec-5609-4dc9-a074-4a9b1203824f"
+authors = ["Thomas Bake"]
+version = "1.0.0-DEV"
+
+[deps]
+PyCall = "438e738f-606a-5dbb-bf0a-cddfbfd45ab0"
+TensorOperations = "6aa20fa7-93e2-5fca-9bc0-fbd0db3c71a2"
+
+[compat]
+julia = "1"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]

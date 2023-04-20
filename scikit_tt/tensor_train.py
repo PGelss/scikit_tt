@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*- 
 
-from config.env_vars import get_env_var
+from julia_scikit.config.env_vars       import get_env_var
+from julia_scikit.config.implementation import get_julia_scikit
 import scikit_tt.utils as utl
 import time as _time
 import numpy as np
@@ -498,7 +499,7 @@ class TT(object):
 
                 elif implementation == "julia":
 
-                    julia_scikit = utl.get_julia_scikit()
+                    julia_scikit = get_julia_scikit()
 
                     cores = julia_scikit.tensor_train_multiplication(self, tt_mul)
 

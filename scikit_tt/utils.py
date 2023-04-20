@@ -4,7 +4,6 @@ import sys
 import numpy as np
 import scipy as sp
 import time
-from pathlib import Path, PurePath
 
 
 def header(title=None, subtitle=None):
@@ -157,27 +156,6 @@ def truncated_svd(matrix: np.ndarray, threshold: float=0, max_rank: int=np.infty
 
     return u, s, v
 
-def enable_julia():
-
-    print("Importing Julia")
-    from julia.api import Julia
-
-    jl = Julia(compiled_modules=False)
-
-    from julia import Pkg
-
-    parent_path = Path(__file__).parent
-
-    julia_path  = parent_path.joinpath("ScikitTT")
-    
-    Pkg.develop(path="julia_path")
-
-
-def get_julia_scikit():
-
-    from julia import ScikitTT as julia_scikit
-
-    return julia_scikit
 
 
 

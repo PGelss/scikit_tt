@@ -1,12 +1,13 @@
 import toml
-from scikit_tt.utils import enable_julia
-
+from pathlib import Path
 
 def get_env_var():
 
     implementation = ""
 
-    config = toml.load("./config.toml")
+    config_path = Path(__file__).joinpath("config/config.toml")
+
+    config = toml.load(config_path)
 
     implementation = config["scikit-tt"]["env_vars"]["IMPL"]
 
@@ -17,8 +18,6 @@ def get_env_var():
         return implementation
 
     elif implementation == "julia":
-
-        enable_julia()
 
         print("julia implementation")
 
