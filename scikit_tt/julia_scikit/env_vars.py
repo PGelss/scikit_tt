@@ -6,7 +6,7 @@ def get_env_var():
     implementation = ""
 
     # Go two levels up
-    config_path = Path(__file__).parents[1].joinpath("config.toml")
+    config_path = Path(__file__).parents[2].joinpath("config.toml")
 
     config = toml.load(config_path)
 
