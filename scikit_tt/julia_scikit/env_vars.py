@@ -1,16 +1,18 @@
 import toml
 from pathlib import Path
 
-def get_env_var():
+def default_env_var():
 
     implementation = ""
 
-    # Go two levels up
+    # Go three levels up
     config_path = Path(__file__).parents[2].joinpath("config.toml")
 
+    # Load configuration file
     config = toml.load(config_path)
 
-    implementation = config["scikit-tt"]["env_vars"]["IMPL"]
+    # Load get default environment variable
+    implementation = config["scikit-tt"]["env_vars"]["DEF_IMPL"]
 
     if implementation == "python":
 

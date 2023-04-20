@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*- 
 
-from scikit_tt.julia_scikit.env_vars import get_env_var
+import os
 import scikit_tt.utils as utl
 import time as _time
 import numpy as np
 from scipy import linalg
+from scikit_tt.julia_scikit.implementation import get_julia_scikit
 
 from typing import List, Tuple, Union, Optional
 
@@ -489,18 +490,20 @@ class TT(object):
 
                 cores = []
 
-                implementation = get_env_var()
+                implementation = ""
 
-                if implementation == "python":
-
-                    # multiply TT cores
-                    cores = [core_multiplication(self.cores[i], tt_mul.cores[i]) for i in range(self.order)]
-
-                elif implementation == "julia":
+                # Use Julia implementation
+                if os.environ["IMPL"] == "julia":
 
                     julia_scikit = get_julia_scikit()
 
                     cores = julia_scikit.tensor_train_multiplication(self, tt_mul)
+
+                # Use Python implementation
+                else:
+
+                    # multiply TT cores
+                    cores = [core_multiplication(self.cores[i], tt_mul.cores[i]) for i in range(self.order)]
 
                 # define product tensor
                 tt_prod = TT(cores)

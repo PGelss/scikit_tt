@@ -1,4 +1,5 @@
 from pathlib import Path
+import os
 
 def enable_julia():
 
@@ -16,6 +17,10 @@ def enable_julia():
     
     # Make package available by tracking it by path
     Pkg.develop(path=julia_path)
+
+    os.environ["IMPL"] = "julia"
+
+    return
 
 
 def get_julia_scikit():

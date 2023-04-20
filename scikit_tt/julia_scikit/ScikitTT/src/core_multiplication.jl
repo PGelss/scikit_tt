@@ -76,7 +76,6 @@ function tensor_train_multiplication(lhs, rhs)
     
     cores = [ core_mult(lhs.cores[i], rhs.cores[i]) for i = 1:length(lhs.cores) ]
 
-    #return tt_prod
     return cores
 end
 
