@@ -12,7 +12,7 @@ def enable_julia():
 
     parent_path = Path(__file__).parent
 
-    julia_path  = parent_path.joinpath("ScikitTT")
+    julia_path  = str(parent_path.joinpath("ScikitTT"))
     
     # Make package available by tracking it by path
     Pkg.develop(path=julia_path)

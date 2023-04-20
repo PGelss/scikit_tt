@@ -1,4 +1,4 @@
-from config.implementation import enable_julia
+from julia_scikit.config.implementation import enable_julia
 
 def main():
 
