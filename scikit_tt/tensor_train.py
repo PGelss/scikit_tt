@@ -490,17 +490,16 @@ class TT(object):
 
                 cores = []
 
-                implementation = ""
-
                 # Use Julia implementation
-                if os.environ["IMPL"] == "julia":
+                try:
+                    if os.environ["IMPL"] == "julia":
 
-                    julia_scikit = get_julia_scikit()
+                        julia_scikit = get_julia_scikit()
 
-                    cores = julia_scikit.tensor_train_multiplication(self, tt_mul)
+                        cores = julia_scikit.tensor_train_multiplication(self, tt_mul)
 
                 # Use Python implementation
-                else:
+                except KeyError:
 
                     # multiply TT cores
                     cores = [core_multiplication(self.cores[i], tt_mul.cores[i]) for i in range(self.order)]

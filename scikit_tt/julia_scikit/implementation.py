@@ -16,9 +16,17 @@ def enable_julia():
     julia_path  = str(parent_path.joinpath("ScikitTT"))
     
     # Make package available by tracking it by path
+    print("Adding ScikitTT to Julia packages")
     Pkg.develop(path=julia_path)
 
+    # Set environment variable to julia
     os.environ["IMPL"] = "julia"
+
+    return
+
+def disable_julia():
+
+    os.environ["IMPL"] = "python"
 
     return
 
