@@ -216,7 +216,7 @@ def __construct_stack_left_op(i: int, stack_left_op: List[np.ndarray], operator:
         # contract previous stack element with solution and operator cores
         stack_left_op[i] = np.tensordot(stack_left_op[i - 1], solution.cores[i - 1][:, :, 0, :], axes=(0, 0))
         stack_left_op[i] = np.tensordot(stack_left_op[i], operator.cores[i - 1], axes=([0, 2], [0, 2]))
-        stack_left_op[i] = np.tensordot(stack_left_op[i], solution.cores[i - 1][:, :, 0, :], axes=([0, 2], [0, 1]))
+        stack_left_op[i] = np.tensordot(stack_left_op[i], np.conj(solution.cores[i - 1][:, :, 0, :]), axes=([0, 2], [0, 1]))
 
 
 def __construct_stack_left_rhs(i, stack_left_rhs, right_hand_side, solution):
@@ -244,7 +244,7 @@ def __construct_stack_left_rhs(i, stack_left_rhs, right_hand_side, solution):
 
         # contract previous stack element with solution and right-hand side cores
         stack_left_rhs[i] = np.tensordot(stack_left_rhs[i - 1], right_hand_side.cores[i - 1][:, :, 0, :], axes=(0, 0))
-        stack_left_rhs[i] = np.tensordot(stack_left_rhs[i], solution.cores[i - 1][:, :, 0, :], axes=([0, 1], [0, 1]))
+        stack_left_rhs[i] = np.tensordot(stack_left_rhs[i], np.conj(solution.cores[i - 1][:, :, 0, :]), axes=([0, 1], [0, 1]))
 
 
 def __construct_stack_right_op(i: int, stack_right_op: List[np.ndarray], operator: 'TT', solution: 'TT'):
@@ -271,7 +271,7 @@ def __construct_stack_right_op(i: int, stack_right_op: List[np.ndarray], operato
     else:
 
         # contract previous stack element with solution and operator cores
-        stack_right_op[i] = np.tensordot(solution.cores[i + 1][:, :, 0, :], stack_right_op[i + 1], axes=(2, 2))
+        stack_right_op[i] = np.tensordot(np.conj(solution.cores[i + 1][:, :, 0, :]), stack_right_op[i + 1], axes=(2, 2))
         stack_right_op[i] = np.tensordot(operator.cores[i + 1], stack_right_op[i], axes=([1, 3], [1, 3]))
         stack_right_op[i] = np.tensordot(solution.cores[i + 1][:, :, 0, :], stack_right_op[i], axes=([1, 2], [1, 3]))
 
@@ -300,7 +300,7 @@ def __construct_stack_right_rhs(i, stack_right_rhs, right_hand_side, solution):
     else:
 
         # contract previous stack element with solution and right-hand side cores
-        stack_right_rhs[i] = np.tensordot(solution.cores[i + 1][:, :, 0, :], stack_right_rhs[i + 1], axes=(2, 1))
+        stack_right_rhs[i] = np.tensordot(np.conj(solution.cores[i + 1][:, :, 0, :]), stack_right_rhs[i + 1], axes=(2, 1))
         stack_right_rhs[i] = np.tensordot(right_hand_side.cores[i + 1][:, :, 0, :], stack_right_rhs[i],
                                           axes=([1, 2], [1, 2]))
 
