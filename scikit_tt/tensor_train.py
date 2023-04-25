@@ -496,7 +496,9 @@ class TT(object):
 
                         julia_scikit = get_julia_scikit()
 
-                        cores = julia_scikit.tensor_train_multiplication(self, tt_mul)
+                        #cores = julia_scikit.tensor_train_multiplication(self, tt_mul)
+                        #print("Julia multiplication")
+                        cores = [julia_scikit.core_mult(self.cores[i], tt_mul.cores[i]) for i in range(self.order)]
 
                 # Use Python implementation
                 except KeyError:
