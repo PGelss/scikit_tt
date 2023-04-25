@@ -4,6 +4,9 @@ import sys
 import numpy as np
 import scipy as sp
 import time
+from pathlib import Path
+import os
+import toml
 
 
 def header(title=None, subtitle=None):
@@ -157,6 +160,70 @@ def truncated_svd(matrix: np.ndarray, threshold: float=0, max_rank: int=np.infty
     return u, s, v
 
 
+def enable_julia():
 
+    print("Importing Julia")
+    
+    from julia.api import Julia
+
+    jl = Julia(compiled_modules=False)
+
+    from julia import Pkg
+
+    parent_path = Path(__file__).parent
+
+    julia_path  = str(parent_path.joinpath("ScikitTT"))
+    
+    # Make package available by tracking it by path
+    print("Adding ScikitTT to Julia packages")
+    Pkg.develop(path=julia_path)
+
+    # Set environment variable to julia
+    os.environ["IMPL"] = "julia"
+
+    return
+
+def disable_julia():
+
+    os.environ["IMPL"] = "python"
+
+    return
+
+
+def get_julia_scikit():
+
+    from julia import ScikitTT as julia_scikit
+
+    return julia_scikit
+
+
+def default_env_var():
+
+    implementation = ""
+
+    # Go three levels up
+    config_path = Path(__file__).parents[2].joinpath("config.toml")
+
+    # Load configuration file
+    config = toml.load(config_path)
+
+    # Load get default environment variable
+    implementation = config["scikit-tt"]["env_vars"]["DEF_IMPL"]
+
+    if implementation == "python":
+
+        print("python implementation")
+
+        return implementation
+
+    elif implementation == "julia":
+
+        print("julia implementation")
+
+        return implementation
+
+    else:
+
+        raise ValueError(f'{implementation} is not a valid value for IMPL')
 
     

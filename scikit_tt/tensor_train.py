@@ -5,7 +5,6 @@ import scikit_tt.utils as utl
 import time as _time
 import numpy as np
 from scipy import linalg
-from scikit_tt.julia_scikit.implementation import get_julia_scikit
 
 from typing import List, Tuple, Union, Optional
 
@@ -494,7 +493,7 @@ class TT(object):
                 try:
                     if os.environ["IMPL"] == "julia":
 
-                        julia_scikit = get_julia_scikit()
+                        julia_scikit = utl.get_julia_scikit()
 
                         #cores = julia_scikit.tensor_train_multiplication(self, tt_mul)
                         #print("Julia multiplication")
