@@ -10,6 +10,7 @@ import scikit_tt.utils as utl
 from scikit_tt.solvers import sle
 import time as _time
 from scikit_tt.solvers.sle import __construct_stack_right_op, __construct_stack_left_op, __construct_micro_matrix_als
+from scipy.sparse.linalg import expm_multiply
 
 def explicit_euler(operator: 'TT', 
                    initial_value: 'TT',
@@ -1125,7 +1126,7 @@ def tdvp(operator: 'TT', initial_value: 'TT', step_size: float, number_of_steps:
             # update left stacks for the left- and right-hand side
             __construct_stack_left_op(i, stack_left_op, operator, tmp)
 
-            if i < operator.order - 1:
+            if i <= operator.order - 1:
                 # construct micro system
                 micro_op = __construct_micro_matrix_als(i, stack_left_op, stack_right_op, operator, tmp)
 
@@ -1173,21 +1174,17 @@ def __update_core_tdvp(i: int, micro_op: np.ndarray, solution: 'TT', step_size: 
     solution : TT
         approximated solution of the system of linear equations
 
-    delta: int
+    step_size: int
         step size
 
     direction : string
         'forward' if first half sweep, 'backward' if second half sweep
     """
 
-    # solve the micro system for the ith TT core
+    # time step
     # ------------------------------------------
 
-    solution.cores[i] = lin.expm(-1j*step_size*0.5*micro_op)@solution.cores[i].flatten()
-
-    # reshape solution and orthonormalization
-    # ---------------------------------------
-    
+    solution.cores[i] = expm_multiply(-1j*step_size*0.5*micro_op, solution.cores[i].flatten())
     r1 = solution.ranks[i]
     n = solution.row_dims[i]
     r2 = solution.ranks[i+1]
@@ -1197,9 +1194,7 @@ def __update_core_tdvp(i: int, micro_op: np.ndarray, solution: 'TT', step_size: 
         
         
         # decompose solution
-        [q, r] = lin.qr(
-            solution.cores[i].reshape(solution.ranks[i] * solution.row_dims[i], solution.ranks[i + 1]),
-            overwrite_a=True, mode='economic', check_finite=False)
+        [q, r] = lin.qr(solution.cores[i].reshape(r1 * n, r2), overwrite_a=True, mode='economic', check_finite=False)
 
         # set new rank
         solution.ranks[i + 1] = q.shape[1]
@@ -1207,56 +1202,46 @@ def __update_core_tdvp(i: int, micro_op: np.ndarray, solution: 'TT', step_size: 
         # save orthonormal part
         solution.cores[i] = q.reshape(r1, n, 1, solution.ranks[i + 1])
         
-        # adapt micro matrix
-        q = np.tensordot(q, np.eye(r2),axes=0)
-        q = q.transpose([0,3,1,2]).reshape([r1*n*r2, solution.ranks[i + 1]*r2])
-        micro_op = np.conj(q).T@micro_op@q
-        
-        # time step
-        r = lin.expm(1j*step_size*0.5*micro_op)@r.flatten()
-        r = r.reshape([solution.ranks[i + 1], r2])
-        
-        # save non-orthonormal part
-        solution.cores[i+1] = np.tensordot(r, solution.cores[i+1], axes=(1,0))
+        if i < solution.order-1:
+            
+            # adapt micro matrix
+            q = np.tensordot(q, np.eye(r2),axes=0)
+            q = q.transpose([0,3,1,2]).reshape([r1*n*r2, solution.ranks[i + 1]*r2])
+            micro_op = np.conj(q).T@micro_op@q
+            
+            # time step
+            r = expm_multiply(1j*step_size*0.5*micro_op, r.flatten())
+            r = r.reshape([solution.ranks[i + 1], r2])
+            
+            # save non-orthonormal part
+            solution.cores[i+1] = np.tensordot(r, solution.cores[i+1], axes=(1,0))
     
     # second half sweep
     if direction == 'backward':
 
-        
-
         # decompose solution
-        [r, q] = lin.rq(
-            solution.cores[i].reshape(solution.ranks[i], solution.row_dims[i] * solution.ranks[i + 1]),
-            overwrite_a=True, mode='economic', check_finite=False)
+        [r, q] = lin.rq(solution.cores[i].reshape(r1, n * r2), overwrite_a=True, mode='economic', check_finite=False)
 
         # set new rank
         solution.ranks[i] = q.shape[0]
 
         # save orthonormal part
-        solution.cores[i] = q.reshape(solution.ranks[i], solution.row_dims[i], 1, solution.ranks[i + 1])
+        solution.cores[i] = q.reshape(r1, n, 1, r2)
         
-        # adapt micro matrix
-        q = np.tensordot(np.eye(r1),q,axes=0)
-        q = q.transpose([0,3,1,2]).reshape([r1*n*r2, r1*solution.ranks[i]])
-        micro_op = np.conj(q).T@micro_op@q
-        
-        # time step
-        r = lin.expm(1j*step_size*0.5*micro_op)@r.flatten()
-        r = r.reshape([r1, solution.ranks[i]])
+        if i>0: 
             
-        if i>0:
+            # adapt micro matrix
+            q = np.tensordot(np.eye(r1),q,axes=0)
+            q = q.transpose([0,3,1,2]).reshape([r1*n*r2, r1*solution.ranks[i]])
+            micro_op = np.conj(q).T@micro_op@q
+            
+            # time step
+            r = expm_multiply(1j*step_size*0.5*micro_op, r.flatten())
+            r = r.reshape([r1, solution.ranks[i]])
+            
             # save non-orthonormal part
             solution.cores[i-1] = np.tensordot(solution.cores[i-1], r, axes=(3,0))
-        else:
-            solution.cores[0] = r*solution.cores[0]
-           
-            
-        # else:
 
-        #     # last iteration step
-        #     solution.cores[i] = solution.cores[i].reshape(solution.ranks[i], solution.row_dims[i], 1,
-        #                                                   solution.ranks[i + 1])
-            
           
                 
             
