@@ -1261,4 +1261,81 @@ def __update_core_tdvp(i: int, micro_op: np.ndarray, solution: 'TT', step_size: 
             solution.cores[i] = solution.cores[i].reshape(r1, n, 1, r2)
 
                 
+def krylov(operator: 'TT', initial_value: 'TT', dimension: int, step_size: float, threshold: float=1e-12, max_rank: int=50, normalize: int=0) -> 'TT':
+    """
+    Krylov method, see [1]_.
+
+    Parameters
+    ----------
+    operator : TT
+        TT operator
+
+    initial_value : TT
+        initial value for ODE
+        
+    dimension: int
+        dimension of Krylov subspace, must be larger than 1
+        
+    step_size: float
+        step size
+
+    threshold : float, optional
+        threshold for reduced SVD decompositions, default is 1e-12
+
+    max_rank : int, optional
+        maximum rank of the solution, default is 50
+        
+    normalize : {0, 1, 2}, optional
+        no normalization if 0, otherwise the solution is normalized in terms of Manhattan or Euclidean norm in each step
+
+
+    Returns
+    -------
+    TT
+        approximated solution of the Schrödinger equation
+
+    References
+    ----------
+    ..[1] S. Paeckel, T. Köhler, A. Swoboda, S. R. Manmana, U. Schollwöck, 
+          C. Hubig, "Time-evolution methods for matrix-product states". 
+          Annals of Physics, 411, 167998, 2019
+    """
+    
+    # construct Krylov subspace basis
+    krylov_tensors = [(1/initial_value.norm())*initial_value]
+    v_tmp = operator@krylov_tensors[0]
+    v_tmp = v_tmp - (v_tmp.transpose(conjugate=True)@krylov_tensors[0])*krylov_tensors[0]
+    v_tmp = v_tmp.ortho(threshold=threshold, max_rank=max_rank)
+    v_tmp = (1/v_tmp.norm())*v_tmp
+    krylov_tensors.append(v_tmp)
+    for i in range(2,dimension):
+        v_tmp = operator@krylov_tensors[-1]
+        v_tmp = v_tmp - (v_tmp.transpose(conjugate=True)@krylov_tensors[-2])*krylov_tensors[-2] - (v_tmp.transpose(conjugate=True)@krylov_tensors[-1])*krylov_tensors[-1]
+        v_tmp = (1/v_tmp.norm())*v_tmp
+        v_tmp = v_tmp.ortho(threshold=threshold, max_rank=max_rank)
+        krylov_tensors.append(v_tmp)
+        
+    # compute effective H
+    T = np.zeros([dimension, dimension], dtype=complex)
+    for i in range(dimension):
+        for j in range(dimension):
+            T[i,j] = krylov_tensors[i].transpose(conjugate=True)@operator@krylov_tensors[j]
+    matrix_exponential = sp.linalg.expm(-1j*T*step_size)
             
+    # compute time-evolved state
+    w_tmp = np.zeros([dimension], dtype=complex)
+    for j in range(dimension):
+        w_tmp[j] = krylov_tensors[j].transpose(conjugate=True)@initial_value
+    w_tmp = matrix_exponential@w_tmp
+    solution = w_tmp[0]*krylov_tensors[0]
+    for j in range(1,dimension):
+        solution = solution + w_tmp[j]*krylov_tensors[j]
+    solution = solution.ortho(threshold=threshold, max_rank=max_rank)
+    if normalize > 0:
+        solution = (1 / solution.norm(p=normalize)) * solution
+
+    return solution
+
+
+    
+    
