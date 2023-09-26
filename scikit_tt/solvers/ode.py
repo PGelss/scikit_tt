@@ -1320,13 +1320,12 @@ def krylov(operator: 'TT', initial_value: 'TT', dimension: int, step_size: float
     for i in range(dimension):
         for j in range(dimension):
             T[i,j] = krylov_tensors[i].transpose(conjugate=True)@operator@krylov_tensors[j]
-    matrix_exponential = sp.linalg.expm(-1j*T*step_size)
-            
+      
     # compute time-evolved state
     w_tmp = np.zeros([dimension], dtype=complex)
     for j in range(dimension):
         w_tmp[j] = krylov_tensors[j].transpose(conjugate=True)@initial_value
-    w_tmp = matrix_exponential@w_tmp
+    w_tmp = expm_multiply(-1j*T*step_size, w_tmp) 
     solution = w_tmp[0]*krylov_tensors[0]
     for j in range(1,dimension):
         solution = solution + w_tmp[j]*krylov_tensors[j]
