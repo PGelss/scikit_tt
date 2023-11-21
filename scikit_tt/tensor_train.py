@@ -2062,3 +2062,26 @@ def residual_error(operator: 'TT', lhs: 'TT', rhs: 'TT') -> float:
             M = np.diag(s).dot(v)
 
     return error
+
+def build_core(matrix_list):
+
+    dimension = matrix_list[0][0].shape 
+
+    r1 = len(matrix_list)
+    r2 = len(matrix_list[0])
+
+    core = np.zeros(r1, dimension[0], dimension[1], r2)
+
+    for i in range(r1):
+
+        for j in range(r2):
+            
+            try: 
+                core[i, :, :, j] = matrix_list[i][j]
+
+            except TypeError as inst:
+
+                print(inst, "is not a 2-dimensional array. List within lists must contain matrices.")
+
+    return core
+
