@@ -2063,25 +2063,64 @@ def residual_error(operator: 'TT', lhs: 'TT', rhs: 'TT') -> float:
 
     return error
 
-def build_core(matrix_list):
+def parse_core_input(core, matrices, i: int, j: int, order: Tuple[int, int]):
 
-    dimension = matrix_list[0][0].shape 
+    matrix_list_element = matrices[i][j]
+
+    if isinstance(matrix_list_element, np.ndarray):
+
+        try: 
+
+            core[i, :, :, j] = matrix_list_element
+
+        except TypeError as inst:
+
+            print(inst, "is not a 2-dimensional array. Inner lists must contain matrices.")
+
+        except ValueError as inst:
+
+            print(inst, " does not have the same order as other matrices in the list. All matrices in the list must have the same order.")
+
+    elif isinstance(matrix_list_element, int):
+
+        if matrix_list_element == 0:
+
+            core[i, :, :, j] = np.zeros(order)
+
+        elif matrix_list_element == 1:
+
+            core[i, :, :, j] = np.eye(order[0])
+
+        else:
+
+            raise ValueError("Integer parameter is not in {0, 1}")
+
+    else:
+
+        raise TypeError("Parameters in list must be either an integer in {0, 1} or a matrix.")
+
+
+
+def build_core(matrix_list: List[List[Union[np.ndarray, int]]], matrix_order: Tuple[int, int]):
 
     r1 = len(matrix_list)
     r2 = len(matrix_list[0])
 
-    core = np.zeros(r1, dimension[0], dimension[1], r2)
+    
+    
+    core = np.zeros((r1, matrix_order[0], matrix_order[1], r2))
 
     for i in range(r1):
 
+        if r2 != len(matrix_list[i]):
+
+            raise ValueError("All lists must contain the same number of matrices.")
+
+        r2 = len(matrix_list[i])
+
         for j in range(r2):
-            
-            try: 
-                core[i, :, :, j] = matrix_list[i][j]
 
-            except TypeError as inst:
-
-                print(inst, "is not a 2-dimensional array. List within lists must contain matrices.")
+            parse_core_input(core, matrix_list, i, j,  matrix_order)
 
     return core
 
