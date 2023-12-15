@@ -640,7 +640,8 @@ def lie_splitting(S : Union[np.ndarray, List[np.ndarray]],
                   M : Union[np.ndarray, List[np.ndarray]],
                   initial_value: 'TT', step_size: float, number_of_steps: int, 
                   threshold: float=1e-12, max_rank: int=50,
-                  normalize: int=1, K: List[np.ndarray]=None) -> List['TT']:
+                  normalize: int=1, K: List[np.ndarray]=None,
+                  tmp_rank: int=0) -> List['TT']:
     """
     Lie splitting for ODEs with non-periodic SLIM operators.
 
@@ -678,12 +679,19 @@ def lie_splitting(S : Union[np.ndarray, List[np.ndarray]],
 
     K : list[ndarrays], optional
         list of propagators
+        
+    tmp_rank : int, optional
+        maximum rank for intermediate calculations, default is 2*max_rank
 
     Returns
     -------
     list[TT]
         numerical solution of the differential equation
     """
+    
+    # maximum rank for intermediate calculations
+    if tmp_rank == 0:
+        tmp_rank = 2*max_rank
 
     # chain length
     order = initial_value.order
@@ -701,8 +709,8 @@ def lie_splitting(S : Union[np.ndarray, List[np.ndarray]],
         tmp = solution[i].copy()
 
         # Strang splitting
-        tmp = __splitting_stage(K, np.arange(0,order,2), tmp, threshold, 2*max_rank)
-        tmp = __splitting_stage(K, np.arange(1,order,2), tmp, threshold, 2*max_rank)
+        tmp = __splitting_stage(K, np.arange(0,order,2), tmp, threshold, tmp_rank)
+        tmp = __splitting_stage(K, np.arange(1,order,2), tmp, threshold, tmp_rank)
         tmp = tmp.ortho(threshold=threshold, max_rank=max_rank)
 
         # normalize solution
@@ -711,6 +719,8 @@ def lie_splitting(S : Union[np.ndarray, List[np.ndarray]],
 
         # append solution
         solution.append(tmp.copy())
+        
+        print(i, tmp.ranks)
 
     return solution
 
