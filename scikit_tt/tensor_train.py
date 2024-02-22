@@ -2063,82 +2063,150 @@ def residual_error(operator: 'TT', lhs: 'TT', rhs: 'TT') -> float:
 
     return error
 
-def build_core(matrix_list: List[List[Union[np.ndarray, int]]]):
+def build_core_vector(matrix_list: List[Union[np.ndarray, int]]):
+
+    """
+    Handles case (2) of possible inputs in build_core.
+    """
 
     r1 = len(matrix_list)
-    r2 = len(matrix_list[0])
 
     m, n = (0,0)
 
     for i in range(r1):
 
-        for j in range(r2):
+        if isinstance(matrix_list[i], np.ndarray):
 
             try:
 
-                list_element = matrix_list[i][j]
+                m, n = matrix_list[i].shape # Determine matrix order
 
-            except IndexError: 
+            except ValueError: # Check that we do not consider other n-dimensional arrays.
 
-                print("Index out of range. All lists must contain the same number of matrices.\n")
+                print("List has a non-two-dimensional array. Lists must contain matrices.\n")
 
                 raise
 
-            if isinstance(list_element, np.ndarray):
+            break # Stop once order of matrix (mxn) is determined.
+
+    core = np.zeros((r1, m, n, 1)) 
+
+    for i in range(r1):
+        
+        if isinstance(matrix_list[i], np.ndarray):
+
+            try: 
+
+                core[i, :, :, 0] = matrix_list[i]
+
+            except ValueError:
+
+                print("\n", matrix_list[i], "\ndoes not have the same order as other matrices in the list. All matrices in the list must have the same order.\n")
+
+                raise
+
+        elif matrix_list[i] == 0:
+
+            continue
+
+        return core
+
+def build_core(matrix_list: Union[ List[List[Union[np.ndarray, int]]], List[Union[np.ndarray, int]] ]):
+
+    """
+    Given a list of length r1 of list elements containing each containing 
+    (mxn)-matrices, return an order (r1 x m x n x r2)-tensor-train core.
+
+    Possible inputs: 
+
+        (1) List of lists of 2-dimensional np.arrays.
+
+        (2) List of 2-dimensional np.arrays.
+
+        (3) Instead of a 2-dimensional np.array the integer "0" can be parsed
+            as np.zeros(m,n). 
+    """
+
+    r1 = len(matrix_list)
+
+    if isinstance(matrix_list[0], Union[np.ndarray, int]):
+
+        core = build_core_vector(matrix_list)
+
+        return core
+
+    else:
+
+        r2 = len(matrix_list[0])
+
+        m, n = (0,0)
+
+        for i in range(r1):
+
+            for j in range(r2):
 
                 try:
 
-                    m, n = list_element.shape
+                    list_element = matrix_list[i][j]
 
-                except ValueError:
+                except IndexError: 
 
-                    print("List has a non-two-dimensional array. Lists must contain matrices.\n")
-
-                    raise
-
-
-    core = np.zeros((r1, m, n, r2))
-
-    for i in range(r1):
-
-        if r2 != len(matrix_list[i]):
-
-            raise ValueError("All lists must contain the same number of matrices.\n")
-
-        r2 = len(matrix_list[i])
-
-        for j in range(r2):
-
-            matrix_list_element = matrix_list[i][j]
-
-            if isinstance(matrix_list_element, np.ndarray):
-
-                try: 
-
-                    core[i, :, :, j] = matrix_list_element
-
-                except TypeError:
-
-                    print("\n", matrix_list_element, "\nis not a 2-dimensional array. Inner lists must contain matrices.\n")
+                    print("Index out of range. All lists must contain the same number of matrices.\n")
 
                     raise
 
-                except ValueError:
+                if isinstance(list_element, np.ndarray):
 
-                    print("\n",matrix_list_element, "\ndoes not have the same order as other matrices in the list. All matrices in the list must have the same order.\n")
+                    try:
 
-                    raise
+                        m, n = list_element.shape
 
-            elif matrix_list_element == 0:
+                    except ValueError:
+
+                        print("List has a non-two-dimensional array. Lists must contain matrices.\n")
+
+                        raise
 
 
-                core[i, :, :, j] = np.zeros((m,n))
+        core = np.zeros((r1, m, n, r2))
 
+        for i in range(r1):
 
-            else:
+            if r2 != len(matrix_list[i]):
 
-                raise TypeError("Parameters in list must be either an 0 or a matrix.\n")
-            
-    return core
+                raise ValueError("All lists must contain the same number of matrices.\n")
 
+            r2 = len(matrix_list[i])
+
+            for j in range(r2):
+
+                matrix_list_element = matrix_list[i][j]
+
+                if isinstance(matrix_list_element, np.ndarray):
+
+                    try: 
+
+                        core[i, :, :, j] = matrix_list_element
+
+                    except TypeError:
+
+                        print("\n", matrix_list_element, "\nis not a 2-dimensional array. Inner lists must contain matrices.\n")
+
+                        raise
+
+                    except ValueError:
+
+                        print("\n",matrix_list_element, "\ndoes not have the same order as other matrices in the list. All matrices in the list must have the same order.\n")
+
+                        raise
+
+                elif matrix_list_element == 0: # Core is already zero initialized with zeros.
+
+                    continue
+
+                else:
+
+                    raise TypeError("Parameters in list must be either an 0 or a matrix.\n")
+
+        return core
 
