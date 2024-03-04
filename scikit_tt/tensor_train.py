@@ -2129,7 +2129,7 @@ def build_core(matrix_list: Union[ List[List[Union[np.ndarray, int]]], List[Unio
 
     r1 = len(matrix_list)
 
-    if isinstance(matrix_list[0], Union[np.ndarray, int]):
+    if isinstance(matrix_list[0], np.ndarray) or isinstance(matrix_list[0], int):
 
         core = build_core_vector(matrix_list)
 
