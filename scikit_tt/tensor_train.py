@@ -2063,7 +2063,7 @@ def residual_error(operator: 'TT', lhs: 'TT', rhs: 'TT') -> float:
 
     return error
 
-def build_core_vector(matrix_list: List[Union[np.ndarray, int]]):
+def build_core_vector(matrix_list: List[Union[np.ndarray, int]], field_type: str = "float"):
 
     """
     Handles case (2) of possible inputs in build_core.
@@ -2089,11 +2089,21 @@ def build_core_vector(matrix_list: List[Union[np.ndarray, int]]):
 
             break # Stop once order of matrix (mxn) is determined.
 
-    core = np.zeros((r1, m, n, 1)) 
+    core = np.zeros((r1, m, n, 1), dtype = field_type) 
 
     for i in range(r1):
         
         if isinstance(matrix_list[i], np.ndarray):
+
+            if field_type == "complex":
+
+                continue
+
+            else:
+
+                if core.dtype == "complex":
+
+                    core = core.astype("complex")
 
             try: 
 
@@ -2111,7 +2121,7 @@ def build_core_vector(matrix_list: List[Union[np.ndarray, int]]):
 
         return core
 
-def build_core(matrix_list: Union[ List[List[Union[np.ndarray, int]]], List[Union[np.ndarray, int]] ]):
+def build_core(matrix_list: Union[ List[List[Union[np.ndarray, int]]], List[Union[np.ndarray, int]] ], iscomplex: bool = False):
 
     """
     Given a list of length r1 of list elements containing each containing 
@@ -2127,11 +2137,13 @@ def build_core(matrix_list: Union[ List[List[Union[np.ndarray, int]]], List[Unio
             as np.zeros(m,n). 
     """
 
+    field_type = "complex" if iscomplex else "float"
+
     r1 = len(matrix_list)
 
     if isinstance(matrix_list[0], np.ndarray) or isinstance(matrix_list[0], int):
 
-        core = build_core_vector(matrix_list)
+        core = build_core_vector(matrix_list, field_type)
 
         return core
 
@@ -2168,7 +2180,7 @@ def build_core(matrix_list: Union[ List[List[Union[np.ndarray, int]]], List[Unio
                         raise
 
 
-        core = np.zeros((r1, m, n, r2))
+        core = np.zeros((r1, m, n, r2), dtype = field_type)
 
         for i in range(r1):
 
@@ -2184,8 +2196,18 @@ def build_core(matrix_list: Union[ List[List[Union[np.ndarray, int]]], List[Unio
 
                 if isinstance(matrix_list_element, np.ndarray):
 
-                    try: 
+                    if core.dtype == "complex":
 
+                        continue
+
+                    else:
+
+                        if matrix_list_element.dtype == "complex":
+
+                            core = core.astype("complex")
+
+                    try: 
+                        
                         core[i, :, :, j] = matrix_list_element
 
                     except TypeError:
