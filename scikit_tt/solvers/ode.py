@@ -1318,7 +1318,7 @@ def krylov(operator: 'TT', initial_value: 'TT', dimension: int, step_size: float
     alpha = (w_tmp.transpose(conjugate=True)@krylov_tensors[-1])
     T[0,0] = alpha
     w_tmp = w_tmp - alpha*krylov_tensors[-1]
-    w_tmp = w_tmp.ortho(threshold=threshold, max_rank=max_rank)
+    w_tmp = w_tmp.ortho(threshold=threshold, max_rank=2*max_rank)
     for i in range(1,dimension):
         beta = w_tmp.norm()
         T[i,i-1] = beta
@@ -1328,7 +1328,7 @@ def krylov(operator: 'TT', initial_value: 'TT', dimension: int, step_size: float
         alpha = (w_tmp.transpose(conjugate=True)@krylov_tensors[-1])
         T[i,i] = alpha
         w_tmp = w_tmp - alpha*krylov_tensors[-1] - beta*krylov_tensors[-2]
-        w_tmp = w_tmp.ortho(threshold=threshold, max_rank=max_rank)
+        w_tmp = w_tmp.ortho(threshold=threshold, max_rank=2*max_rank)
     
     # compute time-evolved state
     w_tmp = np.zeros([dimension], dtype=complex)
