@@ -2119,7 +2119,7 @@ def build_core_vector(matrix_list: List[Union[np.ndarray, int]], field_type: str
 
             continue
 
-        return core
+    return core
 
 def build_core(matrix_list: Union[ List[List[Union[np.ndarray, int]]], List[Union[np.ndarray, int]] ], iscomplex: bool = False):
 
