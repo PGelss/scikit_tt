@@ -2081,13 +2081,23 @@ def build_core_vector(matrix_list: List[Union[np.ndarray, int]], field_type: str
 
                 m, n = matrix_list[i].shape # Determine matrix order
 
-            except ValueError: # Check that we do not consider other n-dimensional arrays.
+            except:
 
-                print("List has a non-two-dimensional array. Lists must contain matrices.\n")
+                try:
 
-                raise
+                    m = matrix_list[i].shape
+
+                except ValueError:
+
+                    print("List contains elements which are neither vectors nor matrices.\n")
+
+                    raise
 
             break # Stop once order of matrix (mxn) is determined.
+
+    if len(matrix_list[i].shape) == 1:
+        m = matrix_list[i].shape[0]
+        n = 1
 
     core = np.zeros((r1, m, n, 1), dtype = field_type) 
 
@@ -2107,7 +2117,7 @@ def build_core_vector(matrix_list: List[Union[np.ndarray, int]], field_type: str
 
             try: 
 
-                core[i, :, :, 0] = matrix_list[i]
+                core[i, :, :, 0] = matrix_list[i].reshape([m, n])
 
             except ValueError:
 
@@ -2173,12 +2183,21 @@ def build_core(matrix_list: Union[ List[List[Union[np.ndarray, int]]], List[Unio
 
                         m, n = list_element.shape
 
-                    except ValueError:
+                    except:
 
-                        print("List has a non-two-dimensional array. Lists must contain matrices.\n")
+                        try:
 
-                        raise
+                            m = list_element.shape
 
+                        except ValueError:
+
+                            print("List contains elements which are neither vectors nor matrices.\n")
+
+                            raise
+
+        if len(list_element.shape) == 1:
+            m = list_element.shape[0]
+            n = 1
 
         core = np.zeros((r1, m, n, r2), dtype = field_type)
 
@@ -2208,7 +2227,7 @@ def build_core(matrix_list: Union[ List[List[Union[np.ndarray, int]]], List[Unio
 
                     try: 
                         
-                        core[i, :, :, j] = matrix_list_element
+                        core[i, :, :, j] = matrix_list_element.reshape([m, n])
 
                     except TypeError:
 
