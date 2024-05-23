@@ -3,8 +3,53 @@
 from __future__ import division
 import numpy as np
 from typing import List
+import scikit_tt.tensor_train as tt
 from scikit_tt.tensor_train import TT
 import scikit_tt.slim as slim
+
+def ising(d,J,h) -> 'TT':
+    """
+    TT representation of the Hamiltonian function of the Ising model:
+
+      H(x) = -J*(x_1*x_2 + ... + x_{d-1}*x_d) -h*(x_1 + ... + x_d)
+
+    For more details, see _[1].
+
+    Parameters
+    ----------
+    d: int
+        number of sites
+    J: float
+        interaction constant
+    h: float
+        external magnetic field
+
+    Returns
+    -------
+    T: TT
+        MPS representation of H
+
+    References
+    ----------
+    .. [1] P. Gelß,  S. Klus,  S. Matera,  C. Schütte,  "Nearest-neighbor interaction systems in the tensor-train format",
+           Journal of Computational Physics 341 (2017) 140-162
+    """
+
+    S = -h *np.array([1,-1])
+    L = -J *np.array([1,-1])
+    I = np.array([1,1])
+    M = np.array([1,-1])
+
+    cores = [None]*d
+    cores[0] = tt.build_core([[S, L, I]])
+    for i in range(1,d-1):
+        cores[i] = tt.build_core([[I, 0, 0], [M, 0, 0], [S, L, I]])
+    cores[-1] = tt.build_core([I, M, S])
+
+    T = TT(cores)
+
+    return T
+
 
 def qfa() -> 'TT':
     """
