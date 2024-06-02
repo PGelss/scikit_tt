@@ -1704,14 +1704,12 @@ class TT(object):
 
         return p_inv
     
-    def diag(self, t: 'TT', diag_list: List) -> 'TT':
+    def diag(self, diag_list: List) -> 'TT':
         """
         Construction of diagonal MPO from MPS.
 
         Parameters
         ----------
-        t: TT
-            MPS decomposition
         diag_list: list
             cores to diagonalize
 
@@ -1721,7 +1719,7 @@ class TT(object):
             MPO decomposition
         """
 
-        cores = t.cores.copy()
+        cores = self.cores.copy()
 
         for i in diag_list:
             r1, d, _, r2 = cores[i].shape
