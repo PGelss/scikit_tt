@@ -1151,6 +1151,8 @@ class TT(object):
                                     max_rank_tf = False
                         if max_rank_tf:
                             max_ranks = max_rank
+                    else:
+                        max_rank_tf = False
 
                 if max_rank_tf:
 
@@ -1255,6 +1257,8 @@ class TT(object):
                                     max_rank_tf = False
                         if max_rank_tf:
                             max_ranks = max_rank
+                    else:
+                        max_rank_tf = False
 
                 if max_rank_tf:
 
