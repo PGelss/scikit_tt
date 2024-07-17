@@ -1092,7 +1092,7 @@ class TT(object):
     def ortho_left(self, start_index: int=0, 
                    end_index: Optional[int]=None, 
                    threshold: float=0.0, 
-                   max_rank: int=np.infty, 
+                   max_rank: Union[int, List[int]]=np.infty,
                    progress: bool=False, 
                    string: str='Left-orthonormalization') -> 'TT':
         """
@@ -1106,8 +1106,8 @@ class TT(object):
             end index for orthonormalization, default is the index of the penultimate core
         threshold : float, optional
             threshold for reduced SVD decompositions, default is 0
-        max_rank : int, optional
-            maximum rank of the left-orthonormalized tensor train, default is np.infty
+        max_rank : int or list[int], optional
+            maximum rank(s) of the left-orthonormalized tensor train, default is np.infty
         progress : bool, optional
             whether to show progress bar, default is False
         string : string, optional
@@ -1139,7 +1139,19 @@ class TT(object):
 
             if isinstance(threshold, (int, float)) and threshold >= 0:
 
-                if (isinstance(max_rank, (int, np.int32, np.int64)) and max_rank > 0) or max_rank == np.infty:
+                # check for correct max_rank argument and set max_ranks
+                max_rank_tf = True
+                if not isinstance(max_rank, list) and ((isinstance(max_rank, (int, np.int32, np.int64)) and max_rank > 0) or max_rank == np.infty):
+                    max_ranks = [1] + [max_rank for _ in range(self.order-1)] + [1]
+                else:
+                    if len(max_rank) == self.order+1:
+                        for i in range(self.order+1):
+                            if not ((isinstance(max_rank[i], (int, np.int32, np.int64)) and max_rank[i] > 0) or max_rank[i] == np.infty):
+                                max_rank_tf = False
+                    if max_rank_tf:
+                        max_ranks = max_rank
+
+                if max_rank_tf:
 
                     for i in range(start_index, end_index + 1):
 
@@ -1161,10 +1173,10 @@ class TT(object):
                             u = u[:, indices]
                             s = s[indices]
                             v = v[indices, :]
-                        if max_rank != np.infty:
-                            u = u[:, :np.minimum(u.shape[1], max_rank)]
-                            s = s[:np.minimum(s.shape[0], max_rank)]
-                            v = v[:np.minimum(v.shape[0], max_rank), :]
+                        if max_ranks[i+1] != np.infty:
+                            u = u[:, :np.minimum(u.shape[1], max_ranks[i+1])]
+                            s = s[:np.minimum(s.shape[0], max_ranks[i+1])]
+                            v = v[:np.minimum(v.shape[0], max_ranks[i+1]), :]
 
                         # define updated rank and core
                         self.ranks[i + 1] = u.shape[1]
@@ -1192,7 +1204,7 @@ class TT(object):
     def ortho_right(self, start_index: Optional[int]=None, 
                     end_index: int=1, 
                     threshold: float=0, 
-                    max_rank: int=np.infty) -> 'TT':
+                    max_rank: Union[int, List[int]]=np.infty) -> 'TT':
         """
         Right-orthonormalization of tensor trains.
 
@@ -1204,8 +1216,8 @@ class TT(object):
             end index for orthonormalization, default is 1
         threshold : float, optional
             threshold for reduced SVD decompositions, default is 0
-        max_rank : int, optional
-            maximum rank of the left-orthonormalized tensor train, default is np.infty
+        max_rank : int or list[int], optional
+            maximum rank(s) of the left-orthonormalized tensor train, default is np.infty
 
         Returns
         -------
@@ -1230,7 +1242,19 @@ class TT(object):
 
             if isinstance(threshold, (int, np.int32, np.int64, float, np.float32, np.float64)) and threshold >= 0:
 
-                if (isinstance(max_rank, (int, np.int32, np.int64)) and max_rank > 0) or max_rank == np.infty:
+                # check for correct max_rank argument and set max_ranks
+                max_rank_tf = True
+                if not isinstance(max_rank, list) and ((isinstance(max_rank, (int, np.int32, np.int64)) and max_rank > 0) or max_rank == np.infty):
+                    max_ranks = [1] + [max_rank for _ in range(self.order-1)] + [1]
+                else:
+                    if len(max_rank) == self.order+1:
+                        for i in range(self.order+1):
+                            if not ((isinstance(max_rank[i], (int, np.int32, np.int64)) and max_rank[i] > 0) or max_rank[i] == np.infty):
+                                max_rank_tf = False
+                    if max_rank_tf:
+                        max_ranks = max_rank
+
+                if max_rank_tf:
 
                     for i in range(start_index, end_index - 1, -1):
 
@@ -1252,10 +1276,13 @@ class TT(object):
                             u = u[:, indices]
                             s = s[indices]
                             v = v[indices, :]
-                        if max_rank != np.infty:
-                            u = u[:, :np.minimum(u.shape[1], max_rank)]
-                            s = s[:np.minimum(s.shape[0], max_rank)]
-                            v = v[:np.minimum(v.shape[0], max_rank), :]
+                        if max_ranks[i] != np.infty:
+                            print(u.shape, v.shape)
+                            print(max_ranks[i])
+
+                            u = u[:, :np.minimum(u.shape[1], max_ranks[i])]
+                            s = s[:np.minimum(s.shape[0], max_ranks[i])]
+                            v = v[:np.minimum(v.shape[0], max_ranks[i]), :]
 
                         # define updated rank and core
                         self.ranks[i] = v.shape[0]
@@ -1279,7 +1306,7 @@ class TT(object):
         else:
             raise TypeError('Start and end indices must be integers.')
 
-    def ortho(self, threshold: float=0, max_rank: int=np.infty) -> 'TT':
+    def ortho(self, threshold: float=0, max_rank: Union[int, List[int]]=np.infty) -> 'TT':
         """
         Left- and right-orthonormalization of tensor trains.
 
@@ -1287,8 +1314,8 @@ class TT(object):
         ----------
         threshold : float, optional
             threshold for reduced SVD decompositions, default is 0
-        max_rank : int
-            maximum rank of the right-orthonormalized tensor train
+        max_rank : int or list[int], optional
+            maximum rank(s) of the left-orthonormalized tensor train, default is np.infty
 
         Returns
         -------
