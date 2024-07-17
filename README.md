@@ -82,15 +82,15 @@ with graphical representation
 <p align="center">
   $$
   \large{
-  \rule[2.5pt]{10pt}{0.4pt} \,\,\, {\small r_0} \,\,\, \rule[2.5pt]{10pt}{0.4pt} \,\,\, 
-  \begin{matrix} |\\ {\small n_1}\\ |\\ \framebox[22pt]{ $\underset{\phantom{0}}{\stackrel{\phantom{0}}{T^{(1)}}}$}  \\ | \\ {\small m_1}\\|\end{matrix} 
-  \,\,\, \rule[2.5pt]{10pt}{0.4pt} \,\,\, {\small r_1} \,\,\, \rule[2.5pt]{10pt}{0.4pt} \,\,\, 
-  \begin{matrix} |\\ {\small n_2}\\ |\\ \framebox[22pt]{ $\underset{\phantom{0}}{\stackrel{\phantom{0}}{T^{(2)}}}$}  \\ | \\ {\small m_2}\\|\end{matrix}
-  \,\,\, \rule[2.5pt]{10pt}{0.4pt} \,\,\, {\small r_2} \,\,\, \rule[2.5pt]{10pt}{0.4pt} \,\,\, 
-  \begin{matrix} |\\ {\small n_3}\\ |\\ \framebox[22pt]{ $\underset{\phantom{0}}{\stackrel{\phantom{0}}{T^{(3)}}}$}  \\ | \\ {\small m_3}\\|\end{matrix}
-  \,\,\, \rule[2.5pt]{20pt}{0.4pt} \,\,\, \cdots\cdots \,\,\, \rule[2.5pt]{20pt}{0.4pt} \,\,\,
-  \begin{matrix} |\\ {\small n_d}\\ |\\ \framebox[22pt]{ $\underset{\phantom{0}}{\stackrel{\phantom{0}}{T^{(d)}}}$}  \\ | \\ {\small m_d}\\|\end{matrix}
-  \,\,\, \rule[2.5pt]{10pt}{0.4pt} \,\,\, {\small r_d} \,\,\, \rule[2.5pt]{10pt}{0.4pt}
+  \textemdash \,\,\, {\small r_0} \,\,\, \textemdash \,\,\, 
+  \begin{matrix} |\\ {\small n_1}\\ |\\ \framebox[22pt]{ $\underset{}{\stackrel{}{T^{(1)}}}$}  \\ | \\ {\small m_1}\\|\end{matrix} 
+  \,\,\, \textemdash \,\,\, {\small r_1} \,\,\, \textemdash \,\,\, 
+  \begin{matrix} |\\ {\small n_2}\\ |\\ \framebox[22pt]{ $\underset{}{\stackrel{}{T^{(2)}}}$}  \\ | \\ {\small m_2}\\|\end{matrix}
+  \,\,\, \textemdash \,\,\, {\small r_2} \,\,\, \textemdash \,\,\, 
+  \begin{matrix} |\\ {\small n_3}\\ |\\ \framebox[22pt]{ $\underset{}{\stackrel{}{T^{(3)}}}$}  \\ | \\ {\small m_3}\\|\end{matrix}
+  \,\,\, \textemdash \,\,\, \cdots\cdots \,\,\, \textemdash \,\,\,
+  \begin{matrix} |\\ {\small n_d}\\ |\\ \framebox[22pt]{ $\underset{}{\stackrel{}{T^{(d)}}}$}  \\ | \\ {\small m_d}\\|\end{matrix}
+  \,\,\, \textemdash \,\,\, {\small r_d} \,\,\, \textemdash
   }
   $$
 </p>
