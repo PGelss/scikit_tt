@@ -37,6 +37,7 @@ jobs:
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Code testing and coverage
       run: |
+        python -c "import numpy; print(numpy.__version__)"
         pip install pytest
         pip install pytest-cov
         pytest --cov=./ --cov-report=xml tests/
