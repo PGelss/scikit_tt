@@ -1141,15 +1141,16 @@ class TT(object):
 
                 # check for correct max_rank argument and set max_ranks
                 max_rank_tf = True
-                if not isinstance(max_rank, list) and ((isinstance(max_rank, (int, np.int32, np.int64)) and max_rank > 0) or max_rank == np.infty):
+                if (isinstance(max_rank, (int, np.int32, np.int64)) and max_rank > 0) or max_rank == np.infty:
                     max_ranks = [1] + [max_rank for _ in range(self.order-1)] + [1]
                 else:
-                    if len(max_rank) == self.order+1:
-                        for i in range(self.order+1):
-                            if not ((isinstance(max_rank[i], (int, np.int32, np.int64)) and max_rank[i] > 0) or max_rank[i] == np.infty):
-                                max_rank_tf = False
-                    if max_rank_tf:
-                        max_ranks = max_rank
+                    if isinstance(max_rank, list):
+                        if len(max_rank) == self.order+1:
+                            for i in range(self.order+1):
+                                if not ((isinstance(max_rank[i], (int, np.int32, np.int64)) and max_rank[i] > 0) or max_rank[i] == np.infty):
+                                    max_rank_tf = False
+                        if max_rank_tf:
+                            max_ranks = max_rank
 
                 if max_rank_tf:
 
@@ -1193,7 +1194,7 @@ class TT(object):
                     return self
 
                 else:
-                    raise ValueError('Maximum rank must be a positive integer.')
+                    raise ValueError('Maximum rank(s) must be positive integers.')
 
             else:
                 raise ValueError('Threshold must be greater or equal 0.')
@@ -1244,15 +1245,16 @@ class TT(object):
 
                 # check for correct max_rank argument and set max_ranks
                 max_rank_tf = True
-                if not isinstance(max_rank, list) and ((isinstance(max_rank, (int, np.int32, np.int64)) and max_rank > 0) or max_rank == np.infty):
+                if (isinstance(max_rank, (int, np.int32, np.int64)) and max_rank > 0) or max_rank == np.infty:
                     max_ranks = [1] + [max_rank for _ in range(self.order-1)] + [1]
                 else:
-                    if len(max_rank) == self.order+1:
-                        for i in range(self.order+1):
-                            if not ((isinstance(max_rank[i], (int, np.int32, np.int64)) and max_rank[i] > 0) or max_rank[i] == np.infty):
-                                max_rank_tf = False
-                    if max_rank_tf:
-                        max_ranks = max_rank
+                    if isinstance(max_rank, list):
+                        if len(max_rank) == self.order+1:
+                            for i in range(self.order+1):
+                                if not ((isinstance(max_rank[i], (int, np.int32, np.int64)) and max_rank[i] > 0) or max_rank[i] == np.infty):
+                                    max_rank_tf = False
+                        if max_rank_tf:
+                            max_ranks = max_rank
 
                 if max_rank_tf:
 
@@ -1298,7 +1300,7 @@ class TT(object):
                     return self
 
                 else:
-                    raise ValueError('Maximum rank must be a positive integer.')
+                    raise ValueError('Maximum rank(s) must be positive integers.')
 
             else:
                 raise ValueError('Threshold must be greater or equal 0.')
