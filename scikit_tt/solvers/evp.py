@@ -433,8 +433,8 @@ def __update_core(i: int, micro_op: np.ndarray,
 
     if solver == 'eigh':
         eigenvalues, eigenvectors = lin.eigh(micro_op, b=micro_op_gevp, overwrite_a=True, overwrite_b=True,
-                                             check_finite=False,
-                                             eigvals=(micro_op.shape[0] - number_ev, micro_op.shape[0] - 1))
+                                             check_finite=False, 
+                                             subset_by_index=(micro_op.shape[0] - number_ev, micro_op.shape[0] - 1))
         eigenvalues  = eigenvalues[::-1]
         eigenvectors = eigenvectors[:, ::-1]
 
