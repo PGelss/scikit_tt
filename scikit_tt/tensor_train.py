@@ -1283,9 +1283,6 @@ class TT(object):
                             s = s[indices]
                             v = v[indices, :]
                         if max_ranks[i] != np.infty:
-                            print(u.shape, v.shape)
-                            print(max_ranks[i])
-
                             u = u[:, :np.minimum(u.shape[1], max_ranks[i])]
                             s = s[:np.minimum(s.shape[0], max_ranks[i])]
                             v = v[:np.minimum(v.shape[0], max_ranks[i]), :]
