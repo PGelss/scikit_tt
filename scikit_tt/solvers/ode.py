@@ -1310,30 +1310,26 @@ def krylov(operator: 'TT', initial_value: 'TT', dimension: int, step_size: float
           C. Hubig, "Time-evolution methods for matrix-product states". 
           Annals of Physics, 411, 167998, 2019
     """
-    
-    # construct Krylov subspace basis and effective H
-    T = np.zeros([dimension, dimension], dtype=complex)
-    krylov_tensors = [initial_value]
-    w_tmp = operator@krylov_tensors[-1]
-    alpha = (w_tmp.transpose(conjugate=True)@krylov_tensors[-1])
-    T[0,0] = alpha
-    w_tmp = w_tmp - alpha*krylov_tensors[-1]
-    w_tmp = w_tmp.ortho(threshold=threshold, max_rank=2*max_rank)
+  
+    # construct Krylov subspace basis
+    krylov_tensors = [(1/initial_value.norm())*initial_value]
     for i in range(1,dimension):
-        beta = w_tmp.norm()
-        T[i,i-1] = beta
-        T[i-1,i] = beta
-        krylov_tensors.append((1/beta)*w_tmp)
-        w_tmp = operator@krylov_tensors[-1]
-        alpha = (w_tmp.transpose(conjugate=True)@krylov_tensors[-1])
-        T[i,i] = alpha
-        w_tmp = w_tmp - alpha*krylov_tensors[-1] - beta*krylov_tensors[-2]
-        w_tmp = w_tmp.ortho(threshold=threshold, max_rank=2*max_rank)
-    
+        w_tmp = operator@krylov_tensors[-1].copy()
+        v_tmp = w_tmp.copy()
+        for j in range(i):
+            v_tmp = v_tmp - (w_tmp.transpose(conjugate=True)@krylov_tensors[j])*krylov_tensors[j]
+        krylov_tensors.append((1/v_tmp.norm())*v_tmp)
+      
+    # effective H
+    H_eff = np.zeros([dimension, dimension], dtype=complex)
+    for i in range(dimension):
+        for j in range(dimension):
+            H_eff[i,j] = krylov_tensors[i].transpose(conjugate=True)@(operator@krylov_tensors[j])
+
     # compute time-evolved state
     w_tmp = np.zeros([dimension], dtype=complex)
     w_tmp[0] = 1
-    w_tmp = expm_multiply(-1j*T*step_size, w_tmp) 
+    w_tmp = expm_multiply(-1j*H_eff*step_size, w_tmp) 
     solution = w_tmp[0]*krylov_tensors[0]
     for j in range(1,dimension):
         solution = solution + w_tmp[j]*krylov_tensors[j]
@@ -1342,6 +1338,3 @@ def krylov(operator: 'TT', initial_value: 'TT', dimension: int, step_size: float
         solution = (1 / solution.norm(p=normalize)) * solution
     return solution
 
-
-    
-    
