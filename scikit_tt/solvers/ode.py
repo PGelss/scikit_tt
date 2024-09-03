@@ -1167,8 +1167,6 @@ def tdvp(operator: 'TT', initial_value: 'TT', step_size: float, number_of_steps:
     return solution
 
 
-
-
 def __update_core_tdvp(i: int, micro_op: np.ndarray, solution: 'TT', step_size: float, direction: str):
     """
     Update TT core for TDVP.
@@ -1270,10 +1268,82 @@ def __update_core_tdvp(i: int, micro_op: np.ndarray, solution: 'TT', step_size: 
             solution.cores[i] = expm_multiply(-1j*step_size*0.5*micro_op, solution.cores[i].flatten())
             solution.cores[i] = solution.cores[i].reshape(r1, n, 1, r2)
 
-                
-def krylov(operator: 'TT', initial_value: 'TT', dimension: int, step_size: float, threshold: float=1e-12, max_rank: int=50, normalize: int=0) -> 'TT':
+
+def krylov_reduced(operator: 'TT', initial_value: 'TT', dimension: int, step_size: float, threshold: float=1e-12, max_rank: int=50, normalize: int=0) -> 'TT':
     """
-    Krylov method, see [1]_.
+    Krylov method with reduced orthonormalization, see [1]_.
+
+    Parameters
+    ----------
+    operator : TT
+        TT operator
+
+    initial_value : TT
+        initial value for ODE
+
+    dimension: int
+        dimension of Krylov subspace, must be larger than 1
+
+    step_size: float
+        step size
+
+    threshold : float, optional
+        threshold for reduced SVD decompositions, default is 1e-12
+
+    max_rank : int, optional
+        maximum rank of the solution, default is 50
+
+    normalize : {0, 1, 2}, optional
+        no normalization if 0, otherwise the solution is normalized in terms of Manhattan or Euclidean norm in each step
+
+
+    Returns
+    -------
+    TT
+        approximated solution of the Schrödinger equation
+
+    References
+    ----------
+    ..[1] S. Paeckel, T. Köhler, A. Swoboda, S. R. Manmana, U. Schollwöck,
+          C. Hubig, "Time-evolution methods for matrix-product states".
+          Annals of Physics, 411, 167998, 2019
+    """
+
+    # construct Krylov subspace basis and effective H
+    T = np.zeros([dimension, dimension], dtype=complex)
+    krylov_tensors = [initial_value]
+    w_tmp = operator@krylov_tensors[-1]
+    alpha = (w_tmp.transpose(conjugate=True)@krylov_tensors[-1])
+    T[0,0] = alpha
+    w_tmp = w_tmp - alpha*krylov_tensors[-1]
+    w_tmp = w_tmp.ortho(threshold=threshold, max_rank=2*max_rank)
+    for i in range(1,dimension):
+        beta = w_tmp.norm()
+        T[i,i-1] = beta
+        T[i-1,i] = beta
+        krylov_tensors.append((1/beta)*w_tmp)
+        w_tmp = operator@krylov_tensors[-1]
+        alpha = (w_tmp.transpose(conjugate=True)@krylov_tensors[-1])
+        T[i,i] = alpha
+        w_tmp = w_tmp - alpha*krylov_tensors[-1] - beta*krylov_tensors[-2]
+        w_tmp = w_tmp.ortho(threshold=threshold, max_rank=2*max_rank)
+
+    # compute time-evolved state
+    w_tmp = np.zeros([dimension], dtype=complex)
+    w_tmp[0] = 1
+    w_tmp = expm_multiply(-1j*T*step_size, w_tmp)
+    solution = w_tmp[0]*krylov_tensors[0]
+    for j in range(1,dimension):
+        solution = solution + w_tmp[j]*krylov_tensors[j]
+    solution = solution.ortho(threshold=threshold, max_rank=max_rank)
+    if normalize > 0:
+        solution = (1 / solution.norm(p=normalize)) * solution
+    return solution
+
+
+def krylov_full(operator: 'TT', initial_value: 'TT', dimension: int, step_size: float, threshold: float=1e-12, max_rank: int=50, normalize: int=0) -> 'TT':
+    """
+    Krylov method with full orthonormalization, see [1]_.
 
     Parameters
     ----------
