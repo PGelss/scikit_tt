@@ -1,4 +1,4 @@
-numpy >= 1.18.0; python_version >= '3.5'
+numpy >= 1.18.0,<2.0; python_version >= '3.5'
 numpy == 1.16.4; python_version == '2.7'
 
 scipy >= 1.0.1; python_version >= '3.5'
