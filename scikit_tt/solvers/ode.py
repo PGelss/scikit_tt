@@ -1,6 +1,7 @@
 import numpy as np
 import scipy as sp
 import scipy.linalg as lin
+import math
 
 from typing import List, Union
 
@@ -9,7 +10,7 @@ from scikit_tt.tensor_train import TT
 import scikit_tt.utils as utl
 from scikit_tt.solvers import sle
 import time as _time
-from scikit_tt.solvers.sle import __construct_stack_right_op, __construct_stack_left_op, __construct_micro_matrix_als
+from scikit_tt.solvers.sle import __construct_stack_right_op, __construct_stack_left_op, __construct_micro_matrix_als, __construct_micro_matrix_mals
 from scipy.sparse.linalg import expm_multiply
 
 def explicit_euler(operator: 'TT', 
@@ -182,7 +183,7 @@ def hod(operator: 'TT',
 
         for k in range(2,order//2+1):
             op_tmp = op_tmp.dot(operator).dot(operator)
-            op_hod = op_hod + 2/np.math.factorial(2*k-1) * step_size**(2*k-1) * op_tmp
+            op_hod = op_hod + 2/math.factorial(2*k-1) * step_size**(2*k-1) * op_tmp
 
         op_hod = op_hod.ortho(threshold=threshold)
 
@@ -202,7 +203,7 @@ def hod(operator: 'TT',
 
                 for k in range(2,order//2+1):
                     op_tmp = op_tmp.dot(operator).dot(operator)
-                    op_first = op_first + 2/np.math.factorial(2*k-1) * (step_size/2)**(2*k-1) * op_tmp
+                    op_first = op_first + 2/math.factorial(2*k-1) * (step_size/2)**(2*k-1) * op_tmp
 
                 op_first = op_first.ortho(threshold=threshold)
 
@@ -1167,6 +1168,98 @@ def tdvp(operator: 'TT', initial_value: 'TT', step_size: float, number_of_steps:
     return solution
 
 
+def tdvp2site(operator: 'TT', initial_value: 'TT', step_size: float, number_of_steps: int, threshold=1e-12, max_rank=50, normalize: int=0) -> 'TT':
+    """
+    Time-dependent variational principle (2TDVP), see [1]_.
+
+    Parameters
+    ----------
+    operator : TT
+        TT operator
+
+    initial_guess : TT
+        initial guess for the solution
+
+    step_size: float
+        step size
+
+    number_of_steps: int
+        number of time steps
+
+    normalize : {0, 1, 2}, optional
+        no normalization if 0, otherwise the solution is normalized in terms of Manhattan or Euclidean norm in each step
+
+
+    Returns
+    -------
+    TT
+        approximated solution of the Schrödinger equation
+
+    References
+    ----------
+    ..[1] S. Paeckel, T. Köhler, A. Swoboda, S. R. Manmana, U. Schollwöck,
+          C. Hubig, "Time-evolution methods for matrix-product states".
+          Annals of Physics, 411, 167998, 2019
+    """
+
+    # define solution list
+    solution = []
+    solution.append(initial_value)
+
+    # copy previous solution for next step
+    tmp = solution[0].copy()
+
+    # define stacks
+    stack_left_op   = [None] * operator.order
+    stack_right_op  = [None] * operator.order
+
+    # construct right stacks for the left- and right-hand side
+    for i in range(operator.order - 1, 0, -1):
+        __construct_stack_right_op(i, stack_right_op, operator, tmp)
+
+    # define iteration number
+    current_iteration = 1
+
+    # begin TDVP
+    while current_iteration <= number_of_steps:
+
+        # first half sweep
+        for i in range(operator.order - 1):
+
+            # update left stacks for the left- and right-hand side
+            __construct_stack_left_op(i, stack_left_op, operator, tmp)
+
+            # construct micro system
+            micro_op = __construct_micro_matrix_mals(i, stack_left_op, stack_right_op, operator, tmp)
+
+            # update solution
+            __update_core_tdvp2site(i, micro_op, tmp, step_size, threshold, max_rank, 'forward')
+
+        # second half sweep
+        for i in range(operator.order - 2, 0, -1):
+
+            # update right stacks for the left- and right-hand side
+            __construct_stack_right_op(i + 1, stack_right_op, operator, tmp)
+
+            # construct micro system
+            micro_op = __construct_micro_matrix_mals(i, stack_left_op, stack_right_op, operator, tmp)
+
+            # update solution
+            __update_core_tdvp2site(i, micro_op, tmp, step_size, threshold, max_rank, 'backward')
+
+        # increase iteration number
+        current_iteration += 1
+
+        # normalize solution
+        if normalize > 0:
+            tmp = (1 / tmp.norm(p=normalize)) * tmp
+
+        # append solution
+        solution.append(tmp.copy())
+
+    return solution
+
+
 def __update_core_tdvp(i: int, micro_op: np.ndarray, solution: 'TT', step_size: float, direction: str):
     """
     Update TT core for TDVP.
@@ -1269,9 +1362,115 @@ def __update_core_tdvp(i: int, micro_op: np.ndarray, solution: 'TT', step_size: 
             solution.cores[i] = solution.cores[i].reshape(r1, n, 1, r2)
 
 
-def krylov_reduced(operator: 'TT', initial_value: 'TT', dimension: int, step_size: float, threshold: float=1e-12, max_rank: int=50, normalize: int=0) -> 'TT':
+def __update_core_tdvp2site(i: int, micro_op: np.ndarray, solution: 'TT', step_size: float, threshold: float, max_rank: int, direction: str):
     """
-    Krylov method with reduced orthonormalization, see [1]_.
+    Update TT core for 2TDVP.
+
+    Parameters
+    ----------
+    i : int
+        core index
+
+    micro_op : np.ndarray
+        micro matrix for ith TT core
+
+    solution : TT
+        approximated solution of the system of linear equations
+
+    step_size: int
+        step size
+
+    direction : string
+        'forward' if first half sweep, 'backward' if second half sweep
+    """
+
+    # time step
+    # ------------------------------------------
+
+    # first half sweep
+    if direction == 'forward':
+
+        # time step
+        sol_tmp = np.tensordot(solution.cores[i], solution.cores[i+1], axes=1)
+        solution.cores[i] = expm_multiply(-1j*step_size*0.5*micro_op, sol_tmp.flatten())
+
+        # decompose solution
+        [u, s, v] = lin.svd(sol_tmp.reshape(solution.ranks[i] * solution.row_dims[i], solution.row_dims[i + 1] * solution.ranks[i + 2]),
+                            full_matrices=False, overwrite_a=True, check_finite=False, lapack_driver='gesvd')
+
+        # rank reduction
+        if threshold != 0:
+            indices = np.where(s / s[0] > threshold)[0]
+            u = u[:, indices]
+            s = s[indices]
+            v = v[indices, :]
+        if max_rank != np.infty:
+            u = u[:, :np.minimum(u.shape[1], max_rank)]
+            s = s[:np.minimum(s.shape[0], max_rank)]
+            v = v[:np.minimum(u.shape[1], max_rank), :]
+
+        # set new rank
+        solution.ranks[i + 1] = s.shape[0]
+
+        # save orthonormal part
+        solution.cores[i] = u.copy().reshape(solution.ranks[i], solution.row_dims[i], 1, solution.ranks[i + 1])
+
+        # save non-orthonormal part
+        solution.cores[i + 1] = (np.diag(s)@v).flatten()
+
+        # adapt micro matrix
+        u = np.tensordot(np.tensordot(u, np.eye(solution.row_dims[i+1]),axes=0), np.eye(solution.ranks[i+2]), axes=0)
+        u = u.transpose([0,2,4,1,3,5]).reshape([solution.ranks[i]*solution.row_dims[i]*solution.row_dims[i+1]*solution.ranks[i + 2], solution.ranks[i + 1]*solution.row_dims[i+1]*solution.ranks[i+2]])
+        micro_op = np.conj(u).T@micro_op@u
+
+        # time step
+        solution.cores[i + 1] = expm_multiply(1j*step_size*0.5*micro_op, solution.cores[i + 1])
+        solution.cores[i + 1] = solution.cores[i + 1].reshape([solution.ranks[i + 1], solution.row_dims[i+1], 1, solution.ranks[i+2]])
+
+    # second half sweep
+    if direction == 'backward':
+
+        # time step
+        sol_tmp = np.tensordot(solution.cores[i], solution.cores[i+1], axes=1)
+        solution.cores[i] = expm_multiply(-1j*step_size*0.5*micro_op, sol_tmp.flatten())
+
+        # decompose solution
+        [u, s, v] = lin.svd(sol_tmp.reshape(solution.ranks[i] * solution.row_dims[i], solution.row_dims[i + 1] * solution.ranks[i + 2]),
+                            full_matrices=False, overwrite_a=True, check_finite=False, lapack_driver='gesvd')
+
+        # rank reduction
+        if threshold != 0:
+            indices = np.where(s / s[0] > threshold)[0]
+            u = u[:, indices]
+            s = s[indices]
+            v = v[indices, :]
+        if max_rank != np.infty:
+            u = u[:, :np.minimum(u.shape[1], max_rank)]
+            s = s[:np.minimum(s.shape[0], max_rank)]
+            v = v[:np.minimum(u.shape[1], max_rank), :]
+
+        # set new rank
+        solution.ranks[i + 1] = s.shape[0]
+
+        # save non-orthonormal part
+        solution.cores[i] = (u@np.diag(s)).flatten()
+
+        # save orthonormal part
+        solution.cores[i + 1] = v.copy().reshape(solution.ranks[i+1], solution.row_dims[i+1], 1, solution.ranks[i+2])
+
+        # adapt micro matrix
+        v = np.tensordot(np.eye(solution.ranks[i]), np.tensordot(np.eye(solution.row_dims[i]), v, axes=0), axes=0)
+        v = v.transpose([0,2,5,1,3,4]).reshape([solution.ranks[i]*solution.row_dims[i]*solution.row_dims[i+1]*solution.ranks[i+2], solution.ranks[i]*solution.row_dims[i]*solution.ranks[i+1]])
+        micro_op = np.conj(v).T@micro_op@v
+
+        # time step
+        solution.cores[i] = expm_multiply(1j*step_size*0.5*micro_op, solution.cores[i])
+        solution.cores[i] = solution.cores[i].reshape([solution.ranks[i], solution.row_dims[i], 1, solution.ranks[i+1]])
+
+
+def krylov(operator: 'TT', initial_value: 'TT', dimension: int, step_size: float, threshold: float=1e-12, max_rank: int=50, normalize: int=0) -> 'TT':
+    """
+    Krylov method, see [1]_.
 
     Parameters
     ----------
@@ -1339,72 +1538,3 @@ def krylov_reduced(operator: 'TT', initial_value: 'TT', dimension: int, step_siz
     if normalize > 0:
         solution = (1 / solution.norm(p=normalize)) * solution
     return solution
-
-
-def krylov_full(operator: 'TT', initial_value: 'TT', dimension: int, step_size: float, threshold: float=1e-12, max_rank: int=50, normalize: int=0) -> 'TT':
-    """
-    Krylov method with full orthonormalization, see [1]_.
-
-    Parameters
-    ----------
-    operator : TT
-        TT operator
-
-    initial_value : TT
-        initial value for ODE
-        
-    dimension: int
-        dimension of Krylov subspace, must be larger than 1
-        
-    step_size: float
-        step size
-
-    threshold : float, optional
-        threshold for reduced SVD decompositions, default is 1e-12
-
-    max_rank : int, optional
-        maximum rank of the solution, default is 50
-        
-    normalize : {0, 1, 2}, optional
-        no normalization if 0, otherwise the solution is normalized in terms of Manhattan or Euclidean norm in each step
-
-
-    Returns
-    -------
-    TT
-        approximated solution of the Schrödinger equation
-
-    References
-    ----------
-    ..[1] S. Paeckel, T. Köhler, A. Swoboda, S. R. Manmana, U. Schollwöck, 
-          C. Hubig, "Time-evolution methods for matrix-product states". 
-          Annals of Physics, 411, 167998, 2019
-    """
-  
-    # construct Krylov subspace basis
-    krylov_tensors = [(1/initial_value.norm())*initial_value]
-    for i in range(1,dimension):
-        w_tmp = operator@krylov_tensors[-1].copy()
-        v_tmp = w_tmp.copy()
-        for j in range(i):
-            v_tmp = v_tmp - (w_tmp.transpose(conjugate=True)@krylov_tensors[j])*krylov_tensors[j]
-        krylov_tensors.append((1/v_tmp.norm())*v_tmp)
-      
-    # effective H
-    H_eff = np.zeros([dimension, dimension], dtype=complex)
-    for i in range(dimension):
-        for j in range(dimension):
-            H_eff[i,j] = krylov_tensors[i].transpose(conjugate=True)@(operator@krylov_tensors[j])
-
-    # compute time-evolved state
-    w_tmp = np.zeros([dimension], dtype=complex)
-    w_tmp[0] = 1
-    w_tmp = expm_multiply(-1j*H_eff*step_size, w_tmp) 
-    solution = w_tmp[0]*krylov_tensors[0]
-    for j in range(1,dimension):
-        solution = solution + w_tmp[j]*krylov_tensors[j]
-    solution = solution.ortho(threshold=threshold, max_rank=max_rank)
-    if normalize > 0:
-        solution = (1 / solution.norm(p=normalize)) * solution
-    return solution
-
