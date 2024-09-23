@@ -83,13 +83,13 @@ with graphical representation
   $$
   \large{
   \textemdash \,\,\, {\small r_0} \,\,\, \textemdash \,\,\, 
-  \begin{matrix} |\\ {\small n_1}\\ |\\ \framebox[22pt]{ $\underset{}{\stackrel{}{T^{(1)}}}$}  \\ | \\ {\small m_1}\\|\end{matrix} 
+  \begin{matrix} |\\ {\small n_1}\\ |\\ \framebox[]{~$\underset{~}{\stackrel{~}{T^{(1)}}}$~}  \\ | \\ {\small m_1}\\|\end{matrix} 
   \,\,\, \textemdash \,\,\, {\small r_1} \,\,\, \textemdash \,\,\, 
-  \begin{matrix} |\\ {\small n_2}\\ |\\ \framebox[22pt]{ $\underset{}{\stackrel{}{T^{(2)}}}$}  \\ | \\ {\small m_2}\\|\end{matrix}
+  \begin{matrix} |\\ {\small n_2}\\ |\\ \framebox[]{~$\underset{~}{\stackrel{~}{T^{(2)}}}$~}  \\ | \\ {\small m_2}\\|\end{matrix}
   \,\,\, \textemdash \,\,\, {\small r_2} \,\,\, \textemdash \,\,\, 
-  \begin{matrix} |\\ {\small n_3}\\ |\\ \framebox[22pt]{ $\underset{}{\stackrel{}{T^{(3)}}}$}  \\ | \\ {\small m_3}\\|\end{matrix}
-  \,\,\, \textemdash \,\,\, \cdots\cdots \,\,\, \textemdash \,\,\,
-  \begin{matrix} |\\ {\small n_d}\\ |\\ \framebox[22pt]{ $\underset{}{\stackrel{}{T^{(d)}}}$}  \\ | \\ {\small m_d}\\|\end{matrix}
+  \begin{matrix} |\\ {\small n_3}\\ |\\ \framebox[]{~$\underset{~}{\stackrel{~}{T^{(3)}}}$~}  \\ | \\ {\small m_3}\\|\end{matrix}
+  \,\,\, \textemdash \,\,\, \cdots \,\,\, \textemdash \,\,\,
+  \begin{matrix} |\\ {\small n_d}\\ |\\ \framebox[]{~$\underset{~}{\stackrel{~}{T^{(d)}}}$~}  \\ | \\ {\small m_d}\\|\end{matrix}
   \,\,\, \textemdash \,\,\, {\small r_d} \,\,\, \textemdash
   }
   $$
