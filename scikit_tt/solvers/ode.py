@@ -720,8 +720,6 @@ def lie_splitting(S : Union[np.ndarray, List[np.ndarray]],
 
         # append solution
         solution.append(tmp.copy())
-        
-        print(i, tmp.ranks)
 
     return solution
 

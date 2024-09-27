@@ -35,6 +35,102 @@ class TestODE(TestCase):
         # check if matrix- and tensor-based results are sufficiently close
         self.assertLess(np.linalg.norm(solution-solution_mat), 1e-12)
 
+    def test_lie(self):
+        """test for Lie splitting"""
+
+        # compute numerical solution of the ODE
+        operator = mdl.exciton_chain(4, 1e-1, -1e-2)
+        S = operator.cores[0][0,:,:,0]
+        L = np.zeros([2,2,2])
+        L[:,:,0] = operator.cores[0][0,:,:,1]
+        L[:,:,1] = operator.cores[0][0,:,:,2]
+        I = operator.cores[0][0,:,:,3]
+        M = np.zeros([2,2,2])
+        M[0,:,:] = operator.cores[0][0,:,:,4]
+        M[1,:,:] = operator.cores[0][0,:,:,5]
+
+        initial_value = tt.unit(operator.row_dims, [0] * operator.order)
+        step_size = 0.1
+        number_of_steps = 500
+        solution = ode.lie_splitting(S, L, I , M, initial_value, step_size, number_of_steps, threshold=1e-12, max_rank=10, normalize=2)
+        solution = np.squeeze(solution[-1].matricize())
+        solution_mat = splin.expm(step_size*number_of_steps*operator.matricize())@np.squeeze(initial_value.matricize())
+
+        # check if matrix- and tensor-based results are sufficiently close
+        self.assertLess(np.linalg.norm(solution-solution_mat), 1e-12)
+
+    def test_strang(self):
+        """test for Strang splitting"""
+
+        # compute numerical solution of the ODE
+        operator = mdl.exciton_chain(4, 1e-1, -1e-2)
+        S = operator.cores[0][0,:,:,0]
+        L = np.zeros([2,2,2])
+        L[:,:,0] = operator.cores[0][0,:,:,1]
+        L[:,:,1] = operator.cores[0][0,:,:,2]
+        I = operator.cores[0][0,:,:,3]
+        M = np.zeros([2,2,2])
+        M[0,:,:] = operator.cores[0][0,:,:,4]
+        M[1,:,:] = operator.cores[0][0,:,:,5]
+
+        initial_value = tt.unit(operator.row_dims, [0] * operator.order)
+        step_size = 0.1
+        number_of_steps = 500
+        solution = ode.strang_splitting(S, L, I , M, initial_value, step_size, number_of_steps, threshold=1e-12, max_rank=10, normalize=2)
+        solution = np.squeeze(solution[-1].matricize())
+        solution_mat = splin.expm(step_size*number_of_steps*operator.matricize())@np.squeeze(initial_value.matricize())
+
+        # check if matrix- and tensor-based results are sufficiently close
+        self.assertLess(np.linalg.norm(solution-solution_mat), 1e-12)
+
+    def test_yoshida(self):
+        """test for Yoshida splitting"""
+
+        # compute numerical solution of the ODE
+        operator = mdl.exciton_chain(4, 1e-1, -1e-2)
+        S = operator.cores[0][0,:,:,0]
+        L = np.zeros([2,2,2])
+        L[:,:,0] = operator.cores[0][0,:,:,1]
+        L[:,:,1] = operator.cores[0][0,:,:,2]
+        I = operator.cores[0][0,:,:,3]
+        M = np.zeros([2,2,2])
+        M[0,:,:] = operator.cores[0][0,:,:,4]
+        M[1,:,:] = operator.cores[0][0,:,:,5]
+
+        initial_value = tt.unit(operator.row_dims, [0] * operator.order)
+        step_size = 0.1
+        number_of_steps = 500
+        solution = ode.yoshida_splitting(S, L, I , M, initial_value, step_size, number_of_steps, threshold=1e-12, max_rank=10, normalize=2)
+        solution = np.squeeze(solution[-1].matricize())
+        solution_mat = splin.expm(step_size*number_of_steps*operator.matricize())@np.squeeze(initial_value.matricize())
+
+        # check if matrix- and tensor-based results are sufficiently close
+        self.assertLess(np.linalg.norm(solution-solution_mat), 1e-12)
+
+    def test_kahan_li(self):
+        """test for Kahan-Li splitting"""
+
+        # compute numerical solution of the ODE
+        operator = mdl.exciton_chain(4, 1e-1, -1e-2)
+        S = operator.cores[0][0,:,:,0]
+        L = np.zeros([2,2,2])
+        L[:,:,0] = operator.cores[0][0,:,:,1]
+        L[:,:,1] = operator.cores[0][0,:,:,2]
+        I = operator.cores[0][0,:,:,3]
+        M = np.zeros([2,2,2])
+        M[0,:,:] = operator.cores[0][0,:,:,4]
+        M[1,:,:] = operator.cores[0][0,:,:,5]
+
+        initial_value = tt.unit(operator.row_dims, [0] * operator.order)
+        step_size = 0.1
+        number_of_steps = 500
+        solution = ode.kahan_li_splitting(S, L, I , M, initial_value, step_size, number_of_steps, threshold=1e-12, max_rank=10, normalize=2)
+        solution = np.squeeze(solution[-1].matricize())
+        solution_mat = splin.expm(step_size*number_of_steps*operator.matricize())@np.squeeze(initial_value.matricize())
+
+        # check if matrix- and tensor-based results are sufficiently close
+        self.assertLess(np.linalg.norm(solution-solution_mat), 1e-12)
+
     def test_tdvp(self):
         """test for higher-order differencing"""
 
