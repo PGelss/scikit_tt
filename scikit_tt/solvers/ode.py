@@ -1536,3 +1536,182 @@ def krylov(operator: 'TT', initial_value: 'TT', dimension: int, step_size: float
     if normalize > 0:
         solution = (1 / solution.norm(p=normalize)) * solution
     return solution
+
+
+def tjm(hamiltonian, jump_operator_list, jump_parameter_list, initial_state, time_step, number_of_steps):
+    """
+    Tensor Jump Method (TJM)
+
+    Parameters
+    ----------
+    hamiltonian : TT
+        Hamiltonian of the system
+    jump_operator_list : list[list[np.ndarray]] or list[np.ndarray]
+        list of jump operators for each dimension; can be either of the form [[K_1,1 ,...], ..., [K_L,1, ...]], where 
+        each sublist contains the jump operators for one specific dimension or of the form [K_1, ..., K_m] if the same 
+        set of jump operators is applied to every dimension
+    jump_parameter_list : list[list[np.ndarray]] or list[np.ndarray]
+        prefactors for the jump operators; the form of this list corresponds to jump_operator_list
+    initial_state : TT
+        initial state for the simulation
+    time_step : float
+        time step for the simulation
+    number_of_steps : int
+        number of time steps
+
+    Returns
+    -------
+    trajectory : list[TT]
+        trajectory of computed states
+    """
+    
+    L = hamiltonian.order
+    trajectory = []
+    state = initial_state.copy()
+
+    # construct dissipative rank-one operators
+    diss_op_half = tjm_dissipative_operator(L, jump_operator_list, jump_parameter_list, time_step/2)
+    diss_op_full = tjm_dissipative_operator(L, jump_operator_list, jump_parameter_list, time_step)
+    
+    # begin of loop
+    state = diss_op_half@state
+    state = tjm_jump_process_tdvp(hamiltonian, state, jump_operator_list, jump_parameter_list, time_step)
+    trajectory.append(state.copy())
+    for k in range(1, number_of_steps-1):
+        print(k)
+        state = diss_op_full@state
+        state = tjm_jump_process_tdvp(hamiltonian, state, jump_operator_list, jump_parameter_list, time_step)
+        trajectory.append(state.copy())
+    state = diss_op_half@state
+    state = (1/state.norm())*state
+    trajectory.append(state.copy())
+
+    return trajectory
+
+
+def tjm_dissipative_operator(L, jump_operator_list, jump_parameter_list, time_step):
+    """
+    Construct rank-one tensor operator for the dissipative step of the tensor jump method.
+
+    Parameters
+    ----------
+    L : int
+        system size, e.g., number of qubits
+    jump_operator_list : list[list[np.ndarray]] or list[np.ndarray]
+        list of jump operators for each dimension; can be either of the form [[K_1,1 ,...], ..., [K_L,1, ...]], where 
+        each sublist contains the jump operators for one specific dimension or of the form [K_1, ..., K_m] if the same 
+        set of jump operators is applied to every dimension
+    jump_parameter_list : list[list[np.ndarray]] or list[np.ndarray]
+        prefactors for the jump operators; the form of this list corresponds to jump_operator_list
+    time_step : float
+        time step for the simulation
+
+    Returns
+    -------
+    op : TT
+        dissipative rank-one operator
+    """
+
+    # create 2d lists if inputs are 1d (e.g. same set of jump operators for each set)
+    if isinstance(jump_operator_list[0], list)==False:
+        jump_operator_list_org = jump_operator_list.copy()
+        jump_operator_list = [jump_operator_list_org.copy() for _ in range(L)]
+    if isinstance(jump_parameter_list[0], list)==False:
+        jump_parameter_list_org = jump_parameter_list.copy()
+        jump_parameter_list = [jump_parameter_list_org.copy() for _ in range(L)]
+    
+    # construct dissipative exponential
+    cores = [None]*L
+    for i in range(L):
+        cores[i] = np.zeros([2,2])
+        for j in range(len(jump_operator_list[i])):
+            cores[i] += jump_parameter_list[i][j]*jump_operator_list[i][j].conj().T@jump_operator_list[i][j]
+        cores[i] = lin.expm(-0.5*time_step*cores[i])[None, :, :, None]
+    op = TT(cores)
+    return op
+
+
+def tjm_jump_process_tdvp(hamiltonian, state, jump_operator_list, jump_parameter_list, time_step):
+    """
+    Apply jump process of the Tensor Jump Method (TJM)
+
+    Parameters
+    ----------
+    hamiltonian : TT
+        Hamiltonian of the system
+    state : TT
+        current state of the simulation
+    jump_operator_list : list[list[np.ndarray]] or list[np.ndarray]
+        list of jump operators for each dimension; can be either of the form [[K_1,1 ,...], ..., [K_L,1, ...]], where 
+        each sublist contains the jump operators for one specific dimension or of the form [K_1, ..., K_m] if the same 
+        set of jump operators is applied to every dimension
+    jump_parameter_list : list[list[np.ndarray]] or list[np.ndarray]
+        prefactors for the jump operators; the form of this list corresponds to jump_operator_list
+    time_step : float
+        time step for the simulation
+
+    Returns
+    -------
+    state_evolved : TT
+        evolved state after jump process (either by means of TDVP or randomly applied jump operator)
+    """
+    
+    L = state.order
+
+    # create 2d lists if inputs are 1d (e.g. same set of jump operators for each set)
+    if isinstance(jump_operator_list[0], list)==False:
+        jump_operator_list_org = jump_operator_list.copy()
+        jump_operator_list = [jump_operator_list_org.copy() for _ in range(L)]
+    if isinstance(jump_parameter_list[0], list)==False:
+        jump_parameter_list_org = jump_parameter_list.copy()
+        jump_parameter_list = [jump_parameter_list_org.copy() for _ in range(L)]
+
+    # copy initial state
+    state_org = state.copy()    
+    state = state.ortho_right()
+
+    # time evolution by TDVP
+    state_evolved = tdvp(hamiltonian, state, time_step, 1)[-1]
+
+    # probability for jump process
+    dp = 1-np.linalg.norm(state_evolved.cores[0].flatten())**2
+
+    # draw random epsilon
+    epsilon = np.random.rand()
+
+    if dp > epsilon: 
+
+        # initialize jump probabilites
+        prob_list = []
+        for i in range(len(jump_operator_list)):
+            prob_list += [[None for _ in range(len(jump_operator_list[i]))]]
+
+        # index list for application of jump operator
+        index_list = []
+
+        # compute probabilities
+        for i in range(L):
+            for j in range(len(prob_list[i])):
+                index_list += [[i,j]]
+                prob_list[i][j] = state.cores[i].copy()
+                prob_list[i][j] = np.tensordot(jump_operator_list[i][j].copy(), prob_list[i][j], axes=(1,1))
+                prob_list[i][j] = time_step*jump_parameter_list[i][j]*np.linalg.norm(prob_list[i][j])**2
+            if i<len(prob_list)-1:
+                state = state.ortho_left(start_index=i, end_index=i)
+
+        # draw index according to computed distribution and apply jump operator
+        distribution = np.hstack(prob_list)
+        distribution *= 1/np.sum(distribution)
+        sample = np.random.choice(len(index_list), p=distribution)
+        index = index_list[sample]
+        operator = jump_operator_list[index[0]][index[1]]
+        state_evolved = state_org
+        state_evolved.cores[index[0]] = np.tensordot(jump_parameter_list[index[0]][index[1]]*jump_operator_list[index[0]][index[1]], state_evolved.cores[index[0]], axes=(1,1))
+
+    # normalize state
+    state_evolved = state_evolved.ortho_right()
+    norm = np.linalg.norm(state_evolved.cores[0].flatten())
+    state_evolved = (1/norm)*state_evolved
+
+    return state_evolved
+
