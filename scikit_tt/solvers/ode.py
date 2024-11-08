@@ -1655,7 +1655,7 @@ def krylov(operator: 'TT', initial_value: 'TT', dimension: int, step_size: float
     return solution
 
 
-def tjm(hamiltonian, jump_operator_list, jump_parameter_list, initial_state, time_step, number_of_steps):
+def tjm(hamiltonian: 'TT', jump_operator_list: List['TT'], jump_parameter_list: List[float], initial_state: 'TT', time_step: float, number_of_steps: int, threshold: float=1e-12, max_rank: int=50):
     """
     Tensor Jump Method (TJM)
 
@@ -1675,6 +1675,10 @@ def tjm(hamiltonian, jump_operator_list, jump_parameter_list, initial_state, tim
         time step for the simulation
     number_of_steps : int
         number of time steps
+    threshold: float
+        threshold for SVDs
+    max_rank: int
+        maximum rank for solution
 
     Returns
     -------
@@ -1695,22 +1699,22 @@ def tjm(hamiltonian, jump_operator_list, jump_parameter_list, initial_state, tim
 
         # begin of loop
         state = diss_op_half@state
-        state = tjm_jump_process_tdvp(hamiltonian, state, jump_operator_list, jump_parameter_list, time_step)
+        state = tjm_jump_process_tdvp(hamiltonian, state, jump_operator_list, jump_parameter_list, time_step, threshold, max_rank)
         state = diss_op_full@state
         trajectory.append(state.copy())
         for k in range(1, number_of_steps-1):
             print(k)
-            state = tjm_jump_process_tdvp(hamiltonian, state, jump_operator_list, jump_parameter_list, time_step)
+            state = tjm_jump_process_tdvp(hamiltonian, state, jump_operator_list, jump_parameter_list, time_step, threshold, max_rank)
             state = diss_op_full@state
             trajectory.append(state.copy())
-        state = tjm_jump_process_tdvp(hamiltonian, state, jump_operator_list, jump_parameter_list, time_step)
+        state = tjm_jump_process_tdvp(hamiltonian, state, jump_operator_list, jump_parameter_list, time_step, threshold, max_rank)
         state = diss_op_half@state
         trajectory.append(state.copy())
 
     else:
 
         state = diss_op_half@state
-        state = tjm_jump_process_tdvp(hamiltonian, state, jump_operator_list, jump_parameter_list, time_step)
+        state = tjm_jump_process_tdvp(hamiltonian, state, jump_operator_list, jump_parameter_list, time_step, threshold, max_rank)
         state = diss_op_half@state
         state = (1/state.norm())*state
         trajectory.append(state.copy())
@@ -1761,7 +1765,7 @@ def tjm_dissipative_operator(L, jump_operator_list, jump_parameter_list, time_st
     return op
 
 
-def tjm_jump_process_tdvp(hamiltonian, state, jump_operator_list, jump_parameter_list, time_step):
+def tjm_jump_process_tdvp(hamiltonian: 'TT', state: 'TT', jump_operator_list: List['TT'], jump_parameter_list: List[float], time_step: float, threshold: float=1e-12, max_rank: int=50):
     """
     Apply jump process of the Tensor Jump Method (TJM)
 
@@ -1779,6 +1783,10 @@ def tjm_jump_process_tdvp(hamiltonian, state, jump_operator_list, jump_parameter
         prefactors for the jump operators; the form of this list corresponds to jump_operator_list
     time_step : float
         time step for the simulation
+    threshold: float
+        threshold for SVDs
+    max_rank: int
+        maximum rank for solution
 
     Returns
     -------
@@ -1801,7 +1809,7 @@ def tjm_jump_process_tdvp(hamiltonian, state, jump_operator_list, jump_parameter
     state = state.ortho_right()
 
     # time evolution by TDVP
-    state_evolved = tdvp(hamiltonian, state, time_step, 1)[-1]
+    state_evolved = tdvp(hamiltonian, state, time_step, 1, threshold, max_rank)[-1]
 
     # probability for jump process
     dp = 1-np.linalg.norm(state_evolved.cores[0].flatten())**2
@@ -1839,7 +1847,7 @@ def tjm_jump_process_tdvp(hamiltonian, state, jump_operator_list, jump_parameter
         operator = jump_operator_list[index[0]][index[1]]
         state_evolved = state_org
         state_evolved.cores[index[0]] = np.einsum('mj,ijkl->imkl', jump_parameter_list[index[0]][index[1]]*jump_operator_list[index[0]][index[1]], state_evolved.cores[index[0]])
-        state_evolved = tdvp(hamiltonian, state_evolved, time_step, 1)[-1]
+        state_evolved = tdvp(hamiltonian, state_evolved, time_step, 1, threshold, max_rank)[-1]
 
     # normalize state
     state_evolved = state_evolved.ortho_right()
