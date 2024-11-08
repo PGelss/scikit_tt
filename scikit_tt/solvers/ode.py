@@ -1073,8 +1073,119 @@ def __splitting_stage(K: Union[np.ndarray, List[np.ndarray]],
 
     return tmp
 
+def tdvp(operator: 'TT', initial_value: 'TT', step_size: float, number_of_steps: int, threshold=1e-12, max_rank=50, normalize: int=0) -> 'TT':
+    """
+    Adaptive time-dependent variational principle (1TDVP+2TDVP), see [1]_.
 
-def tdvp(operator: 'TT', initial_value: 'TT', step_size: float, number_of_steps: int, normalize: int=0) -> 'TT':
+    Parameters
+    ----------
+    operator : TT
+        TT operator
+
+    initial_guess : TT
+        initial guess for the solution
+
+    step_size: float
+        step size
+
+    number_of_steps: int
+        number of time steps
+
+    threshold: float
+        threshold for SVDs
+
+    max_rank: int
+        maximum rank for solution
+
+    normalize : {0, 1, 2}, optional
+        no normalization if 0, otherwise the solution is normalized in terms of Manhattan or Euclidean norm in each step
+
+
+    Returns
+    -------
+    TT
+        approximated solution of the Schrödinger equation
+
+    References
+    ----------
+    ..[1] S. Paeckel, T. Köhler, A. Swoboda, S. R. Manmana, U. Schollwöck,
+          C. Hubig, "Time-evolution methods for matrix-product states".
+          Annals of Physics, 411, 167998, 2019
+    """
+
+    # define solution list
+    solution = []
+    solution.append(initial_value)
+
+    # copy previous solution for next step
+    tmp = solution[0].copy()
+
+    # define stacks
+    stack_left_op   = [None] * operator.order
+    stack_right_op  = [None] * operator.order
+
+    # construct right stacks for the left- and right-hand side
+    for i in range(operator.order - 1, -1, -1):
+        __construct_stack_right_op(i, stack_right_op, operator, tmp)
+
+    # define iteration number
+    current_iteration = 1
+
+    # begin TDVP
+    while current_iteration <= number_of_steps:
+
+        i = 0
+        # first half sweep
+        while i < operator.order-1:
+
+            # update left stacks for the left- and right-hand side
+            __construct_stack_left_op(i, stack_left_op, operator, tmp)
+
+            # construct and solve micro system, decide whether 1TDVP or 2TDVP
+            if tmp.ranks[i+1]<max_rank and tmp.ranks[i+1]<np.min([tmp.ranks[i]*tmp.row_dims[i], tmp.row_dims[i+1]*tmp.ranks[i+2]]):
+
+                micro_op = __construct_micro_matrix_mals(i, stack_left_op, stack_right_op, operator, tmp)
+                __update_core_tdvp2site(i, micro_op, tmp, step_size, threshold, max_rank, 'forward')
+
+            else:
+
+                micro_op = __construct_micro_matrix_als(i, stack_left_op, stack_right_op, operator, tmp)
+                __update_core_tdvp(i, micro_op, tmp, step_size, 'forward')
+
+            i += 1
+
+        # second half sweep
+        while i > 0:
+
+            # update right stacks for the left- and right-hand side
+            __construct_stack_right_op(i, stack_right_op, operator, tmp)
+
+            # construct and solve micro system, decide whether 1TDVP or 2TDVP
+            if tmp.ranks[i]<max_rank and tmp.ranks[i]<np.min([tmp.ranks[i-1]*tmp.row_dims[i-1], tmp.row_dims[i]*tmp.ranks[i+1]]):
+
+                i += -1
+                micro_op = __construct_micro_matrix_mals(i, stack_left_op, stack_right_op, operator, tmp)
+                __update_core_tdvp2site(i, micro_op, tmp, step_size, threshold, max_rank, 'backward')
+
+            else:
+
+                micro_op = __construct_micro_matrix_als(i, stack_left_op, stack_right_op, operator, tmp)
+                __update_core_tdvp(i, micro_op, tmp, step_size, 'backward')
+                i += -1
+
+        # increase iteration number
+        current_iteration += 1
+
+        # normalize solution
+        if normalize > 0:
+            tmp = (1 / tmp.norm(p=normalize)) * tmp
+
+        # append solution
+        solution.append(tmp.copy())
+
+    return solution
+
+def tdvp1site(operator: 'TT', initial_value: 'TT', step_size: float, number_of_steps: int, normalize: int=0) -> 'TT':
     """
     Time-dependent variational principle (1TDVP), see [1]_.
 
@@ -1183,6 +1294,12 @@ def tdvp2site(operator: 'TT', initial_value: 'TT', step_size: float, number_of_s
 
     number_of_steps: int
         number of time steps
+
+    threshold: float
+        threshold for SVDs
+
+    max_rank: int
+        maximum rank for solution
 
     normalize : {0, 1, 2}, optional
         no normalization if 0, otherwise the solution is normalized in terms of Manhattan or Euclidean norm in each step
@@ -1568,23 +1685,36 @@ def tjm(hamiltonian, jump_operator_list, jump_parameter_list, initial_state, tim
     L = hamiltonian.order
     trajectory = []
     state = initial_state.copy()
+    trajectory.append(state.copy())
 
     # construct dissipative rank-one operators
     diss_op_half = tjm_dissipative_operator(L, jump_operator_list, jump_parameter_list, time_step/2)
     diss_op_full = tjm_dissipative_operator(L, jump_operator_list, jump_parameter_list, time_step)
-    
-    # begin of loop
-    state = diss_op_half@state
-    state = tjm_jump_process_tdvp(hamiltonian, state, jump_operator_list, jump_parameter_list, time_step)
-    trajectory.append(state.copy())
-    for k in range(1, number_of_steps-1):
-        print(k)
-        state = diss_op_full@state
+
+    if number_of_steps > 1:
+
+        # begin of loop
+        state = diss_op_half@state
         state = tjm_jump_process_tdvp(hamiltonian, state, jump_operator_list, jump_parameter_list, time_step)
+        state = diss_op_full@state
         trajectory.append(state.copy())
-    state = diss_op_half@state
-    state = (1/state.norm())*state
-    trajectory.append(state.copy())
+        for k in range(1, number_of_steps-1):
+            print(k)
+            state = tjm_jump_process_tdvp(hamiltonian, state, jump_operator_list, jump_parameter_list, time_step)
+            state = diss_op_full@state
+            trajectory.append(state.copy())
+        state = tjm_jump_process_tdvp(hamiltonian, state, jump_operator_list, jump_parameter_list, time_step)
+        state = diss_op_half@state
+        trajectory.append(state.copy())
+
+    else:
+
+        state = diss_op_half@state
+        state = tjm_jump_process_tdvp(hamiltonian, state, jump_operator_list, jump_parameter_list, time_step)
+        state = diss_op_half@state
+        state = (1/state.norm())*state
+        trajectory.append(state.copy())
+
 
     return trajectory
 
@@ -1625,7 +1755,7 @@ def tjm_dissipative_operator(L, jump_operator_list, jump_parameter_list, time_st
     for i in range(L):
         cores[i] = np.zeros([2,2])
         for j in range(len(jump_operator_list[i])):
-            cores[i] += jump_parameter_list[i][j]*jump_operator_list[i][j].conj().T@jump_operator_list[i][j]
+            cores[i] += (jump_parameter_list[i][j])**2*jump_operator_list[i][j].conj().T@jump_operator_list[i][j]
         cores[i] = lin.expm(-0.5*time_step*cores[i])[None, :, :, None]
     op = TT(cores)
     return op
@@ -1679,34 +1809,37 @@ def tjm_jump_process_tdvp(hamiltonian, state, jump_operator_list, jump_parameter
     # draw random epsilon
     epsilon = np.random.rand()
 
+    # initialize jump probabilites
+    prob_list = []
+    for i in range(len(jump_operator_list)):
+        prob_list += [[None for _ in range(len(jump_operator_list[i]))]]
+
+    # index list for application of jump operator
+    index_list = []
+
+    # compute probabilities
+    for i in range(L):
+        for j in range(len(prob_list[i])):
+            index_list += [[i,j]]
+            prob_list[i][j] = np.tensordot(jump_operator_list[i][j].copy(), state.cores[i].copy(), axes=(1,1))
+            prob_list[i][j] = time_step*(jump_parameter_list[i][j])**2*np.linalg.norm(prob_list[i][j])**2
+        if i<len(prob_list)-1:
+            state = state.ortho_left(start_index=i, end_index=i)
+
+
+    distribution = np.hstack(prob_list)
+    dp = np.sum(distribution)
+
     if dp > epsilon: 
 
-        # initialize jump probabilites
-        prob_list = []
-        for i in range(len(jump_operator_list)):
-            prob_list += [[None for _ in range(len(jump_operator_list[i]))]]
-
-        # index list for application of jump operator
-        index_list = []
-
-        # compute probabilities
-        for i in range(L):
-            for j in range(len(prob_list[i])):
-                index_list += [[i,j]]
-                prob_list[i][j] = state.cores[i].copy()
-                prob_list[i][j] = np.tensordot(jump_operator_list[i][j].copy(), prob_list[i][j], axes=(1,1))
-                prob_list[i][j] = time_step*jump_parameter_list[i][j]*np.linalg.norm(prob_list[i][j])**2
-            if i<len(prob_list)-1:
-                state = state.ortho_left(start_index=i, end_index=i)
-
         # draw index according to computed distribution and apply jump operator
-        distribution = np.hstack(prob_list)
-        distribution *= 1/np.sum(distribution)
+        distribution *= 1/dp
         sample = np.random.choice(len(index_list), p=distribution)
         index = index_list[sample]
         operator = jump_operator_list[index[0]][index[1]]
         state_evolved = state_org
-        state_evolved.cores[index[0]] = np.tensordot(jump_parameter_list[index[0]][index[1]]*jump_operator_list[index[0]][index[1]], state_evolved.cores[index[0]], axes=(1,1))
+        state_evolved.cores[index[0]] = np.einsum('mj,ijkl->imkl', jump_parameter_list[index[0]][index[1]]*jump_operator_list[index[0]][index[1]], state_evolved.cores[index[0]])
+        state_evolved = tdvp(hamiltonian, state_evolved, time_step, 1)[-1]
 
     # normalize state
     state_evolved = state_evolved.ortho_right()
