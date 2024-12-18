@@ -13,9 +13,9 @@ import time as _time
 from scikit_tt.solvers.sle import __construct_stack_right_op, __construct_stack_left_op, __construct_micro_matrix_als, __construct_micro_matrix_mals
 from scipy.sparse.linalg import expm_multiply
 
-def explicit_euler(operator: 'TT', 
+def explicit_euler(operator: 'TT',
                    initial_value: 'TT',
-                   step_sizes: List[float], 
+                   step_sizes: List[float],
                    threshold: float=1e-12,
                    max_rank: int=50,
                    normalize: int=1,
@@ -114,9 +114,9 @@ def errors_expl_euler(operator: 'TT', solution: List['TT'], step_sizes: List[flo
 
     return errors
 
-def hod(operator: 'TT', 
+def hod(operator: 'TT',
         initial_value: 'TT',
-        step_size: float, 
+        step_size: float,
         number_of_steps: int,
         order: int=2,
         previous_value: 'TT'=None,
@@ -246,8 +246,8 @@ def hod(operator: 'TT',
     return solution
 
 
-def implicit_euler(operator: 'TT', initial_value: 'TT', initial_guess: 'TT', 
-                   step_sizes: List[float], repeats: int=1, 
+def implicit_euler(operator: 'TT', initial_value: 'TT', initial_guess: 'TT',
+                   step_sizes: List[float], repeats: int=1,
                    tt_solver: str='als', threshold: float=1e-12,
                    max_rank=np.infty, micro_solver='solve', normalize=1, progress=True) -> List['TT']:
     """
@@ -260,31 +260,31 @@ def implicit_euler(operator: 'TT', initial_value: 'TT', initial_guess: 'TT',
 
     initial_value : TT
         initial value of the differential equation
-        
+
     initial_guess : TT
         initial guess for the first step
-        
+
     step_sizes : list[float]
         step sizes for the application of the implicit Euler method
-        
+
     repeats : int, optional
         number of repeats of the (M)ALS in each iteration step, default is 1
-        
+
     tt_solver : string, optional
         algorithm for solving the systems of linear equations in the TT format, default is 'als'
-        
+
     threshold : float, optional
         threshold for reduced SVD decompositions, default is 1e-12
-        
+
     max_rank : int, optional
         maximum rank of the solution, default is infinity
-        
+
     micro_solver : string, optional
         algorithm for obtaining the solutions of the micro systems, can be 'solve' or 'lu', default is 'solve'
-        
+
     normalize : {0, 1, 2}, optional
         no normalization if 0, otherwise the solution is normalized in terms of Manhattan or Euclidean norm in each step
-        
+
     progress : bool, optional
         whether to show the progress of the algorithm or not, default is True
 
@@ -364,7 +364,7 @@ def errors_impl_euler(operator: 'TT', solution: List['TT'], step_sizes: List[flo
 
 
 def trapezoidal_rule(operator: 'TT', initial_value: 'TT', initial_guess: 'TT',
-                     step_sizes: List[float], repeats: int=1, 
+                     step_sizes: List[float], repeats: int=1,
                      tt_solver: str='als', threshold=1e-12,
                      max_rank: int=np.infty, micro_solver: str='solve',
                      normalize: int=1, progress: bool=True) -> List['TT']:
@@ -378,31 +378,31 @@ def trapezoidal_rule(operator: 'TT', initial_value: 'TT', initial_guess: 'TT',
 
     initial_value : TT
         initial value of the differential equation
-        
+
     initial_guess : TT
         initial guess for the first step
 
     step_sizes : list[float]
         step sizes for the application of the trapezoidal rule
-        
+
     repeats : int, optional
         number of repeats of the (M)ALS in each iteration step, default is 1
-        
+
     tt_solver : string, optional
         algorithm for solving the systems of linear equations in the TT format, default is 'als'
-        
+
     threshold : float, optional
         threshold for reduced SVD decompositions, default is 1e-12
-        
+
     max_rank : int, optional
         maximum rank of the solution, default is infinity
-        
+
     micro_solver : string, optional
         algorithm for obtaining the solutions of the micro systems, can be 'solve' or 'lu', default is 'solve'
-        
+
     normalize : {0, 1, 2}, optional
         no normalization if 0, otherwise the solution is normalized in terms of Manhattan or Euclidean norm in each step
-        
+
     progress : bool, optional
         whether to show the progress of the algorithm or not, default is True
 
@@ -450,7 +450,7 @@ def trapezoidal_rule(operator: 'TT', initial_value: 'TT', initial_guess: 'TT',
     return solution
 
 
-def errors_trapezoidal(operator: 'TT', solution: List['TT'], 
+def errors_trapezoidal(operator: 'TT', solution: List['TT'],
                        step_sizes: List[float]) -> List[float]:
     """
     Compute approximation errors of the trapezoidal rule.
@@ -484,13 +484,13 @@ def errors_trapezoidal(operator: 'TT', solution: List['TT'],
     return errors
 
 
-def adaptive_step_size(operator: 'TT', initial_value: 'TT', initial_guess: 'TT', 
-                       time_end: float, step_size_first: float=1e-10, 
+def adaptive_step_size(operator: 'TT', initial_value: 'TT', initial_guess: 'TT',
+                       time_end: float, step_size_first: float=1e-10,
                        repeats: int=1, solver: str='solve',
                        error_tol: float=1e-1, closeness_tol: float=0.5,
-                       step_size_min: float=1e-14, step_size_max: float=10, 
-                       closeness_min: float=1e-3, factor_max: float=2, 
-                       factor_safe: float=0.9, second_method:str ='two_step_Euler', 
+                       step_size_min: float=1e-14, step_size_max: float=10,
+                       closeness_min: float=1e-3, factor_max: float=2,
+                       factor_safe: float=0.9, second_method:str ='two_step_Euler',
                        normalize: int=1, progress: bool=True) -> List['TT']:
     """
     Adaptive step size method.
@@ -639,7 +639,7 @@ def lie_splitting(S : Union[np.ndarray, List[np.ndarray]],
                   L : Union[np.ndarray, List[np.ndarray]],
                   I : Union[np.ndarray, List[np.ndarray]],
                   M : Union[np.ndarray, List[np.ndarray]],
-                  initial_value: 'TT', step_size: float, number_of_steps: int, 
+                  initial_value: 'TT', step_size: float, number_of_steps: int,
                   threshold: float=1e-12, max_rank: int=50,
                   normalize: int=1, K: List[np.ndarray]=None,
                   tmp_rank: int=0) -> List['TT']:
@@ -680,7 +680,7 @@ def lie_splitting(S : Union[np.ndarray, List[np.ndarray]],
 
     K : list[ndarrays], optional
         list of propagators
-        
+
     tmp_rank : int, optional
         maximum rank for intermediate calculations, default is 2*max_rank
 
@@ -689,7 +689,7 @@ def lie_splitting(S : Union[np.ndarray, List[np.ndarray]],
     list[TT]
         numerical solution of the differential equation
     """
-    
+
     # maximum rank for intermediate calculations
     if tmp_rank == 0:
         tmp_rank = 2*max_rank
@@ -723,11 +723,11 @@ def lie_splitting(S : Union[np.ndarray, List[np.ndarray]],
 
     return solution
 
-def strang_splitting(S : Union[np.ndarray, List[np.ndarray]],                     
+def strang_splitting(S : Union[np.ndarray, List[np.ndarray]],
                      L : Union[np.ndarray, List[np.ndarray]],
                      I : Union[np.ndarray, List[np.ndarray]],
                      M : Union[np.ndarray, List[np.ndarray]],
-                     initial_value: 'TT', step_size: float, number_of_steps: int, 
+                     initial_value: 'TT', step_size: float, number_of_steps: int,
                      threshold: float=1e-12, max_rank: int=50,
                      normalize: int=0, K: List[np.ndarray]=None) -> List['TT']:
 
@@ -809,7 +809,7 @@ def yoshida_splitting(S : Union[np.ndarray, List[np.ndarray]],
                       L : Union[np.ndarray, List[np.ndarray]],
                       I : Union[np.ndarray, List[np.ndarray]],
                       M : Union[np.ndarray, List[np.ndarray]],
-                      initial_value: 'TT', step_size: float, number_of_steps: int, 
+                      initial_value: 'TT', step_size: float, number_of_steps: int,
                       threshold: float=1e-12, max_rank: int=50,
                       normalize: int=0) -> List['TT']:
     """
@@ -895,7 +895,7 @@ def kahan_li_splitting(S : Union[np.ndarray, List[np.ndarray]],
                        L : Union[np.ndarray, List[np.ndarray]],
                        I : Union[np.ndarray, List[np.ndarray]],
                        M : Union[np.ndarray, List[np.ndarray]],
-                       initial_value: 'TT', step_size: float, number_of_steps: int, 
+                       initial_value: 'TT', step_size: float, number_of_steps: int,
                        threshold: float=1e-12, max_rank: int=50,
                        normalize: int=0) -> List['TT']:
     """
@@ -1005,7 +1005,7 @@ def __splitting_propagators(S: Union[np.ndarray, List[np.ndarray]],
                 M[i+1] = M[i+1][None, :, :]
 
             K[i] = np.kron(S[i], I[i+1]) + np.einsum('ijk, klm -> iljm', L[i], M[i+1]).reshape([L[i].shape[0]*M[i+1].shape[1], L[i].shape[1]*M[i+1].shape[2]])
-            
+
 
             if np.mod(i, 2) == 0:
                 K[i] = sp.linalg.expm(K[i]*coefficients[0]*step_size)
@@ -1017,7 +1017,7 @@ def __splitting_propagators(S: Union[np.ndarray, List[np.ndarray]],
         else:
             K[-1] = sp.linalg.expm(S[-1]*coefficients[1]*step_size)
 
-    else: 
+    else:
 
         # homogeneous case
 
@@ -1048,7 +1048,7 @@ def __splitting_propagators(S: Union[np.ndarray, List[np.ndarray]],
 
 
 def __splitting_stage(K: Union[np.ndarray, List[np.ndarray]],
-                      indices: np.ndarray, tmp, 
+                      indices: np.ndarray, tmp,
                       threshold: float, max_rank: int):
 
     for i in indices:
@@ -1196,13 +1196,13 @@ def tdvp1site(operator: 'TT', initial_value: 'TT', step_size: float, number_of_s
 
     initial_guess : TT
         initial guess for the solution
-        
+
     step_size: float
         step size
 
     number_of_steps: int
         number of time steps
-        
+
     normalize : {0, 1, 2}, optional
         no normalization if 0, otherwise the solution is normalized in terms of Manhattan or Euclidean norm in each step
 
@@ -1214,15 +1214,15 @@ def tdvp1site(operator: 'TT', initial_value: 'TT', step_size: float, number_of_s
 
     References
     ----------
-    ..[1] S. Paeckel, T. Köhler, A. Swoboda, S. R. Manmana, U. Schollwöck, 
-          C. Hubig, "Time-evolution methods for matrix-product states". 
+    ..[1] S. Paeckel, T. Köhler, A. Swoboda, S. R. Manmana, U. Schollwöck,
+          C. Hubig, "Time-evolution methods for matrix-product states".
           Annals of Physics, 411, 167998, 2019
     """
-    
+
     # define solution list
     solution = []
     solution.append(initial_value)
-    
+
     # copy previous solution for next step
     tmp = solution[0].copy()
 
@@ -1245,7 +1245,7 @@ def tdvp1site(operator: 'TT', initial_value: 'TT', step_size: float, number_of_s
 
             # update left stacks for the left- and right-hand side
             __construct_stack_left_op(i, stack_left_op, operator, tmp)
-            
+
             # construct micro system
             micro_op = __construct_micro_matrix_als(i, stack_left_op, stack_right_op, operator, tmp)
 
@@ -1254,10 +1254,10 @@ def tdvp1site(operator: 'TT', initial_value: 'TT', step_size: float, number_of_s
 
         # second half sweep
         for i in range(operator.order - 1, -1, -1):
-            
+
             # update right stacks for the left- and right-hand side
             __construct_stack_right_op(i, stack_right_op, operator, tmp)
-            
+
             # construct micro system
             micro_op = __construct_micro_matrix_als(i, stack_left_op, stack_right_op, operator, tmp)
 
@@ -1266,11 +1266,11 @@ def tdvp1site(operator: 'TT', initial_value: 'TT', step_size: float, number_of_s
 
         # increase iteration number
         current_iteration += 1
-        
+
         # normalize solution
         if normalize > 0:
             tmp = (1 / tmp.norm(p=normalize)) * tmp
-            
+
         # append solution
         solution.append(tmp.copy())
 
@@ -1351,7 +1351,7 @@ def tdvp2site(operator: 'TT', initial_value: 'TT', step_size: float, number_of_s
             __update_core_tdvp2site(i, micro_op, tmp, step_size, threshold, max_rank, 'forward')
 
         # second half sweep
-        for i in range(operator.order - 2, 0, -1):
+        for i in range(operator.order - 2, -1, -1):
 
             # update right stacks for the left- and right-hand side
             __construct_stack_right_op(i + 1, stack_right_op, operator, tmp)
@@ -1403,78 +1403,67 @@ def __update_core_tdvp(i: int, micro_op: np.ndarray, solution: 'TT', step_size: 
     r1 = solution.ranks[i]
     n = solution.row_dims[i]
     r2 = solution.ranks[i+1]
-        
+
     # first half sweep
     if direction == 'forward':
-            
-        if i < solution.order-1:
-            
-            # time step
-            solution.cores[i] = expm_multiply(-1j*step_size*0.5*micro_op, solution.cores[i].flatten())
-        
-            # decompose solution
-            [q, r] = lin.qr(solution.cores[i].reshape(r1 * n, r2), overwrite_a=True, mode='economic', check_finite=False)
 
-            # set new rank
-            solution.ranks[i + 1] = q.shape[1]
 
-            # save orthonormal part
-            solution.cores[i] = q.reshape(r1, n, 1, solution.ranks[i + 1])
 
+        # time step
+        solution.cores[i] = expm_multiply(-1j*step_size*0.5*micro_op, solution.cores[i].flatten())
+
+        # decompose solution
+        [q, r] = lin.qr(solution.cores[i].reshape(r1 * n, r2), overwrite_a=True, mode='economic', check_finite=False)
+
+        # set new rank
+        solution.ranks[i + 1] = q.shape[1]
+
+        # save orthonormal part
+        solution.cores[i] = q.reshape(r1, n, 1, solution.ranks[i + 1])
+
+        if i<solution.order-1:
             # adapt micro matrix
             q = np.tensordot(q, np.eye(r2),axes=0)
             q = q.transpose([0,3,1,2]).reshape([r1*n*r2, solution.ranks[i + 1]*r2])
             micro_op = np.conj(q).T@micro_op@q
-            
+
             # time step
             r = expm_multiply(1j*step_size*0.5*micro_op, r.flatten())
             r = r.reshape([solution.ranks[i + 1], r2])
-            
+
             # save non-orthonormal part
             solution.cores[i+1] = np.tensordot(r, solution.cores[i+1], axes=(1,0))
-        
-        else:
-            
-            # time step
-            solution.cores[i] = expm_multiply(-1j*step_size*micro_op, solution.cores[i].flatten())
-            solution.cores[i] = solution.cores[i].reshape(r1, n, 1, r2)
-            
+
+
     # second half sweep
     if direction == 'backward':
 
-        if i > 0:
-            
-            if i < solution.order-1:
-                
-                # time step
-                solution.cores[i] = expm_multiply(-1j*step_size*0.5*micro_op, solution.cores[i].flatten())
- 
-            # decompose solution
-            [r, q] = lin.rq(solution.cores[i].reshape(r1, n * r2), overwrite_a=True, mode='economic', check_finite=False)
+        # time step
+        solution.cores[i] = expm_multiply(-1j*step_size*0.5*micro_op, solution.cores[i].flatten())
 
-            # set new rank
-            solution.ranks[i] = q.shape[0]
+        # decompose solution
+        [r, q] = lin.rq(solution.cores[i].reshape(r1, n * r2), overwrite_a=True, mode='economic', check_finite=False)
 
-            # save orthonormal part
-            solution.cores[i] = q.reshape(r1, n, 1, r2)
-            
+        # set new rank
+        solution.ranks[i] = q.shape[0]
+
+        # save orthonormal part
+        solution.cores[i] = q.reshape(r1, n, 1, r2)
+
+        if i>0:
+
             # adapt micro matrix
             q = np.tensordot(np.eye(r1),q,axes=0)
             q = q.transpose([0,3,1,2]).reshape([r1*n*r2, r1*solution.ranks[i]])
             micro_op = np.conj(q).T@micro_op@q
-            
+
             # time step
             r = expm_multiply(1j*step_size*0.5*micro_op, r.flatten())
             r = r.reshape([r1, solution.ranks[i]])
-            
+
             # save non-orthonormal part
             solution.cores[i-1] = np.tensordot(solution.cores[i-1], r, axes=(3,0))
-            
-        else:
-            
-            # time step
-            solution.cores[i] = expm_multiply(-1j*step_size*0.5*micro_op, solution.cores[i].flatten())
-            solution.cores[i] = solution.cores[i].reshape(r1, n, 1, r2)
+
 
 
 def __update_core_tdvp2site(i: int, micro_op: np.ndarray, solution: 'TT', step_size: float, threshold: float, max_rank: int, direction: str):
@@ -1531,16 +1520,18 @@ def __update_core_tdvp2site(i: int, micro_op: np.ndarray, solution: 'TT', step_s
         solution.cores[i] = u.copy().reshape(solution.ranks[i], solution.row_dims[i], 1, solution.ranks[i + 1])
 
         # save non-orthonormal part
-        solution.cores[i + 1] = (np.diag(s)@v).flatten()
+        solution.cores[i + 1] = (np.diag(s)@v).reshape([solution.ranks[i + 1], solution.row_dims[i+1], 1, solution.ranks[i+2]])
 
-        # adapt micro matrix
-        u = np.tensordot(np.tensordot(u, np.eye(solution.row_dims[i+1]),axes=0), np.eye(solution.ranks[i+2]), axes=0)
-        u = u.transpose([0,2,4,1,3,5]).reshape([solution.ranks[i]*solution.row_dims[i]*solution.row_dims[i+1]*solution.ranks[i + 2], solution.ranks[i + 1]*solution.row_dims[i+1]*solution.ranks[i+2]])
-        micro_op = np.conj(u).T@micro_op@u
+        if i < solution.order-2:
+            # adapt micro matrix
+            u = np.tensordot(np.tensordot(u, np.eye(solution.row_dims[i+1]),axes=0), np.eye(solution.ranks[i+2]), axes=0)
+            u = u.transpose([0,2,4,1,3,5]).reshape([solution.ranks[i]*solution.row_dims[i]*solution.row_dims[i+1]*solution.ranks[i + 2], solution.ranks[i + 1]*solution.row_dims[i+1]*solution.ranks[i+2]])
+            micro_op = np.conj(u).T@micro_op@u
 
-        # time step
-        solution.cores[i + 1] = expm_multiply(1j*step_size*0.5*micro_op, solution.cores[i + 1])
-        solution.cores[i + 1] = solution.cores[i + 1].reshape([solution.ranks[i + 1], solution.row_dims[i+1], 1, solution.ranks[i+2]])
+            # time step
+            solution.cores[i + 1] = solution.cores[i + 1].flatten()
+            solution.cores[i + 1] = expm_multiply(1j*step_size*0.5*micro_op, solution.cores[i + 1])
+            solution.cores[i + 1] = solution.cores[i + 1].reshape([solution.ranks[i + 1], solution.row_dims[i+1], 1, solution.ranks[i+2]])
 
     # second half sweep
     if direction == 'backward':
@@ -1568,19 +1559,21 @@ def __update_core_tdvp2site(i: int, micro_op: np.ndarray, solution: 'TT', step_s
         solution.ranks[i + 1] = s.shape[0]
 
         # save non-orthonormal part
-        solution.cores[i] = (u@np.diag(s)).flatten()
+        solution.cores[i] = (u@np.diag(s)).reshape([solution.ranks[i], solution.row_dims[i], 1, solution.ranks[i+1]])
 
         # save orthonormal part
         solution.cores[i + 1] = v.copy().reshape(solution.ranks[i+1], solution.row_dims[i+1], 1, solution.ranks[i+2])
 
-        # adapt micro matrix
-        v = np.tensordot(np.eye(solution.ranks[i]), np.tensordot(np.eye(solution.row_dims[i]), v, axes=0), axes=0)
-        v = v.transpose([0,2,5,1,3,4]).reshape([solution.ranks[i]*solution.row_dims[i]*solution.row_dims[i+1]*solution.ranks[i+2], solution.ranks[i]*solution.row_dims[i]*solution.ranks[i+1]])
-        micro_op = np.conj(v).T@micro_op@v
+        if i>0:
+            # adapt micro matrix
+            v = np.tensordot(np.eye(solution.ranks[i]), np.tensordot(np.eye(solution.row_dims[i]), v, axes=0), axes=0)
+            v = v.transpose([0,2,5,1,3,4]).reshape([solution.ranks[i]*solution.row_dims[i]*solution.row_dims[i+1]*solution.ranks[i+2], solution.ranks[i]*solution.row_dims[i]*solution.ranks[i+1]])
+            micro_op = np.conj(v).T@micro_op@v
 
-        # time step
-        solution.cores[i] = expm_multiply(1j*step_size*0.5*micro_op, solution.cores[i])
-        solution.cores[i] = solution.cores[i].reshape([solution.ranks[i], solution.row_dims[i], 1, solution.ranks[i+1]])
+            # time step
+            solution.cores[i] = solution.cores[i].flatten()
+            solution.cores[i] = expm_multiply(1j*step_size*0.5*micro_op, solution.cores[i])
+            solution.cores[i] = solution.cores[i].reshape([solution.ranks[i], solution.row_dims[i], 1, solution.ranks[i+1]])
 
 
 def krylov(operator: 'TT', initial_value: 'TT', dimension: int, step_size: float, threshold: float=1e-12, max_rank: int=50, normalize: int=0) -> 'TT':
@@ -1664,8 +1657,8 @@ def tjm(hamiltonian: 'TT', jump_operator_list: List['TT'], jump_parameter_list: 
     hamiltonian : TT
         Hamiltonian of the system
     jump_operator_list : list[list[np.ndarray]] or list[np.ndarray]
-        list of jump operators for each dimension; can be either of the form [[K_1,1 ,...], ..., [K_L,1, ...]], where 
-        each sublist contains the jump operators for one specific dimension or of the form [K_1, ..., K_m] if the same 
+        list of jump operators for each dimension; can be either of the form [[K_1,1 ,...], ..., [K_L,1, ...]], where
+        each sublist contains the jump operators for one specific dimension or of the form [K_1, ..., K_m] if the same
         set of jump operators is applied to every dimension
     jump_parameter_list : list[list[np.ndarray]] or list[np.ndarray]
         prefactors for the jump operators; the form of this list corresponds to jump_operator_list
@@ -1685,7 +1678,7 @@ def tjm(hamiltonian: 'TT', jump_operator_list: List['TT'], jump_parameter_list: 
     trajectory : list[TT]
         trajectory of computed states
     """
-    
+
     L = hamiltonian.order
     trajectory = []
     state = initial_state.copy()
@@ -1732,8 +1725,8 @@ def tjm_dissipative_operator(L, jump_operator_list, jump_parameter_list, time_st
     L : int
         system size, e.g., number of qubits
     jump_operator_list : list[list[np.ndarray]] or list[np.ndarray]
-        list of jump operators for each dimension; can be either of the form [[K_1,1 ,...], ..., [K_L,1, ...]], where 
-        each sublist contains the jump operators for one specific dimension or of the form [K_1, ..., K_m] if the same 
+        list of jump operators for each dimension; can be either of the form [[K_1,1 ,...], ..., [K_L,1, ...]], where
+        each sublist contains the jump operators for one specific dimension or of the form [K_1, ..., K_m] if the same
         set of jump operators is applied to every dimension
     jump_parameter_list : list[list[np.ndarray]] or list[np.ndarray]
         prefactors for the jump operators; the form of this list corresponds to jump_operator_list
@@ -1753,7 +1746,7 @@ def tjm_dissipative_operator(L, jump_operator_list, jump_parameter_list, time_st
     if isinstance(jump_parameter_list[0], list)==False:
         jump_parameter_list_org = jump_parameter_list.copy()
         jump_parameter_list = [jump_parameter_list_org.copy() for _ in range(L)]
-    
+
     # construct dissipative exponential
     cores = [None]*L
     for i in range(L):
@@ -1776,8 +1769,8 @@ def tjm_jump_process_tdvp(hamiltonian: 'TT', state: 'TT', jump_operator_list: Li
     state : TT
         current state of the simulation
     jump_operator_list : list[list[np.ndarray]] or list[np.ndarray]
-        list of jump operators for each dimension; can be either of the form [[K_1,1 ,...], ..., [K_L,1, ...]], where 
-        each sublist contains the jump operators for one specific dimension or of the form [K_1, ..., K_m] if the same 
+        list of jump operators for each dimension; can be either of the form [[K_1,1 ,...], ..., [K_L,1, ...]], where
+        each sublist contains the jump operators for one specific dimension or of the form [K_1, ..., K_m] if the same
         set of jump operators is applied to every dimension
     jump_parameter_list : list[list[np.ndarray]] or list[np.ndarray]
         prefactors for the jump operators; the form of this list corresponds to jump_operator_list
@@ -1793,7 +1786,7 @@ def tjm_jump_process_tdvp(hamiltonian: 'TT', state: 'TT', jump_operator_list: Li
     state_evolved : TT
         evolved state after jump process (either by means of TDVP or randomly applied jump operator)
     """
-    
+
     L = state.order
 
     # create 2d lists if inputs are 1d (e.g. same set of jump operators for each set)
@@ -1805,11 +1798,12 @@ def tjm_jump_process_tdvp(hamiltonian: 'TT', state: 'TT', jump_operator_list: Li
         jump_parameter_list = [jump_parameter_list_org.copy() for _ in range(L)]
 
     # copy initial state
-    state_org = state.copy()    
+    state_org = state.copy()
     state = state.ortho_right()
 
     # time evolution by TDVP
-    state_evolved = tdvp(hamiltonian, state, time_step, 1, threshold, max_rank)[-1]
+    #state_evolved = tdvp2site(hamiltonian, state, time_step, 1, threshold, max_rank)[-1]
+    state_evolved = tdvp1site(hamiltonian, state, time_step, 1)[-1]
 
     # probability for jump process
     dp = 1-np.linalg.norm(state_evolved.cores[0].flatten())**2
@@ -1838,7 +1832,7 @@ def tjm_jump_process_tdvp(hamiltonian: 'TT', state: 'TT', jump_operator_list: Li
     distribution = np.hstack(prob_list)
     dp = np.sum(distribution)
 
-    if dp > epsilon: 
+    if dp > epsilon:
 
         # draw index according to computed distribution and apply jump operator
         distribution *= 1/dp
@@ -1847,7 +1841,8 @@ def tjm_jump_process_tdvp(hamiltonian: 'TT', state: 'TT', jump_operator_list: Li
         operator = jump_operator_list[index[0]][index[1]]
         state_evolved = state_org
         state_evolved.cores[index[0]] = np.einsum('mj,ijkl->imkl', jump_parameter_list[index[0]][index[1]]*jump_operator_list[index[0]][index[1]], state_evolved.cores[index[0]])
-        state_evolved = tdvp(hamiltonian, state_evolved, time_step, 1, threshold, max_rank)[-1]
+        #state_evolved = tdvp2site(hamiltonian, state_evolved, time_step, 1, threshold, max_rank)[-1]
+        state_evolved = tdvp1site(hamiltonian, state_evolved, time_step, 1)[-1]
 
     # normalize state
     state_evolved = state_evolved.ortho_right()
@@ -1855,4 +1850,3 @@ def tjm_jump_process_tdvp(hamiltonian: 'TT', state: 'TT', jump_operator_list: Li
     state_evolved = (1/norm)*state_evolved
 
     return state_evolved
-
