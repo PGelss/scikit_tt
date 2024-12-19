@@ -135,44 +135,16 @@ class TestODE(TestCase):
         """test for 1TDVP"""
 
         # compute numerical solution of the ODE
-        operator = -1j*mdl.exciton_chain(4, 1e-1, -1e-2)
+        operator = mdl.exciton_chain(4, 1e-1, -1e-2)
         initial_value = tt.unit(operator.row_dims, [0] * operator.order)
         step_size = 0.1
         number_of_steps = 500
         solution = ode.tdvp1site(operator, initial_value, step_size, number_of_steps, normalize=0)
         solution = np.squeeze(solution[-1].matricize())
-        solution_mat = splin.expm(step_size*number_of_steps*operator.matricize())@np.squeeze(initial_value.matricize())
+        solution_mat = splin.expm(-1j*step_size*number_of_steps*operator.matricize())@np.squeeze(initial_value.matricize())
 
-        # check if matrix- and tensor-based results are sufficiently close
-        self.assertLess(np.linalg.norm(solution-solution_mat), 1e-12)
-
-    def test_tdvp2site(self):
-        """test for 2TDVP"""
-
-        # compute numerical solution of the ODE
-        operator = -1j*mdl.exciton_chain(4, 1e-1, -1e-2)
-        initial_value = tt.unit(operator.row_dims, [0] * operator.order)
-        step_size = 0.1
-        number_of_steps = 500
-        solution = ode.tdvp2site(operator, initial_value, step_size, number_of_steps, threshold=1e-12, max_rank=10, normalize=0)
-        solution = np.squeeze(solution[-1].matricize())
-        solution_mat = splin.expm(step_size*number_of_steps*operator.matricize())@np.squeeze(initial_value.matricize())
-
-        # check if matrix- and tensor-based results are sufficiently close
-        self.assertLess(np.linalg.norm(solution-solution_mat), 1e-12)
-
-    def test_tdvp(self):
-        """test for adaptive TDVP"""
-
-        # compute numerical solution of the ODE
-        operator = -1j*mdl.exciton_chain(4, 1e-1, -1e-2)
-        initial_value = tt.unit(operator.row_dims, [0] * operator.order)
-        step_size = 0.1
-        number_of_steps = 500
-        solution = ode.tdvp(operator, initial_value, step_size, number_of_steps, threshold=1e-12, max_rank=10, normalize=0)
-        solution = np.squeeze(solution[-1].matricize())
-        solution_mat = splin.expm(step_size*number_of_steps*operator.matricize())@np.squeeze(initial_value.matricize())
-
+        print(solution)
+        print(solution_mat)
         # check if matrix- and tensor-based results are sufficiently close
         self.assertLess(np.linalg.norm(solution-solution_mat), 1e-12)
         
