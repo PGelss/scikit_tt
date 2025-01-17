@@ -108,7 +108,7 @@ class timer(object):
     def __exit__(self, exc_type, exc_value, traceback):
         self.elapsed = time.time() - self.start_time
 
-def truncated_svd(matrix: np.ndarray, threshold: float=0, max_rank: int=np.infty, rel_truncation: bool=True):
+def truncated_svd(matrix: np.ndarray, threshold: float=0, max_rank: int=np.inf, rel_truncation: bool=True):
     """
     Compute truncated SVD.
 
@@ -150,7 +150,7 @@ def truncated_svd(matrix: np.ndarray, threshold: float=0, max_rank: int=np.infty
         u = u[:, indices]
         s = s[indices]
         v = v[indices, :]
-    if max_rank != np.infty:
+    if max_rank != np.inf:
         u = u[:, :np.minimum(u.shape[1], max_rank)]
         s = s[:np.minimum(s.shape[0], max_rank)]
         v = v[:np.minimum(v.shape[0], max_rank), :]

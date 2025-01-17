@@ -15,7 +15,7 @@ def amuset_hosvd(data_matrix: np.ndarray,
                  y_indices: np.ndarray, 
                  basis_list: List[List[Function]],
                  threshold: float=1e-2,
-                 max_rank: int=np.infty, 
+                 max_rank: int=np.inf, 
                  progress: bool=False,
                  ef_tf: bool=False,
                  st_tf: bool=False) -> Tuple[np.ndarray, Union['TT', List['TT']]]:

@@ -1317,7 +1317,7 @@ def __hocur_maxvolume(matrix: np.ndarray,
     """
 
     # set max_value and iteration_counter
-    max_val = np.infty
+    max_val = np.inf
     iteration_counter = 1
 
     # find linearly independent rows

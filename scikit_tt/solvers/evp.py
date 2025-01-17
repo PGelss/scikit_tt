@@ -107,11 +107,11 @@ def als(operator: 'TT',
     current_iteration = 1
 
     # initialize variables for convergence detection
-    eigenvalues_pre = np.array([np.infty]*number_ev)[None,:]
+    eigenvalues_pre = np.array([np.inf]*number_ev)[None,:]
     conv_tf = False
 
     # initialize variables for optimal eigenpair (number_ev=1)
-    eigenvalue_opt  = np.infty
+    eigenvalue_opt  = np.inf
     eigentensor_opt = None
 
     # begin ALS

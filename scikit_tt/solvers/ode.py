@@ -249,7 +249,7 @@ def hod(operator: 'TT',
 def implicit_euler(operator: 'TT', initial_value: 'TT', initial_guess: 'TT',
                    step_sizes: List[float], repeats: int=1,
                    tt_solver: str='als', threshold: float=1e-12,
-                   max_rank=np.infty, micro_solver='solve', normalize=1, progress=True) -> List['TT']:
+                   max_rank=np.inf, micro_solver='solve', normalize=1, progress=True) -> List['TT']:
     """
     Implicit Euler method for linear differential equations in the TT format.
 
@@ -366,7 +366,7 @@ def errors_impl_euler(operator: 'TT', solution: List['TT'], step_sizes: List[flo
 def trapezoidal_rule(operator: 'TT', initial_value: 'TT', initial_guess: 'TT',
                      step_sizes: List[float], repeats: int=1,
                      tt_solver: str='als', threshold=1e-12,
-                     max_rank: int=np.infty, micro_solver: str='solve',
+                     max_rank: int=np.inf, micro_solver: str='solve',
                      normalize: int=1, progress: bool=True) -> List['TT']:
     """
     Trapezoidal rule for linear differential equations in the TT format.
@@ -1519,7 +1519,7 @@ def __update_core_tdvp2site(i: int, micro_op: np.ndarray, solution: 'TT', step_s
             u = u[:, indices]
             s = s[indices]
             v = v[indices, :]
-        if max_rank != np.infty:
+        if max_rank != np.inf:
             u = u[:, :np.minimum(u.shape[1], max_rank)]
             s = s[:np.minimum(s.shape[0], max_rank)]
             v = v[:np.minimum(u.shape[1], max_rank), :]
@@ -1561,7 +1561,7 @@ def __update_core_tdvp2site(i: int, micro_op: np.ndarray, solution: 'TT', step_s
             u = u[:, indices]
             s = s[indices]
             v = v[indices, :]
-        if max_rank != np.infty:
+        if max_rank != np.inf:
             u = u[:, :np.minimum(u.shape[1], max_rank)]
             s = s[:np.minimum(s.shape[0], max_rank)]
             v = v[:np.minimum(u.shape[1], max_rank), :]

@@ -25,8 +25,8 @@ import scikit_tt.utils as utl
 
 def amuset_hosvd(data_matrix: np.ndarray, basis_list: List[List[Function]],
                  sigma: np.ndarray, b: np.ndarray=None, reweight: np.ndarray=None,
-                 num_eigvals: int=np.infty, threshold: float=1e-2,
-                 max_rank: int=np.infty, 
+                 num_eigvals: int=np.inf, threshold: float=1e-2,
+                 max_rank: int=np.inf, 
                  return_option: str='eigenfunctionevals', 
                  output_freq: int=None,
                  rel_threshold: bool=False) -> Tuple[np.ndarray, Union[List['TT'], np.ndarray], list]: 
@@ -56,7 +56,7 @@ def amuset_hosvd(data_matrix: np.ndarray, basis_list: List[List[Function]],
     reweight : np.ndarray or None
         shape (m,) array of importance sampling ratios
 
-    num_eigvals : int or np.infty
+    num_eigvals : int or np.inf
         number of eigenvalues and eigentensors that are returned
         default: return all calculated eigenvalues and eigentensors
 
@@ -64,7 +64,7 @@ def amuset_hosvd(data_matrix: np.ndarray, basis_list: List[List[Function]],
         absolute truncation threshold for singular values during global SVD of \PSI(X).
         Default value is 1e-2.
 
-    max_rank : int or np.infty
+    max_rank : int or np.inf
         maximally allowed rank of orthonormal TT representation for data tensor \Psi(X).
 
     return_option : {'eigentensors', 'eigenfunctionevals', 'eigenvectors'}

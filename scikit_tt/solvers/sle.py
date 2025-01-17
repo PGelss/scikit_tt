@@ -95,7 +95,7 @@ def als(operator: 'TT', initial_guess: 'TT', right_hand_side: 'TT', repeats: int
     return solution
 
 
-def mals(operator: 'TT', initial_guess: 'TT', right_hand_side: 'TT', repeats: int=1, solver: str='solve', threshold: float=1e-12, max_rank: int=np.infty) -> 'TT':
+def mals(operator: 'TT', initial_guess: 'TT', right_hand_side: 'TT', repeats: int=1, solver: str='solve', threshold: float=1e-12, max_rank: int=np.inf) -> 'TT':
     """
     Modified alternating linear scheme for solving systems of linear equations in the TT format.
 
@@ -609,7 +609,7 @@ def __update_core_mals(i: int,
             indices = np.where(s / s[0] > threshold)[0]
             u = u[:, indices]
             s = s[indices]
-        if max_rank != np.infty:
+        if max_rank != np.inf:
             u = u[:, :np.minimum(u.shape[1], max_rank)]
             s = s[:np.minimum(s.shape[0], max_rank)]
 
@@ -633,7 +633,7 @@ def __update_core_mals(i: int,
             u = u[:, indices]
             s = s[indices]
             v = v[indices, :]
-        if max_rank != np.infty:
+        if max_rank != np.inf:
             u = u[:, :np.minimum(u.shape[1], max_rank)]
             s = s[:np.minimum(s.shape[0], max_rank)]
             v = v[:np.minimum(v.shape[0], max_rank), :]
