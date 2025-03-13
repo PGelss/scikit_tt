@@ -1206,7 +1206,6 @@ def tdvp1site(operator: 'TT', initial_value: 'TT', step_size: float, number_of_s
     normalize : {0, 1, 2}, optional
         no normalization if 0, otherwise the solution is normalized in terms of Manhattan or Euclidean norm in each step
 
-
     Returns
     -------
     TT
@@ -1339,7 +1338,7 @@ def tdvp2site(operator: 'TT', initial_value: 'TT', step_size: float, number_of_s
     while current_iteration <= number_of_steps:
 
         # first half sweep
-        for i in range(operator.order - 1):
+        for i in range(operator.order-1):
 
             # update left stacks for the left- and right-hand side
             __construct_stack_left_op(i, stack_left_op, operator, tmp)
@@ -1352,7 +1351,7 @@ def tdvp2site(operator: 'TT', initial_value: 'TT', step_size: float, number_of_s
 
         # second half sweep
         for i in range(operator.order - 2, -1, -1):
-
+    
             # update right stacks for the left- and right-hand side
             __construct_stack_right_op(i + 1, stack_right_op, operator, tmp)
 
@@ -1499,6 +1498,7 @@ def __update_core_tdvp2site(i: int, micro_op: np.ndarray, solution: 'TT', step_s
         'forward' if first half sweep, 'backward' if second half sweep
     """
 
+    
     # time step
     # ------------------------------------------
 
@@ -1507,23 +1507,11 @@ def __update_core_tdvp2site(i: int, micro_op: np.ndarray, solution: 'TT', step_s
 
         # time step
         sol_tmp = np.tensordot(solution.cores[i], solution.cores[i+1], axes=1)
-        solution.cores[i] = expm_multiply(-1j*step_size*0.5*micro_op, sol_tmp.flatten())
+        sol_tmp = expm_multiply(-1j*step_size*0.5*micro_op, sol_tmp.flatten())
 
         # decompose solution
-        [u, s, v] = lin.svd(sol_tmp.reshape(solution.ranks[i] * solution.row_dims[i], solution.row_dims[i + 1] * solution.ranks[i + 2]),
-                            full_matrices=False, overwrite_a=True, check_finite=False, lapack_driver='gesvd')
-
-        # rank reduction
-        if threshold != 0:
-            indices = np.where(s / s[0] > threshold)[0]
-            u = u[:, indices]
-            s = s[indices]
-            v = v[indices, :]
-        if max_rank != np.inf:
-            u = u[:, :np.minimum(u.shape[1], max_rank)]
-            s = s[:np.minimum(s.shape[0], max_rank)]
-            v = v[:np.minimum(u.shape[1], max_rank), :]
-
+        [u, s, v] = utl.truncated_svd(sol_tmp.reshape(solution.ranks[i] * solution.row_dims[i], solution.row_dims[i + 1] * solution.ranks[i + 2]), threshold, max_rank)
+        
         # set new rank
         solution.ranks[i + 1] = s.shape[0]
 
@@ -1534,11 +1522,11 @@ def __update_core_tdvp2site(i: int, micro_op: np.ndarray, solution: 'TT', step_s
         solution.cores[i + 1] = (np.diag(s)@v).reshape([solution.ranks[i + 1], solution.row_dims[i+1], 1, solution.ranks[i+2]])
 
         if i < solution.order-2:
+            
             # adapt micro matrix
-            u = np.tensordot(np.tensordot(u, np.eye(solution.row_dims[i+1]),axes=0), np.eye(solution.ranks[i+2]), axes=0)
-            u = u.transpose([0,2,4,1,3,5]).reshape([solution.ranks[i]*solution.row_dims[i]*solution.row_dims[i+1]*solution.ranks[i + 2], solution.ranks[i + 1]*solution.row_dims[i+1]*solution.ranks[i+2]])
+            u = np.kron(u,np.eye(solution.row_dims[i+1]*solution.ranks[i+2]))
             micro_op = np.conj(u).T@micro_op@u
-
+    
             # time step
             solution.cores[i + 1] = solution.cores[i + 1].flatten()
             solution.cores[i + 1] = expm_multiply(1j*step_size*0.5*micro_op, solution.cores[i + 1])
@@ -1549,22 +1537,10 @@ def __update_core_tdvp2site(i: int, micro_op: np.ndarray, solution: 'TT', step_s
 
         # time step
         sol_tmp = np.tensordot(solution.cores[i], solution.cores[i+1], axes=1)
-        solution.cores[i] = expm_multiply(-1j*step_size*0.5*micro_op, sol_tmp.flatten())
+        sol_tmp = expm_multiply(-1j*step_size*0.5*micro_op, sol_tmp.flatten())
 
         # decompose solution
-        [u, s, v] = lin.svd(sol_tmp.reshape(solution.ranks[i] * solution.row_dims[i], solution.row_dims[i + 1] * solution.ranks[i + 2]),
-                            full_matrices=False, overwrite_a=True, check_finite=False, lapack_driver='gesvd')
-
-        # rank reduction
-        if threshold != 0:
-            indices = np.where(s / s[0] > threshold)[0]
-            u = u[:, indices]
-            s = s[indices]
-            v = v[indices, :]
-        if max_rank != np.inf:
-            u = u[:, :np.minimum(u.shape[1], max_rank)]
-            s = s[:np.minimum(s.shape[0], max_rank)]
-            v = v[:np.minimum(u.shape[1], max_rank), :]
+        u, s, v = utl.truncated_svd(sol_tmp.reshape(solution.ranks[i] * solution.row_dims[i], solution.row_dims[i + 1] * solution.ranks[i + 2]), threshold, max_rank)
 
         # set new rank
         solution.ranks[i + 1] = s.shape[0]
@@ -1575,12 +1551,12 @@ def __update_core_tdvp2site(i: int, micro_op: np.ndarray, solution: 'TT', step_s
         # save orthonormal part
         solution.cores[i + 1] = v.copy().reshape(solution.ranks[i+1], solution.row_dims[i+1], 1, solution.ranks[i+2])
 
-        if i>0:
+        if i > 0:
+            
             # adapt micro matrix
-            v = np.tensordot(np.eye(solution.ranks[i]), np.tensordot(np.eye(solution.row_dims[i]), v, axes=0), axes=0)
-            v = v.transpose([0,2,5,1,3,4]).reshape([solution.ranks[i]*solution.row_dims[i]*solution.row_dims[i+1]*solution.ranks[i+2], solution.ranks[i]*solution.row_dims[i]*solution.ranks[i+1]])
+            v = np.kron(np.eye(solution.ranks[i]*solution.row_dims[i]),v.T)
             micro_op = np.conj(v).T@micro_op@v
-
+    
             # time step
             solution.cores[i] = solution.cores[i].flatten()
             solution.cores[i] = expm_multiply(1j*step_size*0.5*micro_op, solution.cores[i])
@@ -1659,7 +1635,7 @@ def krylov(operator: 'TT', initial_value: 'TT', dimension: int, step_size: float
     return solution
 
 
-def tjm(hamiltonian: 'TT', jump_operator_list: List['TT'], jump_parameter_list: List[float], initial_state: 'TT', time_step: float, number_of_steps: int, threshold: float=1e-12, max_rank: int=50):
+def tjm(hamiltonian: 'TT', jump_operator_list, jump_parameter_list, initial_state: 'TT', time_step: float, number_of_steps: int, solver: str='tdvp1', threshold: float=1e-12, max_rank: int=50):
     """
     Tensor Jump Method (TJM)
 
@@ -1679,10 +1655,12 @@ def tjm(hamiltonian: 'TT', jump_operator_list: List['TT'], jump_parameter_list: 
         time step for the simulation
     number_of_steps : int
         number of time steps
+    solver : string, optional
+        TDVP version to be employed, can be 'tdvp1' (1-site) or 'tdvp2' (2-site), default is 'tdvp1'
     threshold: float
-        threshold for SVDs
+        threshold for SVDs (applicable if TDVP2 is employed)
     max_rank: int
-        maximum rank for solution
+        maximum rank for solution (applicable if TDVP2 is employed)
 
     Returns
     -------
@@ -1703,26 +1681,24 @@ def tjm(hamiltonian: 'TT', jump_operator_list: List['TT'], jump_parameter_list: 
 
         # begin of loop
         state = diss_op_half@state
-        state = tjm_jump_process_tdvp(hamiltonian, state, jump_operator_list, jump_parameter_list, time_step, threshold, max_rank)
+        state = tjm_jump_process_tdvp(hamiltonian, state, jump_operator_list, jump_parameter_list, time_step, solver, threshold, max_rank)
         state = diss_op_full@state
         trajectory.append(state.copy())
         for k in range(1, number_of_steps-1):
-            print(k)
-            state = tjm_jump_process_tdvp(hamiltonian, state, jump_operator_list, jump_parameter_list, time_step, threshold, max_rank)
+            state = tjm_jump_process_tdvp(hamiltonian, state, jump_operator_list, jump_parameter_list, time_step, solver, threshold, max_rank)
             state = diss_op_full@state
             trajectory.append(state.copy())
-        state = tjm_jump_process_tdvp(hamiltonian, state, jump_operator_list, jump_parameter_list, time_step, threshold, max_rank)
+        state = tjm_jump_process_tdvp(hamiltonian, state, jump_operator_list, jump_parameter_list, time_step, solver, threshold, max_rank)
         state = diss_op_half@state
         trajectory.append(state.copy())
 
     else:
 
         state = diss_op_half@state
-        state = tjm_jump_process_tdvp(hamiltonian, state, jump_operator_list, jump_parameter_list, time_step, threshold, max_rank)
+        state = tjm_jump_process_tdvp(hamiltonian, state, jump_operator_list, jump_parameter_list, time_step, solver, threshold, max_rank)
         state = diss_op_half@state
         state = (1/state.norm())*state
         trajectory.append(state.copy())
-
 
     return trajectory
 
@@ -1766,10 +1742,11 @@ def tjm_dissipative_operator(L, jump_operator_list, jump_parameter_list, time_st
             cores[i] += (jump_parameter_list[i][j])**2*jump_operator_list[i][j].conj().T@jump_operator_list[i][j]
         cores[i] = lin.expm(-0.5*time_step*cores[i])[None, :, :, None]
     op = TT(cores)
+    
     return op
 
 
-def tjm_jump_process_tdvp(hamiltonian: 'TT', state: 'TT', jump_operator_list: List['TT'], jump_parameter_list: List[float], time_step: float, threshold: float=1e-12, max_rank: int=50):
+def tjm_jump_process_tdvp(hamiltonian: 'TT', state: 'TT', jump_operator_list, jump_parameter_list, time_step: float, solver: str='tdvp1', threshold: float=1e-12, max_rank: int=50):
     """
     Apply jump process of the Tensor Jump Method (TJM)
 
@@ -1787,10 +1764,12 @@ def tjm_jump_process_tdvp(hamiltonian: 'TT', state: 'TT', jump_operator_list: Li
         prefactors for the jump operators; the form of this list corresponds to jump_operator_list
     time_step : float
         time step for the simulation
+    solver : string, optional
+        TDVP version to be employed, can be 'tdvp1' (1-site) or 'tdvp2' (2-site), default is 'tdvp1'
     threshold: float
-        threshold for SVDs
+        threshold for SVDs (applicable if TDVP2 is employed)
     max_rank: int
-        maximum rank for solution
+        maximum rank for solution (applicable if TDVP2 is employed)
 
     Returns
     -------
@@ -1813,8 +1792,10 @@ def tjm_jump_process_tdvp(hamiltonian: 'TT', state: 'TT', jump_operator_list: Li
     state = state.ortho_right()
 
     # time evolution by TDVP
-    #state_evolved = tdvp2site(hamiltonian, state, time_step, 1, threshold, max_rank)[-1]
-    state_evolved = tdvp1site(hamiltonian, state, time_step, 1)[-1]
+    if solver == 'tdvp1':
+        state_evolved = tdvp1site(hamiltonian, state, time_step, 1)[-1]
+    if solver == 'tdvp2':
+        state_evolved = tdvp2site(hamiltonian, state, time_step, 1, threshold, max_rank)[-1]
 
     # probability for jump process
     dp = 1-np.linalg.norm(state_evolved.cores[0].flatten())**2
@@ -1839,21 +1820,20 @@ def tjm_jump_process_tdvp(hamiltonian: 'TT', state: 'TT', jump_operator_list: Li
         if i<len(prob_list)-1:
             state = state.ortho_left(start_index=i, end_index=i)
 
-
+    # jump
     distribution = np.hstack(prob_list)
     dp = np.sum(distribution)
-
     if dp > epsilon:
-
-        # draw index according to computed distribution and apply jump operator
         distribution *= 1/dp
         sample = np.random.choice(len(index_list), p=distribution)
         index = index_list[sample]
         operator = jump_operator_list[index[0]][index[1]]
         state_evolved = state_org
         state_evolved.cores[index[0]] = np.einsum('mj,ijkl->imkl', jump_parameter_list[index[0]][index[1]]*jump_operator_list[index[0]][index[1]], state_evolved.cores[index[0]])
-        #state_evolved = tdvp2site(hamiltonian, state_evolved, time_step, 1, threshold, max_rank)[-1]
-        state_evolved = tdvp1site(hamiltonian, state_evolved, time_step, 1)[-1]
+        if solver == 'tdvp1':
+            state_evolved = tdvp1site(hamiltonian, state_evolved, time_step, 1)[-1]
+        if solver == 'tdvp2':
+            state_evolved = tdvp2site(hamiltonian, state_evolved, time_step, 1, threshold, max_rank)[-1]
 
     # normalize state
     state_evolved = state_evolved.ortho_right()
