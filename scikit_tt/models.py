@@ -11,9 +11,7 @@ def ising(d,J,h) -> 'TT':
     """
     TT representation of the Hamiltonian function of the Ising model:
 
-      H(x) = -J*(x_1*x_2 + ... + x_{d-1}*x_d) -h*(x_1 + ... + x_d)
-
-    For more details, see _[1].
+      H(x) = -J*(z_1*z_2 + ... + z_{d-1}*z_d) -h*(x_1 + ... + x_d)
 
     Parameters
     ----------
@@ -28,17 +26,12 @@ def ising(d,J,h) -> 'TT':
     -------
     T: TT
         MPS representation of H
-
-    References
-    ----------
-    .. [1] P. Gelß,  S. Klus,  S. Matera,  C. Schütte,  "Nearest-neighbor interaction systems in the tensor-train format",
-           Journal of Computational Physics 341 (2017) 140-162
     """
 
-    S = -h *np.array([1,-1])
-    L = -J *np.array([1,-1])
-    I = np.array([1,1])
-    M = np.array([1,-1])
+    S = -h * np.array([[0, 1], [1, 0]])
+    L = np.array([[1, 0], [0, -1]])
+    I = np.eye(2)
+    M = -J * np.array([[1, 0], [0, -1]])
 
     cores = [None]*d
     cores[0] = tt.build_core([[S, L, I]])

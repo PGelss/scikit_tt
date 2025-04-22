@@ -3,6 +3,7 @@
 from unittest import TestCase
 import scikit_tt.models as mdl
 import scikit_tt.tensor_train as tt
+from scikit_tt.solvers.evp import als
 import scikit_tt.solvers.ode as ode
 import numpy as np
 import scipy.sparse.linalg as splin
@@ -131,23 +132,31 @@ class TestODE(TestCase):
         # check if matrix- and tensor-based results are sufficiently close
         self.assertLess(np.linalg.norm(solution-solution_mat), 1e-12)
 
-    def test_tdvp1site(self):
-        """test for 1TDVP"""
-
-        # compute numerical solution of the ODE
-        operator = mdl.exciton_chain(4, 1e-1, -1e-2)
-        initial_value = tt.unit(operator.row_dims, [0] * operator.order)
-        step_size = 0.1
+    def test_tdvp(self):
+        """test for TDVP 1- and 2-site"""
+        N = 5
+        step_size = -1j * 0.02
         number_of_steps = 500
-        solution = ode.tdvp1site(operator, initial_value, step_size, number_of_steps, normalize=0)
-        solution = np.squeeze(solution[-1].matricize())
-        solution_mat = splin.expm(-1j*step_size*number_of_steps*operator.matricize())@np.squeeze(initial_value.matricize())
-
-        print(solution)
-        print(solution_mat)
-        # check if matrix- and tensor-based results are sufficiently close
-        self.assertLess(np.linalg.norm(solution-solution_mat), 1e-12)
         
+        # ground-state energy of ising chain computed with ALS
+        operator = mdl.ising(N, J=1.0, h=1.2)
+        initial_tt = tt.uniform(N * [2],  ranks=self.max_rank)
+        initial_tt = initial_tt.ortho()
+        initial_tt = (1 / initial_tt.norm()) * initial_tt
+        eigval,_, _ = als(operator, initial_tt, number_ev=1, repeats=10, conv_eps=1e-6, sigma=-100)
+
+        # ground-state energy of ising chain computed with tdvp1site using imaginary time
+        solution = ode.tdvp1site(operator, initial_tt, step_size, number_of_steps, local_solver={"method": 'local_krylov'}, normalize=2)
+        energy = solution[-1].transpose(conjugate=True) @ operator @ solution[-1]
+
+        self.assertLess(np.abs(energy - eigval), 1e-8)
+
+        # ground-state energy of ising chain computed with tdvp1site using imaginary time
+        solution = ode.tdvp2site(operator, initial_tt, step_size, number_of_steps, local_solver={"method": 'local_krylov'}, normalize=2)
+        energy = solution[-1].transpose(conjugate=True) @ operator @ solution[-1]
+
+        self.assertLess(np.abs(energy - eigval), 1e-8)
+
     def test_explicit_euler(self):
         """test for explicit Euler method"""
         
