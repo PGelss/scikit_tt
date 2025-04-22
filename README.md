@@ -372,10 +372,12 @@ truncated_svd ............ compute truncated SVD
 
 ### 11.1 Authors & contact
 
-* **Dr. Patrick Gelß** - CRC 1114, Freie Universität Berlin, Germany - _main developer_
-  - address: Arnimallee 9, 14195 Berlin, Germany
-  - email: p.gelss@fu-berlin.de
-* **Thomas Bake** - Institute of Mathematics, Technische Universität Berlin - _developer_
+* **Dr. Patrick Gelß** - Zuse Institute Berlin, Germany - _main developer_
+  - address: Takustraße 7, 14195 Berlin, Germany
+  - email: gelss@zib.de
+* **Alejandro Ramos** - Zuse Institute Berlin, Germany - _developer_
+* **Thomas Bake** - Institute of Mathematics, Technische Universität Berlin, Germany - _developer_
+* **Hanh Dung Nguyen** - Zuse Institute Berlin, Germany - _developer_
 * **Marvin Lücke** - Institute of Mathematics, Paderborn University, Germany - _TT class methods, development of tgEDMD, code compatibility, unit tests_
 * **Dr. Stefan Klus** - CRC 1114, Freie Universität Berlin, Germany - _initial work_
 * **Martin Scherer** - _development advisor_
