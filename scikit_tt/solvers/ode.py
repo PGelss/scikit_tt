@@ -3,7 +3,7 @@ import scipy as sp
 import scipy.linalg as lin
 import math
 
-from typing import List, Union
+from typing import Dict, List, Union
 
 import scikit_tt.tensor_train as tt
 from scikit_tt.tensor_train import TT
@@ -1185,7 +1185,7 @@ def tdvp(operator: 'TT', initial_value: 'TT', step_size: float, number_of_steps:
 
     return solution
 
-def tdvp1site(operator: 'TT', initial_value: 'TT', step_size: float, number_of_steps: int, normalize: int=0) -> 'TT':
+def tdvp1site(operator: 'TT', initial_value: 'TT', step_size: float, number_of_steps: int, local_solver: Dict = None, normalize: int=0) -> 'TT':
     """
     Time-dependent variational principle (1TDVP), see [1]_.
 
@@ -1202,6 +1202,10 @@ def tdvp1site(operator: 'TT', initial_value: 'TT', step_size: float, number_of_s
 
     number_of_steps: int
         number of time steps
+
+    local_solver : Dict
+        local_solver['method'] = 'exact' if exact exponentiation of core, 
+        local_solver['method'] = 'krylov' if approximated exponentiation of core with local Krylov method
 
     normalize : {0, 1, 2}, optional
         no normalization if 0, otherwise the solution is normalized in terms of Manhattan or Euclidean norm in each step
@@ -1229,6 +1233,13 @@ def tdvp1site(operator: 'TT', initial_value: 'TT', step_size: float, number_of_s
     stack_left_op   = [None] * operator.order
     stack_right_op  = [None] * operator.order
 
+    # define pde solver
+    if not local_solver or local_solver['method'] == 'exact':
+        local_solver = {'method': 'exact'} # default option
+    else:
+        if not local_solver.get('dimension'):
+            local_solver.setdefault("dimension", 5) # default dimension of local Krylov subspace
+
     # construct right stacks for the left- and right-hand side
     for i in range(operator.order - 1, -1, -1):
         __construct_stack_right_op(i, stack_right_op, operator, tmp)
@@ -1249,7 +1260,7 @@ def tdvp1site(operator: 'TT', initial_value: 'TT', step_size: float, number_of_s
             micro_op = __construct_micro_matrix_als(i, stack_left_op, stack_right_op, operator, tmp)
 
             # update solution
-            __update_core_tdvp(i, micro_op, tmp, step_size, 'forward')
+            __update_core_tdvp(i, micro_op, tmp, step_size, 'forward', local_solver)
 
         # second half sweep
         for i in range(operator.order - 1, -1, -1):
@@ -1261,7 +1272,7 @@ def tdvp1site(operator: 'TT', initial_value: 'TT', step_size: float, number_of_s
             micro_op = __construct_micro_matrix_als(i, stack_left_op, stack_right_op, operator, tmp)
 
             # update solution
-            __update_core_tdvp(i, micro_op, tmp, step_size, 'backward')
+            __update_core_tdvp(i, micro_op, tmp, step_size, 'backward', local_solver)
 
         # increase iteration number
         current_iteration += 1
@@ -1276,7 +1287,7 @@ def tdvp1site(operator: 'TT', initial_value: 'TT', step_size: float, number_of_s
     return solution
 
 
-def tdvp2site(operator: 'TT', initial_value: 'TT', step_size: float, number_of_steps: int, threshold=1e-12, max_rank=50, normalize: int=0) -> 'TT':
+def tdvp2site(operator: 'TT', initial_value: 'TT', step_size: float, number_of_steps: int, local_solver: Dict = None, threshold=1e-12, max_rank=50, normalize: int=0) -> 'TT':
     """
     Time-dependent variational principle (2TDVP), see [1]_.
 
@@ -1293,6 +1304,10 @@ def tdvp2site(operator: 'TT', initial_value: 'TT', step_size: float, number_of_s
 
     number_of_steps: int
         number of time steps
+
+    local_solver : Dict
+        local_solver['method'] = 'exact' if exact exponentiation of core, 
+        local_solver['method'] = 'krylov' if approximated exponentiation of core with local Krylov method
 
     threshold: float
         threshold for SVDs
@@ -1327,6 +1342,13 @@ def tdvp2site(operator: 'TT', initial_value: 'TT', step_size: float, number_of_s
     stack_left_op   = [None] * operator.order
     stack_right_op  = [None] * operator.order
 
+    # define pde solver
+    if not local_solver or local_solver['method'] == 'exact':
+        local_solver = {'method': 'exact'} # default option
+    else:
+        if not local_solver.get('dimension'):
+            local_solver.setdefault("dimension", 5) # default dimension of local Krylov subspace
+
     # construct right stacks for the left- and right-hand side
     for i in range(operator.order - 1, 0, -1):
         __construct_stack_right_op(i, stack_right_op, operator, tmp)
@@ -1336,7 +1358,6 @@ def tdvp2site(operator: 'TT', initial_value: 'TT', step_size: float, number_of_s
 
     # begin TDVP
     while current_iteration <= number_of_steps:
-
         # first half sweep
         for i in range(operator.order-1):
 
@@ -1347,7 +1368,7 @@ def tdvp2site(operator: 'TT', initial_value: 'TT', step_size: float, number_of_s
             micro_op = __construct_micro_matrix_mals(i, stack_left_op, stack_right_op, operator, tmp)
 
             # update solution
-            __update_core_tdvp2site(i, micro_op, tmp, step_size, threshold, max_rank, 'forward')
+            __update_core_tdvp2site(i, micro_op, tmp, step_size, threshold, max_rank, 'forward', local_solver)
 
         # second half sweep
         for i in range(operator.order - 2, -1, -1):
@@ -1359,7 +1380,7 @@ def tdvp2site(operator: 'TT', initial_value: 'TT', step_size: float, number_of_s
             micro_op = __construct_micro_matrix_mals(i, stack_left_op, stack_right_op, operator, tmp)
 
             # update solution
-            __update_core_tdvp2site(i, micro_op, tmp, step_size, threshold, max_rank, 'backward')
+            __update_core_tdvp2site(i, micro_op, tmp, step_size, threshold, max_rank, 'backward', local_solver)
 
         # increase iteration number
         current_iteration += 1
@@ -1374,7 +1395,7 @@ def tdvp2site(operator: 'TT', initial_value: 'TT', step_size: float, number_of_s
     return solution
 
 
-def __update_core_tdvp(i: int, micro_op: np.ndarray, solution: 'TT', step_size: float, direction: str):
+def __update_core_tdvp(i: int, micro_op: np.ndarray, solution: 'TT', step_size: float, direction: str, local_solver: Dict):
     """
     Update TT core for TDVP.
 
@@ -1394,6 +1415,9 @@ def __update_core_tdvp(i: int, micro_op: np.ndarray, solution: 'TT', step_size: 
 
     direction : string
         'forward' if first half sweep, 'backward' if second half sweep
+
+    local_solver : Dict
+        option for evaluating the exponential action of core
     """
 
     # time step
@@ -1407,9 +1431,12 @@ def __update_core_tdvp(i: int, micro_op: np.ndarray, solution: 'TT', step_size: 
     if direction == 'forward':
 
         if i < solution.order-1:
-
+            # print(f"{micro_op=}")
             # time step
-            solution.cores[i] = expm_multiply(-1j*step_size*0.5*micro_op, solution.cores[i].flatten())
+            if local_solver['method'] == 'exact':
+                solution.cores[i] = expm_multiply(-1j*step_size*0.5*micro_op, solution.cores[i].flatten())
+            else:
+                solution.cores[i] = local_krylov(micro_op, solution.cores[i].flatten(), local_solver['dimension'], 0.5*step_size)
 
             # decompose solution
             [q, r] = lin.qr(solution.cores[i].reshape(r1 * n, r2), overwrite_a=True, mode='economic', check_finite=False)
@@ -1426,7 +1453,10 @@ def __update_core_tdvp(i: int, micro_op: np.ndarray, solution: 'TT', step_size: 
             micro_op = np.conj(q).T@micro_op@q
 
             # time step
-            r = expm_multiply(1j*step_size*0.5*micro_op, r.flatten())
+            if local_solver['method'] == 'exact':
+                r = expm_multiply(1j*step_size*0.5*micro_op, r.flatten())
+            else:
+                r = local_krylov(micro_op, r.flatten(), local_solver['dimension'], -0.5*step_size)
             r = r.reshape([solution.ranks[i + 1], r2])
 
             # save non-orthonormal part
@@ -1435,7 +1465,10 @@ def __update_core_tdvp(i: int, micro_op: np.ndarray, solution: 'TT', step_size: 
         else:
 
             # time step
-            solution.cores[i] = expm_multiply(-1j*step_size*micro_op, solution.cores[i].flatten())
+            if local_solver['method'] == 'exact':
+                solution.cores[i] = expm_multiply(-1j*step_size*micro_op, solution.cores[i].flatten())
+            else:
+                solution.cores[i] = local_krylov(micro_op, solution.cores[i].flatten(), local_solver['dimension'], step_size)
             solution.cores[i] = solution.cores[i].reshape(r1, n, 1, r2)
 
     # second half sweep
@@ -1476,7 +1509,7 @@ def __update_core_tdvp(i: int, micro_op: np.ndarray, solution: 'TT', step_size: 
             solution.cores[i] = solution.cores[i].reshape(r1, n, 1, r2)
 
 
-def __update_core_tdvp2site(i: int, micro_op: np.ndarray, solution: 'TT', step_size: float, threshold: float, max_rank: int, direction: str):
+def __update_core_tdvp2site(i: int, micro_op: np.ndarray, solution: 'TT', step_size: float, threshold: float, max_rank: int, direction: str, local_solver: Dict):
     """
     Update TT core for 2TDVP.
 
@@ -1496,6 +1529,9 @@ def __update_core_tdvp2site(i: int, micro_op: np.ndarray, solution: 'TT', step_s
 
     direction : string
         'forward' if first half sweep, 'backward' if second half sweep
+
+    local_solver : Dict
+        option for evaluating the exponential action of core
     """
 
     
@@ -1507,7 +1543,10 @@ def __update_core_tdvp2site(i: int, micro_op: np.ndarray, solution: 'TT', step_s
 
         # time step
         sol_tmp = np.tensordot(solution.cores[i], solution.cores[i+1], axes=1)
-        sol_tmp = expm_multiply(-1j*step_size*0.5*micro_op, sol_tmp.flatten())
+        if local_solver['method'] == 'exact':
+            sol_tmp = expm_multiply(-1j*step_size*0.5*micro_op, sol_tmp.flatten())
+        else:
+            sol_tmp = local_krylov(micro_op, sol_tmp.flatten(), local_solver['dimension'], 0.5*step_size)
 
         # decompose solution
         [u, s, v] = utl.truncated_svd(sol_tmp.reshape(solution.ranks[i] * solution.row_dims[i], solution.row_dims[i + 1] * solution.ranks[i + 2]), threshold, max_rank)
@@ -1529,7 +1568,11 @@ def __update_core_tdvp2site(i: int, micro_op: np.ndarray, solution: 'TT', step_s
     
             # time step
             solution.cores[i + 1] = solution.cores[i + 1].flatten()
-            solution.cores[i + 1] = expm_multiply(1j*step_size*0.5*micro_op, solution.cores[i + 1])
+            if local_solver['method'] == 'exact':
+                solution.cores[i + 1] = expm_multiply(1j*step_size*0.5*micro_op, solution.cores[i + 1])
+            else:
+                solution.cores[i + 1] = local_krylov(micro_op, solution.cores[i + 1], local_solver['dimension'], -0.5*step_size)
+
             solution.cores[i + 1] = solution.cores[i + 1].reshape([solution.ranks[i + 1], solution.row_dims[i+1], 1, solution.ranks[i+2]])
 
     # second half sweep
@@ -1537,7 +1580,11 @@ def __update_core_tdvp2site(i: int, micro_op: np.ndarray, solution: 'TT', step_s
 
         # time step
         sol_tmp = np.tensordot(solution.cores[i], solution.cores[i+1], axes=1)
-        sol_tmp = expm_multiply(-1j*step_size*0.5*micro_op, sol_tmp.flatten())
+        if local_solver['method'] == 'exact':
+            sol_tmp = expm_multiply(-1j*step_size*0.5*micro_op, sol_tmp.flatten())
+        else:
+            sol_tmp = local_krylov(micro_op, sol_tmp.flatten(), local_solver['dimension'], 0.5*step_size)
+
 
         # decompose solution
         u, s, v = utl.truncated_svd(sol_tmp.reshape(solution.ranks[i] * solution.row_dims[i], solution.row_dims[i + 1] * solution.ranks[i + 2]), threshold, max_rank)
@@ -1559,7 +1606,11 @@ def __update_core_tdvp2site(i: int, micro_op: np.ndarray, solution: 'TT', step_s
     
             # time step
             solution.cores[i] = solution.cores[i].flatten()
-            solution.cores[i] = expm_multiply(1j*step_size*0.5*micro_op, solution.cores[i])
+            if local_solver['method'] == 'exact':
+                solution.cores[i] = expm_multiply(1j*step_size*0.5*micro_op, solution.cores[i])
+            else:
+                solution.cores[i] = local_krylov(micro_op, solution.cores[i], local_solver['dimension'], -0.5*step_size)
+
             solution.cores[i] = solution.cores[i].reshape([solution.ranks[i], solution.row_dims[i], 1, solution.ranks[i+1]])
 
 
@@ -1632,6 +1683,77 @@ def krylov(operator: 'TT', initial_value: 'TT', dimension: int, step_size: float
     solution = solution.ortho(threshold=threshold, max_rank=max_rank)
     if normalize > 0:
         solution = (1 / solution.norm(p=normalize)) * solution
+    return solution
+
+
+def local_krylov(micro_op: np.ndarray, initial_value: np.ndarray, dimension: int, step_size: float, threshold: float=1e-12, max_rank: int=50, normalize: int=0) -> np.ndarray:
+    """
+    Local Krylov method for approximating the exponential action on TT core, see [1]_.
+
+    Parameters
+    ----------
+    micro_op : np.ndarray
+        micro matrix for ith TT core
+
+    initial_value : np.ndarray
+        initial value for ODE
+
+    dimension: int
+        dimension of local Krylov subspace, must be larger than 1
+
+    step_size: float
+        step size
+
+    threshold : float, optional
+        threshold for reduced SVD decompositions, default is 1e-12
+
+    max_rank : int, optional
+        maximum rank of the solution, default is 50
+
+    normalize : {0, 1, 2}, optional
+        no normalization if 0, otherwise the solution is normalized in terms of Manhattan or Euclidean norm in each step
+
+
+    Returns
+    -------
+    np.ndarray
+        approximated solution of the Schrödinger equation
+
+    References
+    ----------
+    ..[1] S. Paeckel, T. Köhler, A. Swoboda, S. R. Manmana, U. Schollwöck,
+          C. Hubig, "Time-evolution methods for matrix-product states".
+          Annals of Physics, 411, 167998, 2019
+    """
+
+    # construct Krylov subspace basis and effective H
+    T = np.zeros([dimension, dimension], dtype=complex)
+    krylov_tensors = [initial_value]
+    w_tmp = micro_op@krylov_tensors[-1]
+    alpha = np.conj(w_tmp.T)@krylov_tensors[-1]    
+
+    T[0,0] = alpha
+    w_tmp = w_tmp - alpha*krylov_tensors[-1]
+    for i in range(1,dimension):
+        beta = np.linalg.norm(w_tmp)
+        T[i,i-1] = beta
+        T[i-1,i] = beta
+        krylov_tensors.append((1/beta)*w_tmp)
+        w_tmp = micro_op@krylov_tensors[-1]
+        alpha = np.conj(w_tmp.T)@krylov_tensors[-1]    
+
+        T[i,i] = alpha
+        w_tmp = w_tmp - alpha*krylov_tensors[-1] - beta*krylov_tensors[-2]
+
+    # compute time-evolved state
+    w_tmp = np.zeros([dimension], dtype=complex)
+    w_tmp[0] = 1
+    w_tmp = expm_multiply(-1j*T*step_size, w_tmp)
+    solution = w_tmp[0]*krylov_tensors[0]
+    for j in range(1,dimension):
+        solution = solution + w_tmp[j]*krylov_tensors[j]
+
+
     return solution
 
 
