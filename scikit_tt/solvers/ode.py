@@ -1757,7 +1757,7 @@ def local_krylov(micro_op: np.ndarray, initial_value: np.ndarray, dimension: int
     return solution
 
 
-def tjm(hamiltonian: 'TT', jump_operator_list, jump_parameter_list, initial_state: 'TT', time_step: float, number_of_steps: int, solver: str='tdvp1', threshold: float=1e-12, max_rank: int=50):
+def tjm(hamiltonian: 'TT', jump_operator_list, jump_parameter_list, initial_state: 'TT', time_step: float, number_of_steps: int, solver: dict, threshold: float=1e-12, max_rank: int=50):
     """
     Tensor Jump Method (TJM)
 
@@ -1777,8 +1777,11 @@ def tjm(hamiltonian: 'TT', jump_operator_list, jump_parameter_list, initial_stat
         time step for the simulation
     number_of_steps : int
         number of time steps
-    solver : string, optional
-        TDVP version to be employed, can be 'tdvp1' (1-site) or 'tdvp2' (2-site), default is 'tdvp1'
+    solver : dict
+        TDVP version to be employed. solver ['solver'] = 'tdvp1' (1-site) or 'tdvp2' (2-site).
+        solver['method'] = 'exact' if exact exponentiation of core,
+        solver['method'] = 'krylov' if approximated exponentiation of core with local Krylov method
+        solver['dimension'] = dimension of local Krylov subspace (default is 5)
     threshold: float
         threshold for SVDs (applicable if TDVP2 is employed)
     max_rank: int
@@ -1868,7 +1871,7 @@ def tjm_dissipative_operator(L, jump_operator_list, jump_parameter_list, time_st
     return op
 
 
-def tjm_jump_process_tdvp(hamiltonian: 'TT', state: 'TT', jump_operator_list, jump_parameter_list, time_step: float, solver: str='tdvp1', threshold: float=1e-12, max_rank: int=50):
+def tjm_jump_process_tdvp(hamiltonian: 'TT', state: 'TT', jump_operator_list, jump_parameter_list, time_step: float, solver: dict, threshold: float=1e-12, max_rank: int=50):
     """
     Apply jump process of the Tensor Jump Method (TJM)
 
@@ -1886,8 +1889,11 @@ def tjm_jump_process_tdvp(hamiltonian: 'TT', state: 'TT', jump_operator_list, ju
         prefactors for the jump operators; the form of this list corresponds to jump_operator_list
     time_step : float
         time step for the simulation
-    solver : string, optional
-        TDVP version to be employed, can be 'tdvp1' (1-site) or 'tdvp2' (2-site), default is 'tdvp1'
+    solver : dict
+        TDVP version to be employed. solver ['solver'] = 'tdvp1' (1-site) or 'tdvp2' (2-site).
+        solver['method'] = 'exact' if exact exponentiation of core,
+        solver['method'] = 'krylov' if approximated exponentiation of core with local Krylov method
+        solver['dimension'] = dimension of local Krylov subspace (default is 5)
     threshold: float
         threshold for SVDs (applicable if TDVP2 is employed)
     max_rank: int
@@ -1914,10 +1920,10 @@ def tjm_jump_process_tdvp(hamiltonian: 'TT', state: 'TT', jump_operator_list, ju
     state = state.ortho_right()
 
     # time evolution by TDVP
-    if solver == 'tdvp1':
-        state_evolved = tdvp1site(hamiltonian, state, time_step, 1)[-1]
-    if solver == 'tdvp2':
-        state_evolved = tdvp2site(hamiltonian, state, time_step, 1, threshold, max_rank)[-1]
+    if solver['solver'] == 'tdvp1':
+        state_evolved = tdvp1site(hamiltonian, state, time_step, 1, local_solver=solver)[-1]
+    if solver['solver'] == 'tdvp2':
+        state_evolved = tdvp2site(hamiltonian, state, time_step, 1, threshold, max_rank, local_solver=solver)[-1]
 
     # probability for jump process
     dp = 1-np.linalg.norm(state_evolved.cores[0].flatten())**2
@@ -1952,10 +1958,10 @@ def tjm_jump_process_tdvp(hamiltonian: 'TT', state: 'TT', jump_operator_list, ju
         operator = jump_operator_list[index[0]][index[1]]
         state_evolved = state_org
         state_evolved.cores[index[0]] = np.einsum('mj,ijkl->imkl', jump_parameter_list[index[0]][index[1]]*jump_operator_list[index[0]][index[1]], state_evolved.cores[index[0]])
-        if solver == 'tdvp1':
-            state_evolved = tdvp1site(hamiltonian, state_evolved, time_step, 1)[-1]
-        if solver == 'tdvp2':
-            state_evolved = tdvp2site(hamiltonian, state_evolved, time_step, 1, threshold, max_rank)[-1]
+        if solver['solver'] == 'tdvp1':
+            state_evolved = tdvp1site(hamiltonian, state_evolved, time_step, 1, local_solver=solver)[-1]
+        if solver['solver'] == 'tdvp2':
+            state_evolved = tdvp2site(hamiltonian, state_evolved, time_step, 1, threshold, max_rank, local_solver=solver)[-1]
 
     # normalize state
     state_evolved = state_evolved.ortho_right()
