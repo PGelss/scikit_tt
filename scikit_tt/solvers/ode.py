@@ -1958,10 +1958,10 @@ def tjm_jump_process_tdvp(hamiltonian: 'TT', state: 'TT', jump_operator_list, ju
         operator = jump_operator_list[index[0]][index[1]]
         state_evolved = state_org
         state_evolved.cores[index[0]] = np.einsum('mj,ijkl->imkl', jump_parameter_list[index[0]][index[1]]*jump_operator_list[index[0]][index[1]], state_evolved.cores[index[0]])
-        if solver['solver'] == 'tdvp1':
-            state_evolved = tdvp1site(hamiltonian, state_evolved, time_step, 1, local_solver=solver)[-1]
-        if solver['solver'] == 'tdvp2':
-            state_evolved = tdvp2site(hamiltonian, state_evolved, time_step, 1, threshold, max_rank, local_solver=solver)[-1]
+        # if solver['solver'] == 'tdvp1':
+        #     state_evolved = tdvp1site(hamiltonian, state_evolved, time_step, 1, local_solver=solver)[-1]
+        # if solver['solver'] == 'tdvp2':
+        #     state_evolved = tdvp2site(hamiltonian, state_evolved, time_step, 1, threshold, max_rank, local_solver=solver)[-1]
 
     # normalize state
     state_evolved = state_evolved.ortho_right()
