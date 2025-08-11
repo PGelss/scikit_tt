@@ -1807,22 +1807,35 @@ def tjm(hamiltonian: 'TT', jump_operator_list, jump_parameter_list, initial_stat
         # begin of loop
         state = diss_op_half@state
         state = tjm_jump_process_tdvp(hamiltonian, state, jump_operator_list, jump_parameter_list, time_step, solver, threshold, max_rank)
-        state = diss_op_full@state
-        trajectory.append(state.copy())
         for k in range(1, number_of_steps-1):
-            state = tjm_jump_process_tdvp(hamiltonian, state, jump_operator_list, jump_parameter_list, time_step, solver, threshold, max_rank)
+            # time evolution by TDVP
+            if solver['solver'] == 'tdvp1':
+                state_evolved = tdvp1site(hamiltonian, state, time_step, 1, local_solver=solver)[-1]
+            if solver['solver'] == 'tdvp2':
+                state_evolved = tdvp2site(hamiltonian, state, time_step, 1, threshold, max_rank, local_solver=solver)[-1]
             state = diss_op_full@state
+            state = tjm_jump_process_tdvp(hamiltonian, state, jump_operator_list, jump_parameter_list, time_step, solver, threshold, max_rank)
             trajectory.append(state.copy())
-        state = tjm_jump_process_tdvp(hamiltonian, state, jump_operator_list, jump_parameter_list, time_step, solver, threshold, max_rank)
+        # time evolution by TDVP
+        if solver['solver'] == 'tdvp1':
+            state_evolved = tdvp1site(hamiltonian, state, time_step, 1, local_solver=solver)[-1]
+        if solver['solver'] == 'tdvp2':
+            state_evolved = tdvp2site(hamiltonian, state, time_step, 1, threshold, max_rank, local_solver=solver)[-1]
         state = diss_op_half@state
+        state = tjm_jump_process_tdvp(hamiltonian, state, jump_operator_list, jump_parameter_list, time_step, solver, threshold, max_rank)
         trajectory.append(state.copy())
 
     else:
 
         state = diss_op_half@state
         state = tjm_jump_process_tdvp(hamiltonian, state, jump_operator_list, jump_parameter_list, time_step, solver, threshold, max_rank)
+        # time evolution by TDVP
+        if solver['solver'] == 'tdvp1':
+            state_evolved = tdvp1site(hamiltonian, state, time_step, 1, local_solver=solver)[-1]
+        if solver['solver'] == 'tdvp2':
+            state_evolved = tdvp2site(hamiltonian, state, time_step, 1, threshold, max_rank, local_solver=solver)[-1]
         state = diss_op_half@state
-        state = (1/state.norm())*state
+        state = tjm_jump_process_tdvp(hamiltonian, state, jump_operator_list, jump_parameter_list, time_step, solver, threshold, max_rank)
         trajectory.append(state.copy())
 
     return trajectory
@@ -1864,7 +1877,7 @@ def tjm_dissipative_operator(L, jump_operator_list, jump_parameter_list, time_st
     for i in range(L):
         cores[i] = np.zeros([2,2])
         for j in range(len(jump_operator_list[i])):
-            cores[i] += (jump_parameter_list[i][j])**2*jump_operator_list[i][j].conj().T@jump_operator_list[i][j]
+            cores[i] += (jump_parameter_list[i][j])*jump_operator_list[i][j].conj().T@jump_operator_list[i][j]
         cores[i] = lin.expm(-0.5*time_step*cores[i])[None, :, :, None]
     op = TT(cores)
     
@@ -1916,17 +1929,12 @@ def tjm_jump_process_tdvp(hamiltonian: 'TT', state: 'TT', jump_operator_list, ju
         jump_parameter_list = [jump_parameter_list_org.copy() for _ in range(L)]
 
     # copy initial state
-    state_org = state.copy()
+    
     state = state.ortho_right()
-
-    # time evolution by TDVP
-    if solver['solver'] == 'tdvp1':
-        state_evolved = tdvp1site(hamiltonian, state, time_step, 1, local_solver=solver)[-1]
-    if solver['solver'] == 'tdvp2':
-        state_evolved = tdvp2site(hamiltonian, state, time_step, 1, threshold, max_rank, local_solver=solver)[-1]
+    state_org = state.copy()
 
     # probability for jump process
-    dp = 1-np.linalg.norm(state_evolved.cores[0].flatten())**2
+    dp = 1-np.linalg.norm(state.cores[0].flatten())**2
 
     # draw random epsilon
     epsilon = np.random.rand()
@@ -1944,28 +1952,26 @@ def tjm_jump_process_tdvp(hamiltonian: 'TT', state: 'TT', jump_operator_list, ju
         for j in range(len(prob_list[i])):
             index_list += [[i,j]]
             prob_list[i][j] = np.tensordot(jump_operator_list[i][j].copy(), state.cores[i].copy(), axes=(1,1))
-            prob_list[i][j] = time_step*(jump_parameter_list[i][j])**2*np.linalg.norm(prob_list[i][j])**2
+            prob_list[i][j] = time_step*(jump_parameter_list[i][j])*np.linalg.norm(prob_list[i][j])**2
         if i<len(prob_list)-1:
             state = state.ortho_left(start_index=i, end_index=i)
 
     # jump
     distribution = np.hstack(prob_list)
-    dp = np.sum(distribution)
     if dp > epsilon:
-        distribution *= 1/dp
+        distribution *= 1/np.sum(distribution)
         sample = np.random.choice(len(index_list), p=distribution)
         index = index_list[sample]
         operator = jump_operator_list[index[0]][index[1]]
         state_evolved = state_org
         state_evolved.cores[index[0]] = np.einsum('mj,ijkl->imkl', jump_parameter_list[index[0]][index[1]]*jump_operator_list[index[0]][index[1]], state_evolved.cores[index[0]])
-        if solver['solver'] == 'tdvp1':
-            state_evolved = tdvp1site(hamiltonian, state_evolved, time_step, 1, local_solver=solver)[-1]
-        if solver['solver'] == 'tdvp2':
-            state_evolved = tdvp2site(hamiltonian, state_evolved, time_step, 1, threshold, max_rank, local_solver=solver)[-1]
-
-    # normalize state
-    state_evolved = state_evolved.ortho_right()
-    norm = np.linalg.norm(state_evolved.cores[0].flatten())
-    state_evolved = (1/norm)*state_evolved
+        state_evolved = state_evolved.ortho_right()
+        norm = np.linalg.norm(state_evolved.cores[0].flatten())
+        state_evolved = (1/norm)*state_evolved
+    else:
+        state_evolved = state_org
+        norm = np.linalg.norm(state_evolved.cores[0].flatten())
+        state_evolved = (1/norm)*state_evolved
+    
 
     return state_evolved
