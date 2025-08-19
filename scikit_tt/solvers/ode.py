@@ -1244,6 +1244,9 @@ def tdvp1site(operator: 'TT', initial_value: 'TT', step_size: float, number_of_s
     for i in range(operator.order - 1, -1, -1):
         __construct_stack_right_op(i, stack_right_op, operator, tmp)
 
+    
+    print("tdvp1site local solver: ", local_solver)
+
     # define iteration number
     current_iteration = 1
 
@@ -1356,6 +1359,10 @@ def tdvp2site(operator: 'TT', initial_value: 'TT', step_size: float, number_of_s
     # define iteration number
     current_iteration = 1
 
+    print("tdvp2site local solver: ", local_solver)
+
+
+
     # begin TDVP
     while current_iteration <= number_of_steps:
         # first half sweep
@@ -1426,6 +1433,8 @@ def __update_core_tdvp(i: int, micro_op: np.ndarray, solution: 'TT', step_size: 
     r1 = solution.ranks[i]
     n = solution.row_dims[i]
     r2 = solution.ranks[i+1]
+
+    print("__update_core_tdvp local solver: ", local_solver)
 
     # first half sweep
     if direction == 'forward':
@@ -1801,6 +1810,10 @@ def tjm(hamiltonian: 'TT', jump_operator_list, jump_parameter_list, initial_stat
     # construct dissipative rank-one operators
     diss_op_half = tjm_dissipative_operator(L, jump_operator_list, jump_parameter_list, time_step/2)
     diss_op_full = tjm_dissipative_operator(L, jump_operator_list, jump_parameter_list, time_step)
+
+
+    print("tjm solver: ", solver)
+
 
     if number_of_steps > 1:
 
