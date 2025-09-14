@@ -198,6 +198,32 @@ class TestODE(TestCase):
             self.assertLess(derivatives_als[i], self.tol)
             self.assertLess(derivatives_mals[i], self.tol)
 
+    def test_basis_extension(self):
+        """test for basis extension of TT"""
+        N = 5
+        step_size = -1j * 0.02
+        number_of_steps = 500
+        
+        # ground-state energy of ising chain computed with ALS
+        operator = mdl.ising(N, J=1.0, h=1.2)
+        initial_tt = tt.uniform(N * [2],  ranks=self.max_rank)
+        initial_tt = initial_tt.ortho()
+        initial_tt = (1 / initial_tt.norm()) * initial_tt
+        eigval_high_rank,_, _ = als(operator, initial_tt, number_ev=1, repeats=10, conv_eps=1e-6, sigma=-100)
+
+
+        initial_tt_low_rank = tt.uniform(N * [2],  ranks=2)
+        initial_tt_low_rank = initial_tt_low_rank.ortho()
+        initial_tt_low_rank = (1 / initial_tt_low_rank.norm()) * initial_tt_low_rank
+
+        krylov_vecs = ode.krylov_vectors(operator, initial_tt_low_rank, 2, 5)
+        initial_tt = ode.basis_extension(krylov_vecs, 1e-6)
+
+        eigval_low_rank,_, _ = als(operator, initial_tt, number_ev=1, repeats=10, conv_eps=1e-6, sigma=-100)
+
+        self.assertLess(np.abs(eigval_high_rank - eigval_low_rank), 1e-8)
+
+    
     def test_trapezoidal_rule(self):
         """test for trapezoidal rule"""
 
