@@ -201,8 +201,6 @@ class TestODE(TestCase):
     def test_basis_extension(self):
         """test for basis extension of TT"""
         N = 5
-        step_size = -1j * 0.02
-        number_of_steps = 500
         
         # ground-state energy of ising chain computed with ALS
         operator = mdl.ising(N, J=1.0, h=1.2)
