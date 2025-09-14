@@ -1757,6 +1757,156 @@ def local_krylov(micro_op: np.ndarray, initial_value: np.ndarray, dimension: int
     return solution
 
 
+def krylov_vectors(operator: 'TT', initial_value: 'TT', dimension: int, max_rank: int=50) -> List['TT']:
+
+    """
+    Construct vectors in Krylov subspace, see [2]_.
+    
+    Parameters
+    ----------
+    operator : TT
+        TT operator
+
+    initial_value : TT
+        Krylov vector of order 0
+
+    dimension: int
+        dimension of Krylov subspace
+
+    max_rank : int
+        maximum rank of the Krylov vectors, default is 50
+
+
+    Returns
+    -------
+    List['TT']
+        list of Krylov vectors
+
+    References
+    ----------
+    ..[2] M. Yang, S. R. White, "Time-dependent variational
+          principle with ancillary Krylov subspace".
+          Phys. Rev. B, 102, 094315, 2020
+    """
+
+    initial_value *= 1/(initial_value.norm())
+    krylov_tensors = [initial_value]
+
+    w_tmp = operator@krylov_tensors[-1] 
+    alpha = w_tmp.transpose(conjugate=True)@krylov_tensors[-1]
+    
+    for _ in range(1,dimension): 
+        u, s, v = w_tmp.svd(index=w_tmp.order-1, max_rank=max_rank) # w_tmp.order//2 doesn't work...
+        w_tmp = u.concatenate(TT(np.diag(s)) @ v)
+        beta = w_tmp.norm()
+        krylov_tensors.append((1/beta)*w_tmp)
+        
+        w_tmp = operator@krylov_tensors[-1]
+        alpha = w_tmp.transpose(conjugate=True)@krylov_tensors[-1]  
+        w_tmp = w_tmp - alpha*krylov_tensors[-1] - beta*krylov_tensors[-2]
+    
+    return krylov_tensors   
+
+
+def basis_extension(krylov_vecs: List['TT'], threshold: float=1e-12) -> 'TT':
+    """
+    Extend the basis at each link of a TT by other TTs, see [2]_.
+
+    Parameters
+    ----------
+    krylov_vecs : List['TT']
+        list of Krylov vectors
+
+    threshold : float, optional
+        threshold for reduced SVD decompositions, default is 1e-12  
+
+    Returns
+    -------
+    'TT'
+        TT with extended basis
+
+    References
+    ----------
+    ..[2] M. Yang, S. R. White, "Time-dependent variational
+          principle with ancillary Krylov subspace".
+          Phys. Rev. B, 102, 094315, 2020
+    """
+    
+    list_TT = [vec.ortho_left() for vec in krylov_vecs]
+    
+    for i in range(list_TT[0].order - 1, 0, -1):
+
+        # bring tensor into right-canonical form
+        r1 = list_TT[0].ranks[i]
+        col, rol = list_TT[0].col_dims[i], list_TT[0].row_dims[i]
+        r2 = list_TT[0].ranks[i+1]
+            
+        
+        _, s, v_dag = np.linalg.svd(list_TT[0].cores[i].reshape([r1 * col, 
+                                                           rol * r2]), full_matrices=False)
+        v_dag = v_dag.reshape(s.shape[0], rol, r2)
+        projector = np.tensordot(np.conj(v_dag.T), v_dag, axes=(2,0))
+        null_space_projector = np.identity(projector.shape[0] * projector.shape[1]) - projector.reshape(projector.shape[0] * projector.shape[1],
+                                                                                                        projector.shape[2] * projector.shape[3])
+        null_space_projector = null_space_projector.reshape(projector.shape)
+
+        # construct reduced density matrix for Krylov vectors
+        reduced_dm = np.zeros(null_space_projector.shape)
+        
+        for j in range(1, len(krylov_vecs)):
+           
+            r1 = krylov_vecs[j].ranks[i]
+            col, rol = krylov_vecs[j].col_dims[i], krylov_vecs[j].row_dims[i]
+            r2 = krylov_vecs[j].ranks[i+1]
+
+            local_tensor = krylov_vecs[j].cores[i].reshape(r1*col, rol, r2)
+            local_tensor_dag = np.conj(local_tensor.T)
+            rdm = np.tensordot(local_tensor_dag, local_tensor, axes=(2, 0))
+           
+            reduced_dm += rdm                                     
+        
+        reduced_dm /= np.einsum('abba->', reduced_dm)
+        reduced_dm = np.tensordot(null_space_projector, reduced_dm, axes=([2,3], [1,0]))
+        reduced_dm = np.tensordot(reduced_dm, null_space_projector, axes=([2,3], [1,0]))
+
+        if np.linalg.norm(reduced_dm) > 1e-3: 
+            # find the orthogonal basis at each link 
+            _, sr, vr_dag = utl.truncated_svd(reduced_dm.reshape(reduced_dm.shape[0] * reduced_dm.shape[1], 
+                                                                  reduced_dm.shape[2] * reduced_dm.shape[3]),
+                                                                  threshold=threshold)
+
+            vr_dag = vr_dag.reshape(sr.shape[0], reduced_dm.shape[2], reduced_dm.shape[3])
+            iso_LV = np.zeros((v_dag.shape[0] + vr_dag.shape[0], v_dag.shape[0]))
+            np.fill_diagonal(iso_LV, 1.0)
+            iso_LVR = np.zeros((v_dag.shape[0] + vr_dag.shape[0], vr_dag.shape[0]))
+            nrows, ncols = iso_LVR.shape
+            rows = np.arange(nrows - vr_dag.shape[0], nrows)
+            iso_LVR[rows,np.arange(ncols)] = np.ones(vr_dag.shape[0])
+            
+            Bx = np.tensordot(iso_LV, v_dag, axes=(1, 0)) + np.tensordot(iso_LVR, vr_dag, axes=(1,0))
+
+        else:
+            Bx = v_dag
+
+        # extend the basis and shift OC to the left 
+        for j in range(len(krylov_vecs)):
+            list_TT[j].cores[i] = np.tensordot(list_TT[j].cores[i], np.conj(Bx.T), 
+                                                  axes=([1, 3], [1, 0]))
+            list_TT[j].cores[i-1] = np.tensordot(list_TT[j].cores[i-1], list_TT[j].cores[i],
+                                                    axes=([3], [0]))
+            
+            r1, r2, r3, r4, r5 = list_TT[j].cores[i-1].shape
+            b1, b2, b3 = Bx.shape
+            list_TT[j].cores[i-1] = list_TT[j].cores[i-1].reshape(r1, r2, r3, r5)
+            list_TT[j].cores[i] = Bx.reshape(b1, b2, 1, b3)
+            list_TT[j].ranks[i] = b1
+
+    list_TT[0] = list_TT[0].ortho()
+    list_TT[0] = (1 / list_TT[0].norm()) * list_TT[0]
+
+    return list_TT[0]
+
+
 def tjm(hamiltonian: 'TT', jump_operator_list, jump_parameter_list, initial_state: 'TT', time_step: float, number_of_steps: int, solver: dict, threshold: float=1e-12, max_rank: int=50):
     """
     Tensor Jump Method (TJM)
