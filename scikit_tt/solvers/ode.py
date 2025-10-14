@@ -1964,7 +1964,7 @@ def tjm_jump_process_tdvp(hamiltonian: 'TT', state: 'TT', jump_operator_list, ju
         index = index_list[sample]
         operator = jump_operator_list[index[0]][index[1]]
         state_evolved = state_org
-        state_evolved.cores[index[0]] = np.einsum('mj,ijkl->imkl', jump_parameter_list[index[0]][index[1]]*jump_operator_list[index[0]][index[1]], state_evolved.cores[index[0]])
+        state_evolved.cores[index[0]] = np.einsum('mj,ijkl->imkl', np.sqrt(jump_parameter_list[index[0]][index[1]])*jump_operator_list[index[0]][index[1]], state_evolved.cores[index[0]])
         state_evolved = state_evolved.ortho_right()
         norm = np.linalg.norm(state_evolved.cores[0].flatten())
         state_evolved = (1/norm)*state_evolved
