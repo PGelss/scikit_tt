@@ -1875,7 +1875,7 @@ def tjm_dissipative_operator(L, jump_operator_list, jump_parameter_list, time_st
     # construct dissipative exponential
     cores = [None]*L
     for i in range(L):
-        cores[i] = np.zeros([2,2])
+        cores[i] = np.zeros([2,2], dtype=complex)
         for j in range(len(jump_operator_list[i])):
             cores[i] += (jump_parameter_list[i][j])*jump_operator_list[i][j].conj().T@jump_operator_list[i][j]
         cores[i] = lin.expm(-0.5*time_step*cores[i])[None, :, :, None]
